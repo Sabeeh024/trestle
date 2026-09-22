@@ -1,0 +1,21 @@
+{
+  "name": "trestle",
+  "version": "0.0.0",
+  "private": "true",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.5.1",
+      "onFail": "download"
+    }
+  },
+  "packageManager": "pnpm@12.5.1",
+  "devDependencies": {
+    "turbo": "^2.11.2"
+  }
+}
