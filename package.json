@@ -16,6 +16,7 @@
   },
   "packageManager": "pnpm@12.5.1",
   "devDependencies": {
+    "@types/node": "^20",
     "turbo": "^2.11.2"
   }
 }
