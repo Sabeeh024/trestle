@@ -6,7 +6,8 @@
   "changelog": "@changesets/cli/changelog",
   "commit": false,
   "ignore": [
-    "apps/*"
+    "marketing-app",
+    "web-app"
   ],
   "fixed": [],
   "linked": [],
