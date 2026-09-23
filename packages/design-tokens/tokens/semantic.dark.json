@@ -1,30 +1,30 @@
 {
   "background": {
-    "DEFAULT": { "$value": "{color.gray.900}", "$type": "color" },
-    "subtle": { "$value": "{color.gray.800}", "$type": "color" },
-    "muted": { "$value": "{color.gray.700}", "$type": "color" }
+    "DEFAULT": { "$value": "#121417", "$type": "color" },
+    "subtle": { "$value": "#1b1d20", "$type": "color" },
+    "muted": { "$value": "#27292d", "$type": "color" }
   },
   "text": {
-    "primary": { "$value": "{color.gray.50}", "$type": "color" },
-    "secondary": { "$value": "{color.gray.300}", "$type": "color" },
-    "disabled": { "$value": "{color.gray.600}", "$type": "color" },
-    "inverse": { "$value": "{color.gray.900}", "$type": "color" }
+    "primary": { "$value": "#f0f2f4", "$type": "color" },
+    "secondary": { "$value": "#acaeb2", "$type": "color" },
+    "disabled": { "$value": "#616367", "$type": "color" },
+    "inverse": { "$value": "#0a0b0d", "$type": "color" }
   },
   "border": {
-    "DEFAULT": { "$value": "{color.gray.700}", "$type": "color" },
-    "strong": { "$value": "{color.gray.600}", "$type": "color" }
+    "DEFAULT": { "$value": "#313336", "$type": "color" },
+    "strong": { "$value": "#4a4d52", "$type": "color" }
   },
   "action": {
-    "primary": { "$value": "{color.blue.500}", "$type": "color" },
-    "primaryHover": { "$value": "{color.blue.400}", "$type": "color" },
-    "primaryText": { "$value": "{color.white}", "$type": "color" }
+    "primary": { "$value": "{color.purple.400}", "$type": "color" },
+    "primaryHover": { "$value": "{color.purple.300}", "$type": "color" },
+    "primaryText": { "$value": "#0a0b0d", "$type": "color" }
   },
   "feedback": {
-    "success": { "$value": "{color.green.500}", "$type": "color" },
+    "success": { "$value": "{color.green.400}", "$type": "color" },
     "successBg": { "$value": "{color.green.950}", "$type": "color" },
-    "warning": { "$value": "{color.amber.500}", "$type": "color" },
+    "warning": { "$value": "{color.amber.400}", "$type": "color" },
     "warningBg": { "$value": "{color.amber.950}", "$type": "color" },
-    "danger": { "$value": "{color.red.500}", "$type": "color" },
+    "danger": { "$value": "{color.red.400}", "$type": "color" },
     "dangerBg": { "$value": "{color.red.950}", "$type": "color" }
   }
 }

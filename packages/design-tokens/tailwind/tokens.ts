@@ -53,13 +53,11 @@ function resolveSemantic(node: TokenNode, primitives: Record<string, unknown>): 
 
 const primitives = extractValues(primitivesJson as TokenNode) as {
   color: {
-    blue: Record<string, string>;
-    gray: Record<string, string>;
+    purple: Record<string, string>;
     green: Record<string, string>;
     amber: Record<string, string>;
     red: Record<string, string>;
-    white: string;
-    black: string;
+    categorical: Record<string, { light: string; dark: string }>;
   };
   spacing: Record<string, string>;
   radius: Record<string, string>;
@@ -68,7 +66,6 @@ const primitives = extractValues(primitivesJson as TokenNode) as {
   fontFamily: Record<string, string[]>;
   breakpoints: Record<string, string>;
   lineHeight: Record<string, string>;
-  shadow: Record<string, string>;
   zIndex: Record<string, string>;
 };
 
@@ -104,7 +101,6 @@ export const tokens = {
     fontFamily: primitives.fontFamily,
     breakpoints: primitives.breakpoints,
     lineHeight: primitives.lineHeight,
-    shadow: primitives.shadow,
     zIndex: primitives.zIndex,
   },
   semantic: {

@@ -1,49 +1,56 @@
 {
   "color": {
-    "blue": {
-      "50": { "$value": "#eff6ff", "$type": "color" },
-      "100": { "$value": "#dbeafe", "$type": "color" },
-      "200": { "$value": "#bfdbfe", "$type": "color" },
-      "300": { "$value": "#93c5fd", "$type": "color" },
-      "400": { "$value": "#60a5fa", "$type": "color" },
-      "500": { "$value": "#3b82f6", "$type": "color" },
-      "600": { "$value": "#2563eb", "$type": "color" },
-      "700": { "$value": "#1d4ed8", "$type": "color" },
-      "800": { "$value": "#1e40af", "$type": "color" },
-      "900": { "$value": "#1e3a8a", "$type": "color" }
-    },
-    "gray": {
-      "50": { "$value": "#f9fafb", "$type": "color" },
-      "100": { "$value": "#f3f4f6", "$type": "color" },
-      "200": { "$value": "#e5e7eb", "$type": "color" },
-      "300": { "$value": "#d1d5db", "$type": "color" },
-      "400": { "$value": "#9ca3af", "$type": "color" },
-      "500": { "$value": "#6b7280", "$type": "color" },
-      "600": { "$value": "#4b5563", "$type": "color" },
-      "700": { "$value": "#374151", "$type": "color" },
-      "800": { "$value": "#1f2937", "$type": "color" },
-      "900": { "$value": "#111827", "$type": "color" }
+    "purple": {
+      "300": { "$value": "#bfa0ff", "$type": "color", "$description": "Dark-mode action hover" },
+      "400": { "$value": "#ae89ff", "$type": "color", "$description": "Dark-mode action primary" },
+      "600": { "$value": "#7d51d2", "$type": "color", "$description": "Light-mode action primary (brand)" },
+      "700": { "$value": "#6833bc", "$type": "color", "$description": "Light-mode action hover" }
     },
     "green": {
-      "50": { "$value": "#f0fdf4", "$type": "color" },
-      "500": { "$value": "#22c55e", "$type": "color" },
-      "600": { "$value": "#16a34a", "$type": "color" },
-      "950": { "$value": "#052e16", "$type": "color" }
+      "100": { "$value": "#dff6de", "$type": "color" },
+      "400": { "$value": "#61b565", "$type": "color" },
+      "600": { "$value": "#278733", "$type": "color" },
+      "950": { "$value": "#182f19", "$type": "color" }
     },
     "amber": {
-      "50": { "$value": "#fffbeb", "$type": "color" },
-      "500": { "$value": "#f59e0b", "$type": "color" },
-      "600": { "$value": "#d97706", "$type": "color" },
-      "950": { "$value": "#451a03", "$type": "color" }
+      "100": { "$value": "#ffe9cb", "$type": "color" },
+      "400": { "$value": "#e69c3a", "$type": "color" },
+      "600": { "$value": "#b76c00", "$type": "color" },
+      "950": { "$value": "#412805", "$type": "color" }
     },
     "red": {
-      "50": { "$value": "#fef2f2", "$type": "color" },
-      "500": { "$value": "#ef4444", "$type": "color" },
-      "600": { "$value": "#dc2626", "$type": "color" },
-      "950": { "$value": "#450a0a", "$type": "color" }
+      "100": { "$value": "#ffe5e1", "$type": "color" },
+      "400": { "$value": "#ef6661", "$type": "color" },
+      "600": { "$value": "#c53637", "$type": "color" },
+      "950": { "$value": "#3e1e1c", "$type": "color" }
     },
-    "white": { "$value": "#ffffff", "$type": "color" },
-    "black": { "$value": "#000000", "$type": "color" }
+    "categorical": {
+      "$description": "Decorative, non-semantic accent colors for project/tag color-coding — not tied to light/dark meaning, pick the pair matching the active mode.",
+      "purple": {
+        "light": { "$value": "#7d51d2", "$type": "color" },
+        "dark": { "$value": "#ae89ff", "$type": "color" }
+      },
+      "cyan": {
+        "light": { "$value": "#008994", "$type": "color" },
+        "dark": { "$value": "#00b2bd", "$type": "color" }
+      },
+      "green": {
+        "light": { "$value": "#05893e", "$type": "color" },
+        "dark": { "$value": "#45b164", "$type": "color" }
+      },
+      "orange": {
+        "light": { "$value": "#b9454c", "$type": "color" },
+        "dark": { "$value": "#e66d71", "$type": "color" }
+      },
+      "blue": {
+        "light": { "$value": "#0f74c5", "$type": "color" },
+        "dark": { "$value": "#449df0", "$type": "color" }
+      },
+      "pink": {
+        "light": { "$value": "#9750a7", "$type": "color" },
+        "dark": { "$value": "#c077d1", "$type": "color" }
+      }
+    }
   },
   "spacing": {
     "0": { "$value": "0px", "$type": "dimension" },
@@ -76,7 +83,8 @@
     "xl": { "$value": "20px", "$type": "dimension" },
     "2xl": { "$value": "24px", "$type": "dimension" },
     "3xl": { "$value": "30px", "$type": "dimension" },
-    "4xl": { "$value": "36px", "$type": "dimension" }
+    "4xl": { "$value": "36px", "$type": "dimension" },
+    "5xl": { "$value": "48px", "$type": "dimension", "$description": "Marketing hero/display headline size" }
   },
   "fontWeight": {
     "normal": { "$value": "400", "$type": "fontWeight" },
@@ -85,7 +93,7 @@
     "bold": { "$value": "700", "$type": "fontWeight" }
   },
   "fontFamily": {
-    "sans": { "$value": ["Inter", "system-ui", "sans-serif"], "$type": "fontFamily" }
+    "sans": { "$value": ["Manrope", "system-ui", "sans-serif"], "$type": "fontFamily" }
   },
   "breakpoints": {
     "sm": { "$value": "640px", "$type": "dimension" },
@@ -95,19 +103,11 @@
     "2xl": { "$value": "1536px", "$type": "dimension" }
   },
   "lineHeight": {
-    "none": { "$value": "1", "$type": "number" },
-    "tight": { "$value": "1.25", "$type": "number" },
-    "snug": { "$value": "1.375", "$type": "number" },
-    "normal": { "$value": "1.5", "$type": "number" },
-    "relaxed": { "$value": "1.625", "$type": "number" },
-    "loose": { "$value": "2", "$type": "number" }
-  },
-  "shadow": {
-    "none": { "$value": "none", "$type": "shadow" },
-    "sm": { "$value": "0 1px 2px 0 rgb(0 0 0 / 0.05)", "$type": "shadow" },
-    "md": { "$value": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)", "$type": "shadow" },
-    "lg": { "$value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)", "$type": "shadow" },
-    "xl": { "$value": "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)", "$type": "shadow" }
+    "display": { "$value": "1.1", "$type": "number", "$description": "Marketing hero/display headline" },
+    "heading": { "$value": "1.2", "$type": "number", "$description": "Section headings" },
+    "title": { "$value": "1.3", "$type": "number", "$description": "Compact titles e.g. task detail header" },
+    "body": { "$value": "1.5", "$type": "number", "$description": "Default paragraph / subheadline copy" },
+    "relaxed": { "$value": "1.6", "$type": "number", "$description": "Longer-form paragraphs" }
   },
   "zIndex": {
     "base": { "$value": "0", "$type": "number" },
