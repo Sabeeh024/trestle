@@ -48,7 +48,6 @@ export const tailwindPreset: Partial<Config> = {
       fontWeight: tokens.primitive.fontWeight,
       fontFamily: tokens.primitive.fontFamily,
       lineHeight: tokens.primitive.lineHeight,
-      boxShadow: tokens.primitive.shadow,
       zIndex: tokens.primitive.zIndex,
     },
   },
