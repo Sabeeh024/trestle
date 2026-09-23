@@ -1,0 +1,18 @@
+{
+  "name": "@trestle/design-tokens",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./tailwind": "./tailwind/index.ts",
+    "./tailwind/tokens": "./tailwind/tokens.ts",
+     "./tailwind/theme.css": "./tailwind/theme.css"
+  },
+  "scripts": {
+    "gen:theme": "tsx scripts/generate-theme.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.19.2"
+  }
+}
