@@ -8,7 +8,9 @@
      "./tailwind/theme.css": "./tailwind/theme.css"
   },
   "scripts": {
-    "gen:theme": "tsx scripts/generate-theme.ts"
+    "gen:theme": "tsx scripts/generate-theme.ts",
+       "lint": "eslint",
+    "check-types": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "^20",
