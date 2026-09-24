@@ -6,7 +6,9 @@ import primitivesJson from "../tokens/primitives.json";
 import semanticLightJson from "../tokens/semantic.light.json";
 import semanticDarkJson from "../tokens/semantic.dark.json";
 
-type TokenNode = { $value: unknown; $type?: string; $description?: string } | { [key: string]: TokenNode };
+type TokenLeaf = { $value: unknown; $type?: string; $description?: string };
+type TokenGroup = { [key: string]: TokenNode | string | undefined };
+type TokenNode = TokenLeaf | TokenGroup;
 
 function isTokenLeaf(node: unknown): node is { $value: unknown } {
   return typeof node === "object" && node !== null && "$value" in node;
@@ -29,7 +31,10 @@ function resolveAlias(value: unknown, primitives: Record<string, unknown>): unkn
   const match = value.match(/^\{(.+)\}$/);
   if (!match) return value;
 
-  const path = match[1].split(".");
+  const reference = match[1];
+  if (!reference) return value;
+
+  const path = reference.split(".");
   let current: unknown = primitives;
   for (const segment of path) {
     if (typeof current !== "object" || current === null) {
