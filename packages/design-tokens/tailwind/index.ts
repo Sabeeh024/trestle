@@ -7,39 +7,38 @@ export const tailwindPreset: Partial<Config> = {
     screens: tokens.primitive.breakpoints,
     extend: {
       colors: {
-        // raw primitives still available directly if ever needed (e.g. charts, one-offs)
+        // raw primitives still available directly if ever needed (e.g. one-offs)
         ...tokens.primitive.colors,
 
-        // semantic tokens — these resolve via CSS variables, so they respond to
-        // light/dark mode at runtime without a rebuild. Values for the variables
-        // themselves are defined in globals.css (set up when we wire up apps/web-app).
+        // semantic tokens — full color values held in CSS variables (see theme.css),
+        // so they respond to light/dark mode at runtime without a rebuild.
         background: {
-          DEFAULT: "hsl(var(--background))",
-          subtle: "hsl(var(--background-subtle))",
-          muted: "hsl(var(--background-muted))",
+          DEFAULT: "var(--background)",
+          subtle: "var(--background-subtle)",
+          muted: "var(--background-muted)",
         },
         text: {
-          primary: "hsl(var(--text-primary))",
-          secondary: "hsl(var(--text-secondary))",
-          disabled: "hsl(var(--text-disabled))",
-          inverse: "hsl(var(--text-inverse))",
+          primary: "var(--text-primary)",
+          secondary: "var(--text-secondary)",
+          disabled: "var(--text-disabled)",
+          inverse: "var(--text-inverse)",
         },
         border: {
-          DEFAULT: "hsl(var(--border))",
-          strong: "hsl(var(--border-strong))",
+          DEFAULT: "var(--border)",
+          strong: "var(--border-strong)",
         },
         action: {
-          primary: "hsl(var(--action-primary))",
-          primaryHover: "hsl(var(--action-primary-hover))",
-          primaryText: "hsl(var(--action-primary-text))",
+          primary: "var(--action-primary)",
+          primaryHover: "var(--action-primary-hover)",
+          primaryText: "var(--action-primary-text)",
         },
         feedback: {
-          success: "hsl(var(--feedback-success))",
-          successBg: "hsl(var(--feedback-success-bg))",
-          warning: "hsl(var(--feedback-warning))",
-          warningBg: "hsl(var(--feedback-warning-bg))",
-          danger: "hsl(var(--feedback-danger))",
-          dangerBg: "hsl(var(--feedback-danger-bg))",
+          success: "var(--feedback-success)",
+          successBg: "var(--feedback-success-bg)",
+          warning: "var(--feedback-warning)",
+          warningBg: "var(--feedback-warning-bg)",
+          danger: "var(--feedback-danger)",
+          dangerBg: "var(--feedback-danger-bg)",
         },
       },
       spacing: tokens.primitive.spacing,
