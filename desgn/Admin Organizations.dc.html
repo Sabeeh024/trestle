@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>body{margin:0;font-family:'Manrope',system-ui,sans-serif}a{color:var(--action-primary);text-decoration:none}a:hover{color:var(--action-primary-hover)}</style>
+</helmet>
+<div style="{{themeVars}}background:var(--background);color:var(--text-primary);min-height:100vh;display:flex;font-size:14px">
+
+  <div style="flex:none;width:200px;display:flex;flex-direction:column;gap:2px;padding:12px 8px;background:var(--background-subtle);border-right:1px solid var(--border)">
+    <div style="display:flex;align-items:center;gap:8px;padding:8px;margin-bottom:8px">
+      <div style="width:22px;height:22px;border-radius:4px;background:var(--action-primary);color:var(--action-primary-text);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px">T</div>
+      <span style="font-size:13px;font-weight:700">Trestle Admin</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:4px;color:var(--text-secondary);font-size:13px"><span style="width:14px;height:14px;border-radius:3px;background:var(--text-disabled);opacity:.5;flex:none"></span>Users</div>
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:4px;background:var(--background-muted);color:var(--text-primary);font-size:13px;font-weight:600;border-left:2px solid var(--action-primary);margin-left:-2px"><span style="width:14px;height:14px;border-radius:3px;background:var(--action-primary);flex:none"></span>Organizations</div>
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:4px;color:var(--text-secondary);font-size:13px"><span style="width:14px;height:14px;border-radius:3px;background:var(--text-disabled);opacity:.5;flex:none"></span>Projects</div>
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:4px;color:var(--text-secondary);font-size:13px"><span style="width:14px;height:14px;border-radius:3px;background:var(--text-disabled);opacity:.5;flex:none"></span>Billing</div>
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:4px;color:var(--text-secondary);font-size:13px"><span style="width:14px;height:14px;border-radius:3px;background:var(--text-disabled);opacity:.5;flex:none"></span>Audit Log</div>
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:4px;color:var(--text-secondary);font-size:13px"><span style="width:14px;height:14px;border-radius:3px;background:var(--text-disabled);opacity:.5;flex:none"></span>Settings</div>
+  </div>
+
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <div style="flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 16px;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:13px;font-weight:600;color:var(--text-primary)">Admin Panel</span>
+        <span style="font-size:11px;font-weight:700;color:var(--feedback-warning);background:var(--feedback-warning-bg);border-radius:4px;padding:2px 6px;text-transform:uppercase;letter-spacing:.03em">Staging</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button onclick="{{toggleTheme}}" style="background:transparent;border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-size:11px;font-weight:600;color:var(--text-primary);font-family:inherit;cursor:pointer">{{themeLabel}}</button>
+        <div style="width:22px;height:22px;border-radius:4px;background:var(--background-muted);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">JK</div>
+      </div>
+    </div>
+
+    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+      <div style="flex:none;padding:16px 16px 0;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-disabled)"><span>Admin</span><span>/</span><span style="color:var(--text-primary);font-weight:600">Organizations</span></div>
+      <div style="flex:none;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div style="font-size:20px;font-weight:700">Organizations</div>
+        <button style="background:var(--action-primary);color:var(--action-primary-text);border:none;padding:6px 12px;border-radius:4px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;box-shadow:0 2px 6px oklch(0.55 0.19 295 / 0.3)">+ New organization</button>
+      </div>
+      <div style="flex:none;padding:0 16px 12px">
+        <input placeholder="Search organizations" style="width:280px;padding:6px 10px;border:1px solid var(--border);border-radius:4px;font-size:13px;font-family:inherit;color:var(--text-primary);background:var(--background)">
+      </div>
+
+      <div style="flex:1;overflow:auto;padding:0 16px 16px">
+        <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05)">
+        <table style="width:100%;border-collapse:collapse;min-width:760px">
+          <thead><tr>
+            <th style="text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);padding:10px 12px;border-bottom:1px solid var(--border);background:var(--background-subtle)">Organization ↑</th>
+            <th style="text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);padding:10px 12px;border-bottom:1px solid var(--border);background:var(--background-subtle)">Plan</th>
+            <th style="text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);padding:10px 12px;border-bottom:1px solid var(--border);background:var(--background-subtle)">Members</th>
+            <th style="text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);padding:10px 12px;border-bottom:1px solid var(--border);background:var(--background-subtle)">Status</th>
+            <th style="text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);padding:10px 12px;border-bottom:1px solid var(--border);background:var(--background-subtle)">Created</th>
+            <th style="width:32px;padding:10px 12px;border-bottom:1px solid var(--border);background:var(--background-subtle)"></th>
+          </tr></thead>
+          <tbody>
+            <sc-for list="{{orgs}}" as="o" hint-placeholder-count="6">
+              <tr>
+                <td style="padding:10px 12px;border-bottom:1px solid var(--border);font-weight:600;color:var(--text-primary)">{{o.name}}</td>
+                <td style="padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text-secondary)">{{o.plan}}</td>
+                <td style="padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text-secondary)">{{o.members}}</td>
+                <td style="padding:10px 12px;border-bottom:1px solid var(--border)"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:{{o.statusColor}};background:{{o.statusBg}};border-radius:999px;padding:3px 9px 3px 7px;font-weight:600"><span style="width:6px;height:6px;border-radius:50%;background:{{o.statusColor}}"></span>{{o.status}}</span></td>
+                <td style="padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text-disabled)">{{o.created}}</td>
+                <td style="padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text-disabled);text-align:center">⋯</td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+        <div style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);background:var(--background-subtle)">
+          <span style="font-size:12px;color:var(--text-secondary)">Showing 1–6 of 42 organizations</span>
+          <div style="display:flex;gap:4px">
+            <button style="background:transparent;border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:12px;color:var(--text-disabled);font-family:inherit" disabled>Prev</button>
+            <button style="background:var(--background-muted);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:12px;font-weight:600;color:var(--text-primary);font-family:inherit">1</button>
+            <button style="background:transparent;border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:12px;color:var(--text-secondary);font-family:inherit">2</button>
+            <button style="background:transparent;border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:12px;color:var(--text-primary);font-family:inherit">Next</button>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;dark&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Theme&quot;}}">
+class Component extends DCLogic {
+  state = { dark: this.props.dark ?? false };
+  orgsData = [
+    { name: 'Trestle Labs', plan: 'Enterprise', members: 24, status: 'Active', created: 'Aug 20, 2024' },
+    { name: 'Northwind', plan: 'Pro', members: 18, status: 'Active', created: 'Jan 12, 2025' },
+    { name: 'Fontaine Co.', plan: 'Pro', members: 9, status: 'Active', created: 'Mar 2, 2025' },
+    { name: 'Umbra Labs', plan: 'Free', members: 3, status: 'Trialing', created: 'Sep 19, 2026' },
+    { name: 'Verity', plan: 'Pro', members: 12, status: 'Active', created: 'Feb 8, 2025' },
+    { name: 'Haldane', plan: 'Free', members: 5, status: 'Past due', created: 'Nov 30, 2024' },
+  ];
+  statusStyle(s) {
+    if (s === 'Active') return { color: 'var(--feedback-success)', bg: 'var(--feedback-success-bg)' };
+    if (s === 'Past due') return { color: 'var(--feedback-danger)', bg: 'var(--feedback-danger-bg)' };
+    return { color: 'var(--feedback-warning)', bg: 'var(--feedback-warning-bg)' };
+  }
+  renderVals() {
+    const dark = this.state.dark;
+    const lightVars = '--background:oklch(0.99 0.002 260);--background-subtle:oklch(0.97 0.003 260);--background-muted:oklch(0.94 0.004 260);--text-primary:oklch(0.20 0.01 260);--text-secondary:oklch(0.45 0.01 260);--text-disabled:oklch(0.65 0.01 260);--text-inverse:oklch(0.98 0.002 260);--border:oklch(0.89 0.005 260);--border-strong:oklch(0.78 0.007 260);--action-primary:oklch(0.55 0.19 295);--action-primary-hover:oklch(0.47 0.20 295);--action-primary-text:oklch(0.98 0.002 260);--feedback-success:oklch(0.55 0.15 145);--feedback-success-bg:oklch(0.95 0.04 145);--feedback-warning:oklch(0.60 0.15 70);--feedback-warning-bg:oklch(0.95 0.05 70);--feedback-danger:oklch(0.55 0.18 25);--feedback-danger-bg:oklch(0.95 0.04 25);';
+    const darkVars = '--background:oklch(0.19 0.006 260);--background-subtle:oklch(0.23 0.007 260);--background-muted:oklch(0.28 0.008 260);--text-primary:oklch(0.96 0.003 260);--text-secondary:oklch(0.75 0.006 260);--text-disabled:oklch(0.50 0.006 260);--text-inverse:oklch(0.15 0.005 260);--border:oklch(0.32 0.007 260);--border-strong:oklch(0.42 0.008 260);--action-primary:oklch(0.72 0.18 295);--action-primary-hover:oklch(0.78 0.16 295);--action-primary-text:oklch(0.15 0.005 260);--feedback-success:oklch(0.70 0.14 145);--feedback-success-bg:oklch(0.28 0.05 145);--feedback-warning:oklch(0.75 0.14 70);--feedback-warning-bg:oklch(0.30 0.06 70);--feedback-danger:oklch(0.68 0.17 25);--feedback-danger-bg:oklch(0.28 0.05 25);';
+    const orgs = this.orgsData.map(o => { const s = this.statusStyle(o.status); return { ...o, statusColor: s.color, statusBg: s.bg }; });
+    return {
+      themeVars: dark ? darkVars : lightVars,
+      themeLabel: dark ? '☾ Dark' : '☀ Light',
+      toggleTheme: () => this.setState(s => ({ dark: !s.dark })),
+      orgs,
+    };
+  }
+}
+</script>
+</body>
+</html>

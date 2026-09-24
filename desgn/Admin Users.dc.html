@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Manrope',system-ui,sans-serif}
+a{color:var(--action-primary);text-decoration:none}
+a:hover{color:var(--action-primary-hover)}
+</style>
+</helmet>
+<div style="{{themeVars}}background:var(--background);color:var(--text-primary);min-height:100vh;display:flex;font-size:14px">
+
+  <div style="flex:none;width:200px;display:flex;flex-direction:column;gap:2px;padding:12px 8px;background:var(--background-subtle);border-right:1px solid var(--border)">
+    <div style="display:flex;align-items:center;gap:8px;padding:8px;margin-bottom:8px">
+      <div style="width:22px;height:22px;border-radius:4px;background:var(--action-primary);color:var(--action-primary-text);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px">T</div>
+      <span style="font-size:13px;font-weight:700">Trestle Admin</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:4px;background:var(--background-muted);color:var(--text-primary);font-size:13px;font-weight:600;border-left:2px solid var(--action-primary);margin-left:-2px"><span style="width:14px;height:14px;border-radius:3px;background:var(--action-primary);flex:none"></span>Users</div>
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:4px;color:var(--text-secondary);font-size:13px"><span style="width:14px;height:14px;border-radius:3px;background:var(--text-disabled);opacity:.5;flex:none"></span>Organizations</div>
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:4px;color:var(--text-secondary);font-size:13px"><span style="width:14px;height:14px;border-radius:3px;background:var(--text-disabled);opacity:.5;flex:none"></span>Projects</div>
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:4px;color:var(--text-secondary);font-size:13px"><span style="width:14px;height:14px;border-radius:3px;background:var(--text-disabled);opacity:.5;flex:none"></span>Billing</div>
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:4px;color:var(--text-secondary);font-size:13px"><span style="width:14px;height:14px;border-radius:3px;background:var(--text-disabled);opacity:.5;flex:none"></span>Audit Log</div>
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:4px;color:var(--text-secondary);font-size:13px"><span style="width:14px;height:14px;border-radius:3px;background:var(--text-disabled);opacity:.5;flex:none"></span>Settings</div>
+  </div>
+
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+
+    <div style="flex:none;height:44px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 16px;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:13px;font-weight:600;color:var(--text-primary)">Admin Panel</span>
+        <span style="font-size:11px;font-weight:700;color:var(--feedback-warning);background:var(--feedback-warning-bg);border-radius:4px;padding:2px 6px;text-transform:uppercase;letter-spacing:.03em">Staging</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button onclick="{{toggleTheme}}" style="background:transparent;border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-size:11px;font-weight:600;color:var(--text-primary);font-family:inherit;cursor:pointer">{{themeLabel}}</button>
+        <div style="width:22px;height:22px;border-radius:4px;background:var(--background-muted);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">JK</div>
+      </div>
+    </div>
+
+    <div style="flex:1;display:flex;min-height:0;overflow:hidden">
+
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden">
+
+        <div style="flex:none;padding:16px 16px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-disabled)"><span>Admin</span><span>/</span><span style="color:var(--text-primary);font-weight:600">Users</span></div>
+        </div>
+
+        <div style="flex:none;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div style="font-size:20px;font-weight:700">Users</div>
+          <button style="background:var(--action-primary);color:var(--action-primary-text);border:none;padding:6px 12px;border-radius:4px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;box-shadow:0 2px 6px oklch(0.55 0.19 295 / 0.3)">+ Invite user</button>
+        </div>
+
+        <div style="flex:none;padding:0 16px 12px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input placeholder="Search by name or email" style="flex:1;min-width:200px;padding:6px 10px;border:1px solid var(--border);border-radius:4px;font-size:13px;font-family:inherit;color:var(--text-primary);background:var(--background)">
+            <select style="padding:6px 10px;border:1px solid var(--border);border-radius:4px;font-size:13px;font-family:inherit;color:var(--text-primary);background:var(--background)"><option>All roles</option></select>
+            <select style="padding:6px 10px;border:1px solid var(--border);border-radius:4px;font-size:13px;font-family:inherit;color:var(--text-primary);background:var(--background)"><option>All statuses</option></select>
+          </div>
+          <sc-if value="{{hasFilters}}" hint-placeholder-val="{{false}}">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);background:var(--background-muted);border-radius:4px;padding:3px 8px">Status: Active <span style="cursor:pointer;font-weight:700">✕</span></span>
+              <span style="font-size:12px;color:var(--action-primary);cursor:pointer" onclick="{{clearFilters}}">Clear all</span>
+            </div>
+          </sc-if>
+        </div>
+
+        <sc-if value="{{hasSelection}}" hint-placeholder-val="{{false}}">
+          <div style="flex:none;margin:0 16px 12px;padding:8px 12px;background:var(--background-muted);border:1px solid var(--border-strong);border-radius:4px;display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:13px;font-weight:600;color:var(--text-primary)">{{selectedCount}} selected</span>
+            <div style="display:flex;gap:8px">
+              <button style="background:transparent;border:1px solid var(--border);border-radius:4px;padding:5px 10px;font-size:12px;font-weight:600;color:var(--text-primary);font-family:inherit;cursor:pointer">Suspend</button>
+              <button style="background:transparent;border:1px solid var(--feedback-danger);border-radius:4px;padding:5px 10px;font-size:12px;font-weight:600;color:var(--feedback-danger);font-family:inherit;cursor:pointer">Delete</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <div style="flex:1;overflow:auto;padding:0 16px 16px">
+          <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05)">
+          <table style="width:100%;border-collapse:collapse;min-width:820px">
+            <thead>
+              <tr>
+                <th style="width:32px;padding:10px 12px;border-bottom:1px solid var(--border);background:var(--background-subtle)"><input type="checkbox" checked="{{allSelected}}" onchange="{{toggleAll}}"></th>
+                <th style="text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);padding:10px 12px;border-bottom:1px solid var(--border);background:var(--background-subtle);cursor:pointer">Name ↑</th>
+                <th style="text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);padding:10px 12px;border-bottom:1px solid var(--border);background:var(--background-subtle)">Email</th>
+                <th style="text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);padding:10px 12px;border-bottom:1px solid var(--border);background:var(--background-subtle)">Organization</th>
+                <th style="text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);padding:10px 12px;border-bottom:1px solid var(--border);background:var(--background-subtle)">Role</th>
+                <th style="text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);padding:10px 12px;border-bottom:1px solid var(--border);background:var(--background-subtle)">Status</th>
+                <th style="text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);padding:10px 12px;border-bottom:1px solid var(--border);background:var(--background-subtle)">Joined</th>
+                <th style="width:32px;padding:10px 12px;border-bottom:1px solid var(--border);background:var(--background-subtle)"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{users}}" as="u" hint-placeholder-count="8">
+                <tr style="cursor:pointer;background:{{u.rowBg}}" onclick="{{u.openDetail}}">
+                  <td style="padding:10px 12px;border-bottom:1px solid var(--border)" onclick="{{u.stop}}"><input type="checkbox" checked="{{u.selected}}" onchange="{{u.toggleSelect}}"></td>
+                  <td style="padding:10px 12px;border-bottom:1px solid var(--border)"><div style="display:flex;align-items:center;gap:8px"><div style="width:24px;height:24px;flex:none;border-radius:50%;background:var(--background-muted);color:var(--text-secondary);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1px solid var(--border)">{{u.initials}}</div><span style="font-weight:600;color:var(--text-primary)">{{u.name}}</span></div></td>
+                  <td style="padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text-secondary)">{{u.email}}</td>
+                  <td style="padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text-secondary)">{{u.org}}</td>
+                  <td style="padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text-secondary)">{{u.role}}</td>
+                  <td style="padding:10px 12px;border-bottom:1px solid var(--border)"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:{{u.statusColor}};background:{{u.statusBg}};border-radius:999px;padding:3px 9px 3px 7px;font-weight:600"><span style="width:6px;height:6px;border-radius:50%;background:{{u.statusColor}}"></span>{{u.status}}</span></td>
+                  <td style="padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text-disabled)">{{u.joined}}</td>
+                  <td style="padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text-disabled);text-align:center">⋯</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+          <div style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);background:var(--background-subtle)">
+            <span style="font-size:12px;color:var(--text-secondary)">Showing 1–8 of 214 users</span>
+            <div style="display:flex;gap:4px">
+              <button style="background:transparent;border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:12px;color:var(--text-disabled);font-family:inherit" disabled>Prev</button>
+              <button style="background:var(--background-muted);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:12px;font-weight:600;color:var(--text-primary);font-family:inherit">1</button>
+              <button style="background:transparent;border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:12px;color:var(--text-secondary);font-family:inherit">2</button>
+              <button style="background:transparent;border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:12px;color:var(--text-secondary);font-family:inherit">3</button>
+              <button style="background:transparent;border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:12px;color:var(--text-primary);font-family:inherit">Next</button>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+
+      <sc-if value="{{panelOpen}}" hint-placeholder-val="{{false}}">
+        <div style="flex:none;width:340px;border-left:1px solid var(--border);background:var(--background-subtle);display:flex;flex-direction:column;overflow-y:auto">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)">
+            <span style="font-size:13px;font-weight:600;color:var(--text-primary)">User detail</span>
+            <span style="cursor:pointer;color:var(--text-secondary);font-size:14px" onclick="{{closePanel}}">✕</span>
+          </div>
+          <div style="padding:16px;display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:40px;height:40px;border-radius:50%;background:var(--background-muted);color:var(--text-secondary);font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center">{{selectedUser.initials}}</div>
+              <div><div style="font-size:15px;font-weight:700;color:var(--text-primary)">{{selectedUser.name}}</div><div style="font-size:12px;color:var(--text-secondary)">{{selectedUser.email}}</div></div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:90px 1fr;gap:10px;font-size:13px">
+              <span style="color:var(--text-secondary)">Status</span>
+              <span style="display:inline-flex;align-items:center;gap:6px;color:{{selectedUser.statusColor}};background:{{selectedUser.statusBg}};border-radius:999px;padding:3px 9px 3px 7px;font-weight:600;width:fit-content"><span style="width:6px;height:6px;border-radius:50%;background:{{selectedUser.statusColor}}"></span>{{selectedUser.status}}</span>
+              <span style="color:var(--text-secondary)">Organization</span><span style="color:var(--text-primary)">{{selectedUser.org}}</span>
+              <span style="color:var(--text-secondary)">Role</span><span style="color:var(--text-primary)">{{selectedUser.role}}</span>
+              <span style="color:var(--text-secondary)">Joined</span><span style="color:var(--text-primary)">{{selectedUser.joined}}</span>
+              <span style="color:var(--text-secondary)">Last active</span><span style="color:var(--text-primary)">{{selectedUser.lastActive}}</span>
+              <span style="color:var(--text-secondary)">User ID</span><span style="color:var(--text-disabled);font-family:monospace;font-size:12px">{{selectedUser.id}}</span>
+            </div>
+
+            <div style="border-top:1px solid var(--border);padding-top:16px;display:flex;flex-direction:column;gap:8px">
+              <button style="background:transparent;border:1px solid var(--border);border-radius:4px;padding:8px;font-size:13px;font-weight:600;color:var(--text-primary);font-family:inherit;cursor:pointer;text-align:left">Reset password</button>
+              <button style="background:transparent;border:1px solid var(--border);border-radius:4px;padding:8px;font-size:13px;font-weight:600;color:var(--text-primary);font-family:inherit;cursor:pointer;text-align:left">Change role</button>
+              <button style="background:transparent;border:1px solid var(--feedback-warning);border-radius:4px;padding:8px;font-size:13px;font-weight:600;color:var(--feedback-warning);font-family:inherit;cursor:pointer;text-align:left" onclick="{{openConfirm}}">Suspend user</button>
+              <button style="background:transparent;border:1px solid var(--feedback-danger);border-radius:4px;padding:8px;font-size:13px;font-weight:600;color:var(--feedback-danger);font-family:inherit;cursor:pointer;text-align:left">Delete user</button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+
+  <sc-if value="{{confirmOpen}}" hint-placeholder-val="{{false}}">
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:50" onclick="{{closeConfirm}}">
+      <div style="background:var(--background);border-radius:6px;border:1px solid var(--border);width:360px;padding:20px;display:flex;flex-direction:column;gap:16px;box-shadow:0 8px 32px rgba(0,0,0,.2)" onclick="{{stopClick}}">
+        <div style="font-size:15px;font-weight:700;color:var(--text-primary)">Suspend {{selectedUser.name}}?</div>
+        <div style="font-size:13px;color:var(--text-secondary);line-height:1.5">This will immediately revoke their access to all workspaces. They can be reinstated later.</div>
+        <div style="display:flex;justify-content:flex-end;gap:8px">
+          <button style="background:transparent;border:1px solid var(--border);border-radius:4px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--text-primary);font-family:inherit;cursor:pointer" onclick="{{closeConfirm}}">Cancel</button>
+          <button style="background:var(--feedback-danger);border:none;border-radius:4px;padding:6px 12px;font-size:13px;font-weight:600;color:white;font-family:inherit;cursor:pointer" onclick="{{closeConfirm}}">Suspend</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;dark&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Theme&quot;}}">
+class Component extends DCLogic {
+  state = {
+    dark: this.props.dark ?? false,
+    selected: [1],
+    detailId: 1,
+    panelOpen: true,
+    confirmOpen: false,
+  };
+
+  usersData = [
+    { id: 1, name: 'Alex Kim', email: 'alex.kim@northwind.io', org: 'Northwind', role: 'Admin', status: 'Active', joined: 'Jan 14, 2025', lastActive: '2h ago' },
+    { id: 2, name: 'Maya Patel', email: 'maya@fontaineco.com', org: 'Fontaine Co.', role: 'Member', status: 'Active', joined: 'Mar 2, 2025', lastActive: '10m ago' },
+    { id: 3, name: 'Jordan Kim', email: 'jordan.kim@trestle.io', org: 'Trestle Labs', role: 'Owner', status: 'Active', joined: 'Aug 20, 2024', lastActive: 'Just now' },
+    { id: 4, name: 'Sam Rivera', email: 'sam.r@umbralabs.dev', org: 'Umbra Labs', role: 'Member', status: 'Invited', joined: 'Sep 19, 2026', lastActive: '—' },
+    { id: 5, name: 'Priya Nair', email: 'priya@verity.app', org: 'Verity', role: 'Admin', status: 'Active', joined: 'Feb 8, 2025', lastActive: '1d ago' },
+    { id: 6, name: 'Tom Baker', email: 'tom.baker@haldane.co', org: 'Haldane', role: 'Member', status: 'Suspended', joined: 'Nov 30, 2024', lastActive: '3w ago' },
+    { id: 7, name: 'Elena Cho', email: 'elena.cho@northwind.io', org: 'Northwind', role: 'Member', status: 'Active', joined: 'Apr 17, 2025', lastActive: '4h ago' },
+    { id: 8, name: 'Noah Williams', email: 'noah@fontaineco.com', org: 'Fontaine Co.', role: 'Viewer', status: 'Invited', joined: 'Sep 21, 2026', lastActive: '—' },
+  ];
+
+  statusStyle(status) {
+    if (status === 'Active') return { color: 'var(--feedback-success)', bg: 'var(--feedback-success-bg)' };
+    if (status === 'Suspended') return { color: 'var(--feedback-danger)', bg: 'var(--feedback-danger-bg)' };
+    return { color: 'var(--feedback-warning)', bg: 'var(--feedback-warning-bg)' };
+  }
+
+  initials(name) { return name.split(' ').map(n => n[0]).join('').toUpperCase(); }
+
+  renderVals() {
+    const dark = this.state.dark;
+    const lightVars = '--background:oklch(0.99 0.002 260);--background-subtle:oklch(0.97 0.003 260);--background-muted:oklch(0.94 0.004 260);--text-primary:oklch(0.20 0.01 260);--text-secondary:oklch(0.45 0.01 260);--text-disabled:oklch(0.65 0.01 260);--text-inverse:oklch(0.98 0.002 260);--border:oklch(0.89 0.005 260);--border-strong:oklch(0.78 0.007 260);--action-primary:oklch(0.55 0.19 295);--action-primary-hover:oklch(0.47 0.20 295);--action-primary-text:oklch(0.98 0.002 260);--feedback-success:oklch(0.55 0.15 145);--feedback-success-bg:oklch(0.95 0.04 145);--feedback-warning:oklch(0.60 0.15 70);--feedback-warning-bg:oklch(0.95 0.05 70);--feedback-danger:oklch(0.55 0.18 25);--feedback-danger-bg:oklch(0.95 0.04 25);';
+    const darkVars = '--background:oklch(0.19 0.006 260);--background-subtle:oklch(0.23 0.007 260);--background-muted:oklch(0.28 0.008 260);--text-primary:oklch(0.96 0.003 260);--text-secondary:oklch(0.75 0.006 260);--text-disabled:oklch(0.50 0.006 260);--text-inverse:oklch(0.15 0.005 260);--border:oklch(0.32 0.007 260);--border-strong:oklch(0.42 0.008 260);--action-primary:oklch(0.72 0.18 295);--action-primary-hover:oklch(0.78 0.16 295);--action-primary-text:oklch(0.15 0.005 260);--feedback-success:oklch(0.70 0.14 145);--feedback-success-bg:oklch(0.28 0.05 145);--feedback-warning:oklch(0.75 0.14 70);--feedback-warning-bg:oklch(0.30 0.06 70);--feedback-danger:oklch(0.68 0.17 25);--feedback-danger-bg:oklch(0.28 0.05 25);';
+
+    const users = this.usersData.map(u => {
+      const s = this.statusStyle(u.status);
+      const selected = this.state.selected.includes(u.id);
+      return {
+        ...u,
+        initials: this.initials(u.name),
+        statusColor: s.color,
+        statusBg: s.bg,
+        selected,
+        rowBg: selected ? 'var(--background-muted)' : 'transparent',
+        toggleSelect: (e) => { e.stopPropagation(); this.setState(st => ({ selected: st.selected.includes(u.id) ? st.selected.filter(id => id !== u.id) : [...st.selected, u.id] })); },
+        stop: (e) => e.stopPropagation(),
+        openDetail: () => this.setState({ detailId: u.id, panelOpen: true }),
+      };
+    });
+
+    const selUserRaw = this.usersData.find(u => u.id === this.state.detailId) || this.usersData[0];
+    const selS = this.statusStyle(selUserRaw.status);
+    const selectedUser = { ...selUserRaw, initials: this.initials(selUserRaw.name), statusColor: selS.color, statusBg: selS.bg, id: 'usr_' + String(selUserRaw.id).padStart(6, '0') };
+
+    return {
+      themeVars: dark ? darkVars : lightVars,
+      themeLabel: dark ? '☾ Dark' : '☀ Light',
+      toggleTheme: () => this.setState(s => ({ dark: !s.dark })),
+      users,
+      hasSelection: this.state.selected.length > 0,
+      selectedCount: this.state.selected.length,
+      allSelected: this.state.selected.length === this.usersData.length,
+      toggleAll: () => this.setState(s => ({ selected: s.selected.length === this.usersData.length ? [] : this.usersData.map(u => u.id) })),
+      hasFilters: false,
+      clearFilters: () => {},
+      panelOpen: this.state.panelOpen,
+      closePanel: () => this.setState({ panelOpen: false }),
+      selectedUser,
+      confirmOpen: this.state.confirmOpen,
+      openConfirm: () => this.setState({ confirmOpen: true }),
+      closeConfirm: () => this.setState({ confirmOpen: false }),
+      stopClick: (e) => e.stopPropagation(),
+    };
+  }
+}
+</script>
+</body>
+</html>

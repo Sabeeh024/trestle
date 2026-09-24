@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>body{margin:0;font-family:'Manrope',system-ui,sans-serif;background:#f4f4f5}</style>
+</helmet>
+<div style="max-width:1600px;margin:0 auto;padding:40px 24px 96px;display:flex;flex-direction:column;gap:48px">
+
+<div style="display:flex;flex-direction:column;gap:4px">
+<div style="font-size:20px;font-weight:700;color:#18181b">Trestle — Dashboard / Home</div>
+<div style="font-size:14px;color:#71717a">Persistent sidebar + top bar + main content, shown in light and dark mode. Sidebar collapse and table density are tweakable in the panel.</div>
+</div>
+
+<!-- LIGHT -->
+<div style="display:flex;flex-direction:column;border-radius:12px;overflow:hidden;border:1px solid #e4e4e7;box-shadow:0 1px 3px rgba(0,0,0,.06);--background:oklch(0.99 0.002 260);--background-subtle:oklch(0.97 0.003 260);--background-muted:oklch(0.94 0.004 260);--text-primary:oklch(0.20 0.01 260);--text-secondary:oklch(0.45 0.01 260);--text-disabled:oklch(0.65 0.01 260);--text-inverse:oklch(0.98 0.002 260);--border:oklch(0.89 0.005 260);--border-strong:oklch(0.78 0.007 260);--action-primary:oklch(0.55 0.19 295);--action-primary-hover:oklch(0.47 0.20 295);--action-primary-text:oklch(0.98 0.002 260);--feedback-success:oklch(0.55 0.15 145);--feedback-success-bg:oklch(0.95 0.04 145);--feedback-warning:oklch(0.60 0.15 70);--feedback-warning-bg:oklch(0.95 0.05 70);--feedback-danger:oklch(0.55 0.18 25);--feedback-danger-bg:oklch(0.95 0.04 25);background:var(--background)">
+  <div style="padding:8px 16px;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-secondary);background:var(--background-subtle);border-bottom:1px solid var(--border)">Light</div>
+  <div style="display:flex;min-height:820px">
+
+    <!-- SIDEBAR -->
+    <div style="flex:none;width:{{sidebarWidth}}px;display:flex;flex-direction:column;gap:4px;padding:16px 12px;background:var(--background-subtle);border-right:1px solid var(--border);transition:width .15s ease">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;margin-bottom:8px">
+        <div style="width:28px;height:28px;flex:none;border-radius:8px;background:var(--action-primary);color:var(--action-primary-text);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">T</div>
+        <sc-if value="{{expanded}}" hint-placeholder-val="{{true}}">
+          <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">
+            <span style="font-size:14px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden">Trestle Labs</span>
+            <div style="width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid var(--text-secondary);margin-left:auto"></div>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:var(--background-muted);color:var(--text-primary);font-size:14px;font-weight:600;border-left:3px solid var(--action-primary);margin-left:-3px">
+        <div style="width:16px;height:16px;flex:none;border-radius:4px;background:var(--action-primary)"></div>
+        <sc-if value="{{expanded}}" hint-placeholder-val="{{true}}"><span style="white-space:nowrap;overflow:hidden">Home</span></sc-if>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:var(--text-secondary);font-size:14px">
+        <div style="width:16px;height:16px;flex:none;border-radius:4px;background:var(--text-disabled);opacity:.6"></div>
+        <sc-if value="{{expanded}}" hint-placeholder-val="{{true}}"><span style="white-space:nowrap;overflow:hidden">My Tasks</span></sc-if>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:var(--text-secondary);font-size:14px">
+        <div style="width:16px;height:16px;flex:none;border-radius:4px;background:var(--text-disabled);opacity:.6"></div>
+        <sc-if value="{{expanded}}" hint-placeholder-val="{{true}}"><span style="white-space:nowrap;overflow:hidden">Projects</span></sc-if>
+      </div>
+      <sc-if value="{{expanded}}" hint-placeholder-val="{{true}}">
+        <div style="display:flex;flex-direction:column;gap:2px;margin:2px 0 6px 26px">
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;color:var(--text-secondary);font-size:13px">
+            <div style="width:6px;height:6px;border-radius:50%;background:oklch(0.55 0.19 295);flex:none"></div>
+            <span style="white-space:nowrap;overflow:hidden">Website Redesign</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;color:var(--text-secondary);font-size:13px">
+            <div style="width:6px;height:6px;border-radius:50%;background:oklch(0.55 0.15 200);flex:none"></div>
+            <span style="white-space:nowrap;overflow:hidden">Mobile App v2</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;color:var(--text-secondary);font-size:13px">
+            <div style="width:6px;height:6px;border-radius:50%;background:oklch(0.55 0.15 150);flex:none"></div>
+            <span style="white-space:nowrap;overflow:hidden">Q3 Marketing Campaign</span>
+          </div>
+        </div>
+      </sc-if>
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:var(--text-secondary);font-size:14px">
+        <div style="width:16px;height:16px;flex:none;border-radius:4px;background:var(--text-disabled);opacity:.6"></div>
+        <sc-if value="{{expanded}}" hint-placeholder-val="{{true}}"><span style="white-space:nowrap;overflow:hidden">Settings</span></sc-if>
+      </div>
+
+      <div style="margin-top:auto;border-top:1px solid var(--border);padding-top:12px;display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;flex:none;border-radius:50%;background:var(--background-muted);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">JK</div>
+        <sc-if value="{{expanded}}" hint-placeholder-val="{{true}}">
+          <div style="display:flex;flex-direction:column;min-width:0">
+            <span style="font-size:13px;font-weight:500;color:var(--text-primary);white-space:nowrap;overflow:hidden">Jordan Kim</span>
+            <span style="font-size:12px;color:var(--text-disabled);white-space:nowrap;overflow:hidden">Product Designer</span>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+      <div style="flex:none;height:56px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 24px;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:6px;font-size:14px;flex:none">
+          <span style="color:var(--text-disabled)">Trestle Labs</span>
+          <span style="color:var(--text-disabled)">/</span>
+          <span style="color:var(--text-primary);font-weight:600">Dashboard</span>
+        </div>
+        <div style="flex:1;max-width:360px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;border-radius:8px;background:var(--background-muted)">
+          <span style="font-size:14px;color:var(--text-disabled)">Search or jump to...</span>
+          <span style="font-size:11px;font-weight:600;color:var(--text-disabled);border:1px solid var(--border-strong);border-radius:4px;padding:1px 5px">⌘K</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;flex:none">
+          <div style="width:18px;height:18px;border-radius:50%;border:1.5px solid var(--text-secondary)"></div>
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--background-muted);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">JK</div>
+        </div>
+      </div>
+
+      <div style="flex:1;padding:32px;display:flex;flex-direction:column;gap:{{sectionGap}}px">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:24px;font-weight:700;color:var(--text-primary)">Good afternoon, Jordan</div>
+            <div style="font-size:14px;color:var(--text-secondary);margin-top:4px">Here's what's happening across your projects.</div>
+          </div>
+          <button style="background:var(--action-primary);color:var(--action-primary-text);border:none;padding:8px 16px;border-radius:8px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;box-shadow:0 2px 8px oklch(0.55 0.19 295 / 0.35)">+ New Task</button>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between">
+            <div style="font-size:18px;font-weight:600;color:var(--text-primary)">Recent Projects</div>
+            <div style="font-size:14px;color:var(--text-secondary);cursor:pointer">View all</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px">
+
+            <div style="background:var(--background-subtle);border:1px solid var(--border);border-radius:12px;padding:{{cardPad}};display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:32px;height:32px;flex:none;border-radius:8px;background:oklch(0.55 0.19 295)"></div>
+                <div style="min-width:0">
+                  <div style="font-size:16px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Website Redesign</div>
+                  <div style="font-size:13px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Homepage, pricing, and blog templates</div>
+                </div>
+              </div>
+              <div>
+                <div style="height:6px;border-radius:999px;background:var(--background-muted)"><div style="height:100%;width:72%;border-radius:999px;background:var(--action-primary)"></div></div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:6px">72% complete</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto">
+                <div style="display:flex">
+                  <div style="width:20px;height:20px;border-radius:50%;background:var(--background-muted);color:var(--text-secondary);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--background-subtle)">AK</div>
+                  <div style="width:20px;height:20px;border-radius:50%;background:var(--background-muted);color:var(--text-secondary);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--background-subtle);margin-left:-8px">MP</div>
+                  <div style="width:20px;height:20px;border-radius:50%;background:var(--background-muted);color:var(--text-secondary);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--background-subtle);margin-left:-8px">JS</div>
+                </div>
+                <div style="font-size:12px;color:var(--text-disabled)">Updated 2h ago</div>
+              </div>
+            </div>
+
+            <div style="background:var(--background-subtle);border:1px solid var(--border);border-radius:12px;padding:{{cardPad}};display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:32px;height:32px;flex:none;border-radius:8px;background:oklch(0.55 0.15 200)"></div>
+                <div style="min-width:0">
+                  <div style="font-size:16px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Mobile App v2</div>
+                  <div style="font-size:13px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Native app redesign for iOS/Android</div>
+                </div>
+              </div>
+              <div>
+                <div style="height:6px;border-radius:999px;background:var(--background-muted)"><div style="height:100%;width:45%;border-radius:999px;background:var(--action-primary)"></div></div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:6px">45% complete</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto">
+                <div style="display:flex">
+                  <div style="width:20px;height:20px;border-radius:50%;background:var(--background-muted);color:var(--text-secondary);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--background-subtle)">MP</div>
+                  <div style="width:20px;height:20px;border-radius:50%;background:var(--background-muted);color:var(--text-secondary);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--background-subtle);margin-left:-8px">JK</div>
+                </div>
+                <div style="font-size:12px;color:var(--text-disabled)">Updated 5h ago</div>
+              </div>
+            </div>
+
+            <div style="background:var(--background-subtle);border:1px solid var(--border);border-radius:12px;padding:{{cardPad}};display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:32px;height:32px;flex:none;border-radius:8px;background:oklch(0.55 0.15 150)"></div>
+                <div style="min-width:0">
+                  <div style="font-size:16px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Q3 Marketing Campaign</div>
+                  <div style="font-size:13px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Launch campaign for Q3 product push</div>
+                </div>
+              </div>
+              <div>
+                <div style="height:6px;border-radius:999px;background:var(--background-muted)"><div style="height:100%;width:90%;border-radius:999px;background:var(--action-primary)"></div></div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:6px">90% complete</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto">
+                <div style="display:flex">
+                  <div style="width:20px;height:20px;border-radius:50%;background:var(--background-muted);color:var(--text-secondary);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--background-subtle)">JS</div>
+                </div>
+                <div style="font-size:12px;color:var(--text-disabled)">Updated 1d ago</div>
+              </div>
+            </div>
+
+            <div style="background:var(--background-subtle);border:1px solid var(--border);border-radius:12px;padding:{{cardPad}};display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:32px;height:32px;flex:none;border-radius:8px;background:oklch(0.55 0.15 20)"></div>
+                <div style="min-width:0">
+                  <div style="font-size:16px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">API Migration</div>
+                  <div style="font-size:13px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Migrating auth to new identity provider</div>
+                </div>
+              </div>
+              <div>
+                <div style="height:6px;border-radius:999px;background:var(--background-muted)"><div style="height:100%;width:30%;border-radius:999px;background:var(--action-primary)"></div></div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:6px">30% complete</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto">
+                <div style="display:flex">
+                  <div style="width:20px;height:20px;border-radius:50%;background:var(--background-muted);color:var(--text-secondary);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--background-subtle)">AK</div>
+                  <div style="width:20px;height:20px;border-radius:50%;background:var(--background-muted);color:var(--text-secondary);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--background-subtle);margin-left:-8px">JK</div>
+                </div>
+                <div style="font-size:12px;color:var(--text-disabled)">Updated 3d ago</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <div style="font-size:18px;font-weight:600;color:var(--text-primary)">My Tasks</div>
+            <div style="display:flex;gap:4px;background:var(--background-muted);padding:4px;border-radius:8px">
+              <div style="padding:6px 12px;border-radius:6px;font-size:13px;font-weight:600;background:var(--background);color:var(--text-primary);box-shadow:0 1px 2px rgba(0,0,0,.06)">All</div>
+              <div style="padding:6px 12px;border-radius:6px;font-size:13px;color:var(--text-secondary)">Today</div>
+              <div style="padding:6px 12px;border-radius:6px;font-size:13px;color:var(--text-secondary)">Upcoming</div>
+            </div>
+          </div>
+
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;min-width:640px">
+              <thead>
+                <tr>
+                  <th style="width:32px;padding:{{rowPad}};border-bottom:1px solid var(--border)"></th>
+                  <th style="text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);padding:{{rowPad}};border-bottom:1px solid var(--border)">Task</th>
+                  <th style="text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);padding:{{rowPad}};border-bottom:1px solid var(--border)">Project</th>
+                  <th style="text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);padding:{{rowPad}};border-bottom:1px solid var(--border)">Priority</th>
+                  <th style="text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);padding:{{rowPad}};border-bottom:1px solid var(--border)">Due</th>
+                  <th style="text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);padding:{{rowPad}};border-bottom:1px solid var(--border)">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><div style="width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border-strong)"></div></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border);font-size:14px;color:var(--text-primary)">Fix login bug on Safari</td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--text-secondary);background:var(--background-muted);border-radius:4px;padding:2px 8px">Mobile App v2</span></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--feedback-danger);background:var(--feedback-danger-bg);border-radius:999px;padding:3px 8px 3px 6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--feedback-danger)"></span>Urgent</span></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border);font-size:14px;color:var(--text-secondary)">Sep 23</td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);background:var(--background-muted);border-radius:999px;padding:3px 8px 3px 6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--text-disabled)"></span>Todo</span></td>
+                </tr>
+                <tr>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><div style="width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border-strong)"></div></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border);font-size:14px;color:var(--text-primary)">Redesign onboarding flow</td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--text-secondary);background:var(--background-muted);border-radius:4px;padding:2px 8px">Website Redesign</span></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--feedback-warning);background:var(--feedback-warning-bg);border-radius:999px;padding:3px 8px 3px 6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--feedback-warning)"></span>High</span></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border);font-size:14px;color:var(--text-secondary)">Sep 25</td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--action-primary);background:var(--background-muted);border-radius:999px;padding:3px 8px 3px 6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--action-primary)"></span>In Progress</span></td>
+                </tr>
+                <tr>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><div style="width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border-strong)"></div></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border);font-size:14px;color:var(--text-primary)">Migrate auth service</td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--text-secondary);background:var(--background-muted);border-radius:4px;padding:2px 8px">API Migration</span></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--feedback-warning);background:var(--feedback-warning-bg);border-radius:999px;padding:3px 8px 3px 6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--feedback-warning)"></span>High</span></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border);font-size:14px;color:var(--text-secondary)">Oct 2</td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--action-primary);background:var(--background-muted);border-radius:999px;padding:3px 8px 3px 6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--action-primary)"></span>In Progress</span></td>
+                </tr>
+                <tr>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><div style="width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border-strong)"></div></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border);font-size:14px;color:var(--text-primary)">Write Q3 campaign brief</td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--text-secondary);background:var(--background-muted);border-radius:4px;padding:2px 8px">Q3 Marketing Campaign</span></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);background:var(--background-muted);border-radius:999px;padding:3px 8px 3px 6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--border-strong)"></span>Medium</span></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border);font-size:14px;color:var(--text-secondary)">Sep 30</td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);background:var(--background-muted);border-radius:999px;padding:3px 8px 3px 6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--text-disabled)"></span>Todo</span></td>
+                </tr>
+                <tr>
+                  <td style="padding:{{rowPad}}"><div style="position:relative;width:16px;height:16px;border-radius:4px;background:var(--feedback-success)"><div style="position:absolute;left:3px;top:7px;width:5px;height:2px;background:var(--text-inverse);transform:rotate(45deg);border-radius:1px"></div><div style="position:absolute;left:6px;top:3px;width:8px;height:2px;background:var(--text-inverse);transform:rotate(-45deg);border-radius:1px"></div></div></td>
+                  <td style="padding:{{rowPad}};font-size:14px;color:var(--text-disabled);text-decoration:line-through">Review PR #482</td>
+                  <td style="padding:{{rowPad}}"><span style="font-size:12px;color:var(--text-secondary);background:var(--background-muted);border-radius:4px;padding:2px 8px">Mobile App v2</span></td>
+                  <td style="padding:{{rowPad}}"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--feedback-success);background:var(--feedback-success-bg);border-radius:999px;padding:3px 8px 3px 6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--feedback-success)"></span>Low</span></td>
+                  <td style="padding:{{rowPad}};font-size:14px;color:var(--text-disabled)">Sep 24</td>
+                  <td style="padding:{{rowPad}}"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--feedback-success);background:var(--feedback-success-bg);border-radius:999px;padding:3px 8px 3px 6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--feedback-success)"></span>Done</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DARK -->
+<div style="display:flex;flex-direction:column;border-radius:12px;overflow:hidden;border:1px solid oklch(0.32 0.007 260);box-shadow:0 1px 3px rgba(0,0,0,.3);--background:oklch(0.19 0.006 260);--background-subtle:oklch(0.23 0.007 260);--background-muted:oklch(0.28 0.008 260);--text-primary:oklch(0.96 0.003 260);--text-secondary:oklch(0.75 0.006 260);--text-disabled:oklch(0.50 0.006 260);--text-inverse:oklch(0.15 0.005 260);--border:oklch(0.32 0.007 260);--border-strong:oklch(0.42 0.008 260);--action-primary:oklch(0.72 0.18 295);--action-primary-hover:oklch(0.78 0.16 295);--action-primary-text:oklch(0.15 0.005 260);--feedback-success:oklch(0.70 0.14 145);--feedback-success-bg:oklch(0.28 0.05 145);--feedback-warning:oklch(0.75 0.14 70);--feedback-warning-bg:oklch(0.30 0.06 70);--feedback-danger:oklch(0.68 0.17 25);--feedback-danger-bg:oklch(0.28 0.05 25);background:var(--background)">
+  <div style="padding:8px 16px;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-secondary);background:var(--background-subtle);border-bottom:1px solid var(--border)">Dark</div>
+  <div style="display:flex;min-height:820px">
+
+    <div style="flex:none;width:{{sidebarWidth}}px;display:flex;flex-direction:column;gap:4px;padding:16px 12px;background:var(--background-subtle);border-right:1px solid var(--border);transition:width .15s ease">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;margin-bottom:8px">
+        <div style="width:28px;height:28px;flex:none;border-radius:8px;background:var(--action-primary);color:var(--action-primary-text);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">T</div>
+        <sc-if value="{{expanded}}" hint-placeholder-val="{{true}}">
+          <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">
+            <span style="font-size:14px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden">Trestle Labs</span>
+            <div style="width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid var(--text-secondary);margin-left:auto"></div>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:var(--background-muted);color:var(--text-primary);font-size:14px;font-weight:600;border-left:3px solid var(--action-primary);margin-left:-3px">
+        <div style="width:16px;height:16px;flex:none;border-radius:4px;background:var(--action-primary)"></div>
+        <sc-if value="{{expanded}}" hint-placeholder-val="{{true}}"><span style="white-space:nowrap;overflow:hidden">Home</span></sc-if>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:var(--text-secondary);font-size:14px">
+        <div style="width:16px;height:16px;flex:none;border-radius:4px;background:var(--text-disabled);opacity:.6"></div>
+        <sc-if value="{{expanded}}" hint-placeholder-val="{{true}}"><span style="white-space:nowrap;overflow:hidden">My Tasks</span></sc-if>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:var(--text-secondary);font-size:14px">
+        <div style="width:16px;height:16px;flex:none;border-radius:4px;background:var(--text-disabled);opacity:.6"></div>
+        <sc-if value="{{expanded}}" hint-placeholder-val="{{true}}"><span style="white-space:nowrap;overflow:hidden">Projects</span></sc-if>
+      </div>
+      <sc-if value="{{expanded}}" hint-placeholder-val="{{true}}">
+        <div style="display:flex;flex-direction:column;gap:2px;margin:2px 0 6px 26px">
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;color:var(--text-secondary);font-size:13px">
+            <div style="width:6px;height:6px;border-radius:50%;background:oklch(0.72 0.18 295);flex:none"></div>
+            <span style="white-space:nowrap;overflow:hidden">Website Redesign</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;color:var(--text-secondary);font-size:13px">
+            <div style="width:6px;height:6px;border-radius:50%;background:oklch(0.68 0.15 200);flex:none"></div>
+            <span style="white-space:nowrap;overflow:hidden">Mobile App v2</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;color:var(--text-secondary);font-size:13px">
+            <div style="width:6px;height:6px;border-radius:50%;background:oklch(0.68 0.15 150);flex:none"></div>
+            <span style="white-space:nowrap;overflow:hidden">Q3 Marketing Campaign</span>
+          </div>
+        </div>
+      </sc-if>
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:var(--text-secondary);font-size:14px">
+        <div style="width:16px;height:16px;flex:none;border-radius:4px;background:var(--text-disabled);opacity:.6"></div>
+        <sc-if value="{{expanded}}" hint-placeholder-val="{{true}}"><span style="white-space:nowrap;overflow:hidden">Settings</span></sc-if>
+      </div>
+
+      <div style="margin-top:auto;border-top:1px solid var(--border);padding-top:12px;display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;flex:none;border-radius:50%;background:var(--background-muted);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">JK</div>
+        <sc-if value="{{expanded}}" hint-placeholder-val="{{true}}">
+          <div style="display:flex;flex-direction:column;min-width:0">
+            <span style="font-size:13px;font-weight:500;color:var(--text-primary);white-space:nowrap;overflow:hidden">Jordan Kim</span>
+            <span style="font-size:12px;color:var(--text-disabled);white-space:nowrap;overflow:hidden">Product Designer</span>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+      <div style="flex:none;height:56px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 24px;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:6px;font-size:14px;flex:none">
+          <span style="color:var(--text-disabled)">Trestle Labs</span>
+          <span style="color:var(--text-disabled)">/</span>
+          <span style="color:var(--text-primary);font-weight:600">Dashboard</span>
+        </div>
+        <div style="flex:1;max-width:360px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;border-radius:8px;background:var(--background-muted)">
+          <span style="font-size:14px;color:var(--text-disabled)">Search or jump to...</span>
+          <span style="font-size:11px;font-weight:600;color:var(--text-disabled);border:1px solid var(--border-strong);border-radius:4px;padding:1px 5px">⌘K</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;flex:none">
+          <div style="width:18px;height:18px;border-radius:50%;border:1.5px solid var(--text-secondary)"></div>
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--background-muted);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">JK</div>
+        </div>
+      </div>
+
+      <div style="flex:1;padding:32px;display:flex;flex-direction:column;gap:{{sectionGap}}px">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:24px;font-weight:700;color:var(--text-primary)">Good afternoon, Jordan</div>
+            <div style="font-size:14px;color:var(--text-secondary);margin-top:4px">Here's what's happening across your projects.</div>
+          </div>
+          <button style="background:var(--action-primary);color:var(--action-primary-text);border:none;padding:8px 16px;border-radius:8px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;box-shadow:0 2px 8px oklch(0.55 0.19 295 / 0.35)">+ New Task</button>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between">
+            <div style="font-size:18px;font-weight:600;color:var(--text-primary)">Recent Projects</div>
+            <div style="font-size:14px;color:var(--text-secondary);cursor:pointer">View all</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px">
+
+            <div style="background:var(--background-subtle);border:1px solid var(--border);border-radius:12px;padding:{{cardPad}};display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:32px;height:32px;flex:none;border-radius:8px;background:oklch(0.72 0.18 295)"></div>
+                <div style="min-width:0">
+                  <div style="font-size:16px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Website Redesign</div>
+                  <div style="font-size:13px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Homepage, pricing, and blog templates</div>
+                </div>
+              </div>
+              <div>
+                <div style="height:6px;border-radius:999px;background:var(--background-muted)"><div style="height:100%;width:72%;border-radius:999px;background:var(--action-primary)"></div></div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:6px">72% complete</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto">
+                <div style="display:flex">
+                  <div style="width:20px;height:20px;border-radius:50%;background:var(--background-muted);color:var(--text-secondary);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--background-subtle)">AK</div>
+                  <div style="width:20px;height:20px;border-radius:50%;background:var(--background-muted);color:var(--text-secondary);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--background-subtle);margin-left:-8px">MP</div>
+                  <div style="width:20px;height:20px;border-radius:50%;background:var(--background-muted);color:var(--text-secondary);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--background-subtle);margin-left:-8px">JS</div>
+                </div>
+                <div style="font-size:12px;color:var(--text-disabled)">Updated 2h ago</div>
+              </div>
+            </div>
+
+            <div style="background:var(--background-subtle);border:1px solid var(--border);border-radius:12px;padding:{{cardPad}};display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:32px;height:32px;flex:none;border-radius:8px;background:oklch(0.68 0.15 200)"></div>
+                <div style="min-width:0">
+                  <div style="font-size:16px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Mobile App v2</div>
+                  <div style="font-size:13px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Native app redesign for iOS/Android</div>
+                </div>
+              </div>
+              <div>
+                <div style="height:6px;border-radius:999px;background:var(--background-muted)"><div style="height:100%;width:45%;border-radius:999px;background:var(--action-primary)"></div></div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:6px">45% complete</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto">
+                <div style="display:flex">
+                  <div style="width:20px;height:20px;border-radius:50%;background:var(--background-muted);color:var(--text-secondary);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--background-subtle)">MP</div>
+                  <div style="width:20px;height:20px;border-radius:50%;background:var(--background-muted);color:var(--text-secondary);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--background-subtle);margin-left:-8px">JK</div>
+                </div>
+                <div style="font-size:12px;color:var(--text-disabled)">Updated 5h ago</div>
+              </div>
+            </div>
+
+            <div style="background:var(--background-subtle);border:1px solid var(--border);border-radius:12px;padding:{{cardPad}};display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:32px;height:32px;flex:none;border-radius:8px;background:oklch(0.68 0.15 150)"></div>
+                <div style="min-width:0">
+                  <div style="font-size:16px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Q3 Marketing Campaign</div>
+                  <div style="font-size:13px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Launch campaign for Q3 product push</div>
+                </div>
+              </div>
+              <div>
+                <div style="height:6px;border-radius:999px;background:var(--background-muted)"><div style="height:100%;width:90%;border-radius:999px;background:var(--action-primary)"></div></div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:6px">90% complete</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto">
+                <div style="display:flex">
+                  <div style="width:20px;height:20px;border-radius:50%;background:var(--background-muted);color:var(--text-secondary);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--background-subtle)">JS</div>
+                </div>
+                <div style="font-size:12px;color:var(--text-disabled)">Updated 1d ago</div>
+              </div>
+            </div>
+
+            <div style="background:var(--background-subtle);border:1px solid var(--border);border-radius:12px;padding:{{cardPad}};display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:32px;height:32px;flex:none;border-radius:8px;background:oklch(0.68 0.15 20)"></div>
+                <div style="min-width:0">
+                  <div style="font-size:16px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">API Migration</div>
+                  <div style="font-size:13px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Migrating auth to new identity provider</div>
+                </div>
+              </div>
+              <div>
+                <div style="height:6px;border-radius:999px;background:var(--background-muted)"><div style="height:100%;width:30%;border-radius:999px;background:var(--action-primary)"></div></div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:6px">30% complete</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto">
+                <div style="display:flex">
+                  <div style="width:20px;height:20px;border-radius:50%;background:var(--background-muted);color:var(--text-secondary);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--background-subtle)">AK</div>
+                  <div style="width:20px;height:20px;border-radius:50%;background:var(--background-muted);color:var(--text-secondary);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--background-subtle);margin-left:-8px">JK</div>
+                </div>
+                <div style="font-size:12px;color:var(--text-disabled)">Updated 3d ago</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <div style="font-size:18px;font-weight:600;color:var(--text-primary)">My Tasks</div>
+            <div style="display:flex;gap:4px;background:var(--background-muted);padding:4px;border-radius:8px">
+              <div style="padding:6px 12px;border-radius:6px;font-size:13px;font-weight:600;background:var(--background);color:var(--text-primary);box-shadow:0 1px 2px rgba(0,0,0,.3)">All</div>
+              <div style="padding:6px 12px;border-radius:6px;font-size:13px;color:var(--text-secondary)">Today</div>
+              <div style="padding:6px 12px;border-radius:6px;font-size:13px;color:var(--text-secondary)">Upcoming</div>
+            </div>
+          </div>
+
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;min-width:640px">
+              <thead>
+                <tr>
+                  <th style="width:32px;padding:{{rowPad}};border-bottom:1px solid var(--border)"></th>
+                  <th style="text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);padding:{{rowPad}};border-bottom:1px solid var(--border)">Task</th>
+                  <th style="text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);padding:{{rowPad}};border-bottom:1px solid var(--border)">Project</th>
+                  <th style="text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);padding:{{rowPad}};border-bottom:1px solid var(--border)">Priority</th>
+                  <th style="text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);padding:{{rowPad}};border-bottom:1px solid var(--border)">Due</th>
+                  <th style="text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);padding:{{rowPad}};border-bottom:1px solid var(--border)">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><div style="width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border-strong)"></div></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border);font-size:14px;color:var(--text-primary)">Fix login bug on Safari</td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--text-secondary);background:var(--background-muted);border-radius:4px;padding:2px 8px">Mobile App v2</span></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--feedback-danger);background:var(--feedback-danger-bg);border-radius:999px;padding:3px 8px 3px 6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--feedback-danger)"></span>Urgent</span></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border);font-size:14px;color:var(--text-secondary)">Sep 23</td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);background:var(--background-muted);border-radius:999px;padding:3px 8px 3px 6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--text-disabled)"></span>Todo</span></td>
+                </tr>
+                <tr>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><div style="width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border-strong)"></div></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border);font-size:14px;color:var(--text-primary)">Redesign onboarding flow</td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--text-secondary);background:var(--background-muted);border-radius:4px;padding:2px 8px">Website Redesign</span></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--feedback-warning);background:var(--feedback-warning-bg);border-radius:999px;padding:3px 8px 3px 6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--feedback-warning)"></span>High</span></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border);font-size:14px;color:var(--text-secondary)">Sep 25</td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--action-primary);background:var(--background-muted);border-radius:999px;padding:3px 8px 3px 6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--action-primary)"></span>In Progress</span></td>
+                </tr>
+                <tr>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><div style="width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border-strong)"></div></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border);font-size:14px;color:var(--text-primary)">Migrate auth service</td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--text-secondary);background:var(--background-muted);border-radius:4px;padding:2px 8px">API Migration</span></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--feedback-warning);background:var(--feedback-warning-bg);border-radius:999px;padding:3px 8px 3px 6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--feedback-warning)"></span>High</span></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border);font-size:14px;color:var(--text-secondary)">Oct 2</td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--action-primary);background:var(--background-muted);border-radius:999px;padding:3px 8px 3px 6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--action-primary)"></span>In Progress</span></td>
+                </tr>
+                <tr>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><div style="width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border-strong)"></div></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border);font-size:14px;color:var(--text-primary)">Write Q3 campaign brief</td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--text-secondary);background:var(--background-muted);border-radius:4px;padding:2px 8px">Q3 Marketing Campaign</span></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);background:var(--background-muted);border-radius:999px;padding:3px 8px 3px 6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--border-strong)"></span>Medium</span></td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border);font-size:14px;color:var(--text-secondary)">Sep 30</td>
+                  <td style="padding:{{rowPad}};border-bottom:1px solid var(--border)"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);background:var(--background-muted);border-radius:999px;padding:3px 8px 3px 6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--text-disabled)"></span>Todo</span></td>
+                </tr>
+                <tr>
+                  <td style="padding:{{rowPad}}"><div style="position:relative;width:16px;height:16px;border-radius:4px;background:var(--feedback-success)"><div style="position:absolute;left:3px;top:7px;width:5px;height:2px;background:var(--text-inverse);transform:rotate(45deg);border-radius:1px"></div><div style="position:absolute;left:6px;top:3px;width:8px;height:2px;background:var(--text-inverse);transform:rotate(-45deg);border-radius:1px"></div></div></td>
+                  <td style="padding:{{rowPad}};font-size:14px;color:var(--text-disabled);text-decoration:line-through">Review PR #482</td>
+                  <td style="padding:{{rowPad}}"><span style="font-size:12px;color:var(--text-secondary);background:var(--background-muted);border-radius:4px;padding:2px 8px">Mobile App v2</span></td>
+                  <td style="padding:{{rowPad}}"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--feedback-success);background:var(--feedback-success-bg);border-radius:999px;padding:3px 8px 3px 6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--feedback-success)"></span>Low</span></td>
+                  <td style="padding:{{rowPad}};font-size:14px;color:var(--text-disabled)">Sep 24</td>
+                  <td style="padding:{{rowPad}}"><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--feedback-success);background:var(--feedback-success-bg);border-radius:999px;padding:3px 8px 3px 6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--feedback-success)"></span>Done</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1600,&quot;height&quot;:1700},&quot;sidebarCollapsed&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Sidebar&quot;},&quot;density&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;comfortable&quot;,&quot;options&quot;:[&quot;comfortable&quot;,&quot;compact&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Layout&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const collapsed = this.props.sidebarCollapsed ?? false;
+    const compact = (this.props.density ?? 'comfortable') === 'compact';
+    return {
+      collapsed,
+      expanded: !collapsed,
+      sidebarWidth: collapsed ? 64 : 240,
+      rowPad: compact ? '8px 12px' : '12px 16px',
+      cardPad: compact ? '16px' : '20px',
+      sectionGap: compact ? 24 : 32,
+    };
+  }
+}
+</script>
+</body>
+</html>

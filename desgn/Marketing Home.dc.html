@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Manrope',system-ui,sans-serif}
+a{color:var(--action-primary);text-decoration:none}
+a:hover{color:var(--action-primary-hover)}
+:root{--background:oklch(0.99 0.002 260);--background-subtle:oklch(0.97 0.003 260);--background-muted:oklch(0.94 0.004 260);--text-primary:oklch(0.20 0.01 260);--text-secondary:oklch(0.45 0.01 260);--text-disabled:oklch(0.65 0.01 260);--text-inverse:oklch(0.98 0.002 260);--border:oklch(0.89 0.005 260);--border-strong:oklch(0.78 0.007 260);--action-primary:oklch(0.55 0.19 295);--action-primary-hover:oklch(0.47 0.20 295);--action-primary-text:oklch(0.98 0.002 260);--feedback-success:oklch(0.55 0.15 145);--feedback-success-bg:oklch(0.95 0.04 145)}
+@media (max-width:768px){.md-hide{display:none !important}.md-stack{flex-direction:column !important}.md-full{width:100% !important}}
+</style>
+</helmet>
+<div style="background:var(--background);color:var(--text-primary);display:flex;flex-direction:column;min-height:100vh">
+
+  <div style="position:sticky;top:0;z-index:20;background:color-mix(in oklch,var(--background) 85%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)">
+    <div style="max-width:1200px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;border-radius:8px;background:var(--action-primary);color:var(--action-primary-text);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">T</div>
+        <span style="font-size:16px;font-weight:700">Trestle</span>
+      </div>
+      <div class="md-hide" style="display:flex;align-items:center;gap:32px;font-size:14px;font-weight:500;color:var(--text-secondary)">
+        <a href="#features" style="color:inherit">Features</a>
+        <a href="#pricing" style="color:inherit">Pricing</a>
+        <a href="#faq" style="color:inherit">FAQ</a>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px">
+        <a href="#" class="md-hide" style="font-size:14px;font-weight:600;color:var(--text-primary)">Log in</a>
+        <a href="#" style="background:var(--action-primary);color:var(--action-primary-text);padding:8px 16px;border-radius:8px;font-size:14px;font-weight:600">Get started</a>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:96px 24px 64px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:24px">
+    <div style="max-width:720px;font-size:48px;line-height:1.1;font-weight:800;letter-spacing:-0.02em">Project management that keeps your team moving</div>
+    <div style="max-width:560px;font-size:18px;line-height:1.5;color:var(--text-secondary)">Trestle brings tasks, projects, and collaboration into one fast, focused workspace — built for teams who ship.</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+      <a href="#" style="background:var(--action-primary);color:var(--action-primary-text);padding:12px 24px;border-radius:8px;font-size:16px;font-weight:600;box-shadow:0 4px 14px oklch(0.55 0.19 295 / 0.3)">Get started free</a>
+      <a href="#" style="background:transparent;color:var(--text-primary);padding:12px 24px;border-radius:8px;font-size:16px;font-weight:600;border:1px solid var(--border)">View demo</a>
+    </div>
+    <div style="width:100%;max-width:960px;margin-top:24px;border-radius:16px;border:1px solid var(--border);background:var(--background-subtle);aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;color:var(--text-disabled);font-size:14px;box-shadow:0 20px 60px rgba(0,0,0,.08)">Product screenshot placeholder</div>
+  </div>
+
+  <div style="padding:40px 24px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--background-subtle)">
+    <div style="max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:24px;align-items:center">
+      <div style="font-size:13px;font-weight:600;color:var(--text-disabled);text-transform:uppercase;letter-spacing:.05em">Trusted by teams at</div>
+      <div style="display:flex;gap:48px;flex-wrap:wrap;justify-content:center;align-items:center;opacity:.5">
+        <div style="font-size:18px;font-weight:700;color:var(--text-secondary)">Northwind</div>
+        <div style="font-size:18px;font-weight:700;color:var(--text-secondary)">Fontaine Co.</div>
+        <div style="font-size:18px;font-weight:700;color:var(--text-secondary)">Umbra Labs</div>
+        <div style="font-size:18px;font-weight:700;color:var(--text-secondary)">Verity</div>
+        <div style="font-size:18px;font-weight:700;color:var(--text-secondary)">Haldane</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="features" style="padding:96px 24px;display:flex;flex-direction:column;gap:96px;max-width:1200px;margin:0 auto;width:100%;box-sizing:border-box">
+
+    <div class="md-stack" style="display:flex;align-items:center;gap:64px">
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:16px">
+        <div style="font-size:14px;font-weight:600;color:var(--action-primary)">Tasks</div>
+        <div style="font-size:30px;font-weight:700;line-height:1.2">Every task, exactly where it belongs</div>
+        <div style="font-size:16px;color:var(--text-secondary);line-height:1.6">Create, assign, and prioritize tasks in seconds. Due dates, priorities, and statuses keep everyone aligned without extra meetings.</div>
+      </div>
+      <div class="md-full" style="flex:1;min-width:0;aspect-ratio:4/3;border-radius:12px;border:1px solid var(--border);background:var(--background-subtle);display:flex;align-items:center;justify-content:center;color:var(--text-disabled);font-size:14px">Feature screenshot</div>
+    </div>
+
+    <div class="md-stack" style="display:flex;align-items:center;gap:64px;flex-direction:row-reverse">
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:16px">
+        <div style="font-size:14px;font-weight:600;color:var(--action-primary)">Projects</div>
+        <div style="font-size:30px;font-weight:700;line-height:1.2">Structure work your way</div>
+        <div style="font-size:16px;color:var(--text-secondary);line-height:1.6">Group tasks into projects with progress tracking built in. Switch between board and list views without losing context.</div>
+      </div>
+      <div class="md-full" style="flex:1;min-width:0;aspect-ratio:4/3;border-radius:12px;border:1px solid var(--border);background:var(--background-subtle);display:flex;align-items:center;justify-content:center;color:var(--text-disabled);font-size:14px">Feature screenshot</div>
+    </div>
+
+    <div class="md-stack" style="display:flex;align-items:center;gap:64px">
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:16px">
+        <div style="font-size:14px;font-weight:600;color:var(--action-primary)">Boards</div>
+        <div style="font-size:30px;font-weight:700;line-height:1.2">Visualize progress at a glance</div>
+        <div style="font-size:16px;color:var(--text-secondary);line-height:1.6">Kanban boards that update in real time as work moves forward. Drag, drop, done.</div>
+      </div>
+      <div class="md-full" style="flex:1;min-width:0;aspect-ratio:4/3;border-radius:12px;border:1px solid var(--border);background:var(--background-subtle);display:flex;align-items:center;justify-content:center;color:var(--text-disabled);font-size:14px">Feature screenshot</div>
+    </div>
+
+    <div class="md-stack" style="display:flex;align-items:center;gap:64px;flex-direction:row-reverse">
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:16px">
+        <div style="font-size:14px;font-weight:600;color:var(--action-primary)">Collaboration</div>
+        <div style="font-size:30px;font-weight:700;line-height:1.2">Comment, mention, and stay in sync</div>
+        <div style="font-size:16px;color:var(--text-secondary);line-height:1.6">Discuss work directly on the task. No more digging through chat threads to find context.</div>
+      </div>
+      <div class="md-full" style="flex:1;min-width:0;aspect-ratio:4/3;border-radius:12px;border:1px solid var(--border);background:var(--background-subtle);display:flex;align-items:center;justify-content:center;color:var(--text-disabled);font-size:14px">Feature screenshot</div>
+    </div>
+
+  </div>
+
+  <div style="padding:96px 24px;background:var(--background-subtle);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+    <div style="max-width:900px;margin:0 auto;text-align:center;display:flex;flex-direction:column;gap:16px">
+      <div style="font-size:30px;font-weight:700">Why teams choose Trestle</div>
+      <div style="font-size:16px;color:var(--text-secondary);line-height:1.6">Most project tools force a tradeoff between power and speed. Trestle keeps the essentials — tasks, projects, boards, comments — fast and uncluttered, so your team spends time doing the work, not managing the tool.</div>
+    </div>
+  </div>
+
+  <div id="pricing" style="padding:96px 24px;max-width:1200px;margin:0 auto;width:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:48px;align-items:center">
+    <div style="text-align:center;display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:30px;font-weight:700">Simple, transparent pricing</div>
+      <div style="font-size:16px;color:var(--text-secondary)">Start free. Upgrade when your team grows.</div>
+    </div>
+    <div class="md-stack" style="display:flex;gap:24px;width:100%;align-items:stretch">
+
+      <div class="md-full" style="flex:1;min-width:0;border:1px solid var(--border);border-radius:12px;padding:32px;display:flex;flex-direction:column;gap:20px;background:var(--background)">
+        <div>
+          <div style="font-size:18px;font-weight:600">Free</div>
+          <div style="font-size:14px;color:var(--text-secondary);margin-top:4px">For individuals and small teams</div>
+        </div>
+        <div style="font-size:36px;font-weight:800">$0<span style="font-size:14px;font-weight:500;color:var(--text-secondary)">/mo</span></div>
+        <a href="#" style="text-align:center;background:transparent;border:1px solid var(--border);color:var(--text-primary);padding:10px;border-radius:8px;font-size:14px;font-weight:600">Get started</a>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:14px;color:var(--text-secondary);border-top:1px solid var(--border);padding-top:20px">
+          <div>Up to 3 projects</div>
+          <div>Unlimited tasks</div>
+          <div>Board &amp; list views</div>
+        </div>
+      </div>
+
+      <div class="md-full" style="flex:1;min-width:0;border:2px solid var(--action-primary);border-radius:12px;padding:32px;display:flex;flex-direction:column;gap:20px;background:var(--background);position:relative">
+        <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--action-primary);color:var(--action-primary-text);font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px">Popular</div>
+        <div>
+          <div style="font-size:18px;font-weight:600">Pro</div>
+          <div style="font-size:14px;color:var(--text-secondary);margin-top:4px">For growing teams</div>
+        </div>
+        <div style="font-size:36px;font-weight:800">$12<span style="font-size:14px;font-weight:500;color:var(--text-secondary)">/user/mo</span></div>
+        <a href="#" style="text-align:center;background:var(--action-primary);color:var(--action-primary-text);padding:10px;border-radius:8px;font-size:14px;font-weight:600">Start free trial</a>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:14px;color:var(--text-secondary);border-top:1px solid var(--border);padding-top:20px">
+          <div>Unlimited projects</div>
+          <div>Priority support</div>
+          <div>Advanced permissions</div>
+          <div>Activity history</div>
+        </div>
+      </div>
+
+      <div class="md-full" style="flex:1;min-width:0;border:1px solid var(--border);border-radius:12px;padding:32px;display:flex;flex-direction:column;gap:20px;background:var(--background)">
+        <div>
+          <div style="font-size:18px;font-weight:600">Enterprise</div>
+          <div style="font-size:14px;color:var(--text-secondary);margin-top:4px">For large organizations</div>
+        </div>
+        <div style="font-size:36px;font-weight:800">Custom</div>
+        <a href="#" style="text-align:center;background:transparent;border:1px solid var(--border);color:var(--text-primary);padding:10px;border-radius:8px;font-size:14px;font-weight:600">Contact sales</a>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:14px;color:var(--text-secondary);border-top:1px solid var(--border);padding-top:20px">
+          <div>SSO &amp; SCIM</div>
+          <div>Dedicated support</div>
+          <div>Custom contracts</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="faq" style="padding:96px 24px;background:var(--background-subtle);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+    <div style="max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:32px">
+      <div style="font-size:30px;font-weight:700;text-align:center">Frequently asked questions</div>
+      <div style="display:flex;flex-direction:column;gap:0">
+        <sc-for list="{{faqs}}" as="item" hint-placeholder-count="4">
+          <div style="border-bottom:1px solid var(--border)">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 0;cursor:pointer;gap:16px" onclick="{{item.toggle}}">
+              <span style="font-size:16px;font-weight:600">{{item.q}}</span>
+              <span style="font-size:20px;color:var(--text-secondary);flex:none;transform:{{item.rotate}};transition:transform .15s ease">+</span>
+            </div>
+            <sc-if value="{{item.open}}" hint-placeholder-val="{{false}}">
+              <div style="padding:0 0 20px;font-size:14px;color:var(--text-secondary);line-height:1.6">{{item.a}}</div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:96px 24px;text-align:center;display:flex;flex-direction:column;gap:24px;align-items:center">
+    <div style="font-size:30px;font-weight:700;max-width:520px">Ready to bring your team's work into focus?</div>
+    <a href="#" style="background:var(--action-primary);color:var(--action-primary-text);padding:12px 24px;border-radius:8px;font-size:16px;font-weight:600;box-shadow:0 4px 14px oklch(0.55 0.19 295 / 0.3)">Get started free</a>
+  </div>
+
+  <div style="border-top:1px solid var(--border);padding:64px 24px 32px">
+    <div class="md-stack" style="max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;gap:48px">
+      <div style="display:flex;flex-direction:column;gap:12px;max-width:240px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:24px;height:24px;border-radius:6px;background:var(--action-primary);color:var(--action-primary-text);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px">T</div>
+          <span style="font-size:15px;font-weight:700">Trestle</span>
+        </div>
+        <div style="font-size:14px;color:var(--text-secondary)">Project management that keeps your team moving.</div>
+      </div>
+      <div class="md-stack" style="display:flex;gap:64px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:13px;font-weight:600;color:var(--text-disabled);text-transform:uppercase;letter-spacing:.04em">Product</div>
+          <a href="#features" style="font-size:14px;color:var(--text-secondary)">Features</a>
+          <a href="#pricing" style="font-size:14px;color:var(--text-secondary)">Pricing</a>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:13px;font-weight:600;color:var(--text-disabled);text-transform:uppercase;letter-spacing:.04em">Company</div>
+          <a href="#" style="font-size:14px;color:var(--text-secondary)">About</a>
+          <a href="#" style="font-size:14px;color:var(--text-secondary)">Blog</a>
+          <a href="#" style="font-size:14px;color:var(--text-secondary)">Careers</a>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:13px;font-weight:600;color:var(--text-disabled);text-transform:uppercase;letter-spacing:.04em">Legal</div>
+          <a href="#" style="font-size:14px;color:var(--text-secondary)">Privacy</a>
+          <a href="#" style="font-size:14px;color:var(--text-secondary)">Terms</a>
+        </div>
+      </div>
+    </div>
+    <div style="max-width:1200px;margin:48px auto 0;padding-top:24px;border-top:1px solid var(--border);font-size:13px;color:var(--text-disabled)">© 2026 Trestle Labs. All rights reserved.</div>
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { openIndex: 0 };
+  renderVals() {
+    const data = [
+      { q: 'Is there a free plan?', a: 'Yes. The Free plan supports up to 3 projects with unlimited tasks — no credit card required.' },
+      { q: 'Can I switch between board and list views?', a: 'Every project supports both board and list views, and you can switch anytime without losing data.' },
+      { q: 'Does Trestle support integrations?', a: 'Pro and Enterprise plans include integrations with common developer and communication tools.' },
+      { q: 'Can I cancel anytime?', a: 'Yes, Pro plans are billed monthly and can be cancelled at any time from your account settings.' },
+    ];
+    const faqs = data.map((f, i) => ({
+      q: f.q, a: f.a,
+      open: this.state.openIndex === i,
+      rotate: this.state.openIndex === i ? 'rotate(45deg)' : 'rotate(0deg)',
+      toggle: () => this.setState(s => ({ openIndex: s.openIndex === i ? -1 : i })),
+    }));
+    return { faqs };
+  }
+}
+</script>
+</body>
+</html>
