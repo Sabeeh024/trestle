@@ -5,16 +5,18 @@
   "exports": {
     "./tailwind": "./tailwind/index.ts",
     "./tailwind/tokens": "./tailwind/tokens.ts",
-     "./tailwind/theme.css": "./tailwind/theme.css"
+    "./tailwind/theme.css": "./tailwind/theme.css"
   },
   "scripts": {
     "gen:theme": "tsx scripts/generate-theme.ts",
-       "lint": "eslint",
+    "lint": "eslint",
     "check-types": "tsc --noEmit"
   },
   "devDependencies": {
+    "@trestle/typescript-config": "workspace:*",
     "@types/node": "^20",
     "tailwindcss": "^4.3.3",
-    "tsx": "^4.19.2"
+    "tsx": "^4.19.2",
+    "typescript": "^5"
   }
 }

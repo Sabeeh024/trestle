@@ -252,6 +252,9 @@ importers:
 
   packages/design-tokens:
     devDependencies:
+      '@trestle/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
       '@types/node':
         specifier: ^20
         version: 20.19.43
@@ -261,6 +264,11 @@ importers:
       tsx:
         specifier: ^4.19.2
         version: 4.23.15
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+
+  packages/typescript-config: {}
 
   packages/ui:
     dependencies:
@@ -286,6 +294,9 @@ importers:
         specifier: ^1.4.0
         version: 1.4.0
     devDependencies:
+      '@trestle/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
       '@types/react':
         specifier: ^19
         version: 19.3.0

@@ -31,6 +31,7 @@
     "react-dom": "^19"
   },
   "devDependencies": {
+    "@trestle/typescript-config": "workspace:*",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "react": "19.2.8",
