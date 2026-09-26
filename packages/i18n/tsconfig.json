@@ -1,0 +1,4 @@
+{
+  "extends": "@trestle/typescript-config/tsconfig.base.json",
+  "include": ["src/**/*.ts"]
+}

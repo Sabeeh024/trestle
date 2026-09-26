@@ -1,0 +1,21 @@
+{
+  "status": {
+    "todo": "کرنا ہے",
+    "inProgress": "جاری ہے",
+    "done": "مکمل"
+  },
+  "priority": {
+    "urgent": "فوری",
+    "high": "زیادہ",
+    "medium": "درمیانی",
+    "low": "کم"
+  },
+  "role": {
+    "owner": "مالک",
+    "admin": "منتظم",
+    "member": "رکن",
+    "viewer": "ناظر"
+  },
+  "taskCount_one": "{{count}} کام",
+  "taskCount_other": "{{count}} کام"
+}
