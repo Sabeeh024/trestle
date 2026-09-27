@@ -1,0 +1,93 @@
+{
+  "login": {
+    "title": "Trestle میں سائن اِن کریں",
+    "subtitle": "خوش آمدید۔ جاری رکھنے کے لیے اپنی تفصیلات درج کریں۔",
+    "emailLabel": "ای میل",
+    "emailPlaceholder": "you@company.com",
+    "passwordLabel": "پاس ورڈ",
+    "passwordPlaceholder": "••••••••",
+    "forgotPassword": "پاس ورڈ بھول گئے؟",
+    "signIn": "سائن اِن کریں",
+    "or": "یا",
+    "continueWithSso": "SSO کے ساتھ جاری رکھیں",
+    "noAccount": "اکاؤنٹ نہیں ہے؟",
+    "signUp": "سائن اَپ کریں"
+  },
+  "notFound": {
+    "title": "صفحہ نہیں ملا",
+    "description": "جو صفحہ آپ تلاش کر رہے ہیں وہ موجود نہیں ہے یا منتقل ہو چکا ہے۔",
+    "cta": "ہوم پر واپس جائیں"
+  },
+  "nav": {
+    "workspace": "Trestle Labs",
+    "home": "ہوم",
+    "myTasks": "میرے کام",
+    "projects": "منصوبے",
+    "settings": "ترتیبات"
+  },
+  "topbar": {
+    "searchPlaceholder": "تلاش کریں یا فوری جائیں..."
+  },
+  "dashboard": {
+    "title": "ڈیش بورڈ",
+    "greeting": "خوش آمدید، {{name}}",
+    "subtitle": "آپ کے منصوبوں میں یہ ہو رہا ہے۔",
+    "newTask": "نیا کام",
+    "recentProjects": "حالیہ منصوبے",
+    "viewAll": "سب دیکھیں",
+    "myTasks": "میرے کام",
+    "tabs": {
+      "all": "تمام",
+      "today": "آج",
+      "upcoming": "آنے والے"
+    },
+    "table": {
+      "task": "کام",
+      "project": "منصوبہ",
+      "priority": "ترجیح",
+      "due": "آخری تاریخ",
+      "status": "صورتحال"
+    },
+    "percentComplete": "{{percent}}% مکمل",
+    "updatedAgo": "{{time}} پہلے اپڈیٹ ہوا"
+  },
+  "projects": {
+    "title": "منصوبے",
+    "newProject": "نیا منصوبہ",
+    "tabs": {
+      "all": "تمام",
+      "active": "فعال",
+      "archived": "محفوظ شدہ"
+    },
+    "table": {
+      "project": "منصوبہ",
+      "status": "صورتحال",
+      "progress": "پیش رفت",
+      "members": "ارکان",
+      "due": "آخری تاریخ",
+      "updated": "اپڈیٹ ہوا"
+    }
+  },
+  "projectView": {
+    "newTask": "نیا کام",
+    "board": "بورڈ",
+    "list": "فہرست",
+    "table": {
+      "task": "کام",
+      "priority": "ترجیح",
+      "assignee": "تفویض شدہ",
+      "status": "صورتحال"
+    },
+    "panel": {
+      "status": "صورتحال",
+      "assignee": "تفویض شدہ",
+      "priority": "ترجیح",
+      "dueDate": "آخری تاریخ",
+      "description": "تفصیل",
+      "comments": "تبصرے",
+      "addComment": "تبصرہ شامل کریں...",
+      "send": "بھیجیں"
+    }
+  },
+  "timeAgo": "{{time}} پہلے"
+}
