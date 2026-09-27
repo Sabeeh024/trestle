@@ -1,0 +1,131 @@
+{
+  "nav": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "faq": "FAQ",
+    "logIn": "Log in",
+    "getStarted": "Get started"
+  },
+  "hero": {
+    "title": "Project management that keeps your team moving",
+    "subtitle": "Trestle brings tasks, projects, and collaboration into one fast, focused workspace — built for teams who ship.",
+    "cta": "Get started free",
+    "secondaryCta": "View demo",
+    "screenshotAlt": "Product screenshot placeholder"
+  },
+  "socialProof": {
+    "label": "Trusted by teams at"
+  },
+  "features": {
+    "title": "Everything your team needs",
+    "tasks": {
+      "eyebrow": "Tasks",
+      "title": "Every task, exactly where it belongs",
+      "description": "Create, assign, and prioritize tasks in seconds. Due dates, priorities, and statuses keep everyone aligned without extra meetings.",
+      "imageAlt": "Feature screenshot"
+    },
+    "projects": {
+      "eyebrow": "Projects",
+      "title": "Structure work your way",
+      "description": "Group tasks into projects with progress tracking built in. Switch between board and list views without losing context.",
+      "imageAlt": "Feature screenshot"
+    },
+    "boards": {
+      "eyebrow": "Boards",
+      "title": "Visualize progress at a glance",
+      "description": "Kanban boards that update in real time as work moves forward. Drag, drop, done.",
+      "imageAlt": "Feature screenshot"
+    },
+    "collaboration": {
+      "eyebrow": "Collaboration",
+      "title": "Comment, mention, and stay in sync",
+      "description": "Discuss work directly on the task. No more digging through chat threads to find context.",
+      "imageAlt": "Feature screenshot"
+    }
+  },
+  "whyTrestle": {
+    "title": "Why teams choose Trestle",
+    "description": "Most project tools force a tradeoff between power and speed. Trestle keeps the essentials — tasks, projects, boards, comments — fast and uncluttered, so your team spends time doing the work, not managing the tool."
+  },
+  "pricing": {
+    "title": "Simple, transparent pricing",
+    "subtitle": "Start free. Upgrade when your team grows.",
+    "plans": {
+      "free": {
+        "name": "Free",
+        "description": "For individuals and small teams",
+        "price": "$0",
+        "period": "/mo",
+        "cta": "Get started",
+        "features": ["Up to 3 projects", "Unlimited tasks", "Board & list views"]
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "For growing teams",
+        "price": "$12",
+        "period": "/user/mo",
+        "badge": "Popular",
+        "cta": "Start free trial",
+        "features": ["Unlimited projects", "Priority support", "Advanced permissions", "Activity history"]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "description": "For large organizations",
+        "price": "Custom",
+        "period": "",
+        "cta": "Contact sales",
+        "features": ["SSO & SCIM", "Dedicated support", "Custom contracts"]
+      }
+    }
+  },
+  "faq": {
+    "title": "Frequently asked questions",
+    "items": [
+      {
+        "q": "Is there a free plan?",
+        "a": "Yes. The Free plan supports up to 3 projects with unlimited tasks — no credit card required."
+      },
+      {
+        "q": "Can I switch between board and list views?",
+        "a": "Every project supports both board and list views, and you can switch anytime without losing data."
+      },
+      {
+        "q": "Does Trestle support integrations?",
+        "a": "Pro and Enterprise plans include integrations with common developer and communication tools."
+      },
+      {
+        "q": "Can I cancel anytime?",
+        "a": "Yes, Pro plans are billed monthly and can be cancelled at any time from your account settings."
+      }
+    ]
+  },
+  "finalCta": {
+    "title": "Ready to bring your team's work into focus?",
+    "cta": "Get started free"
+  },
+  "footer": {
+    "tagline": "Project management that keeps your team moving.",
+    "product": {
+      "label": "Product",
+      "features": "Features",
+      "pricing": "Pricing"
+    },
+    "company": {
+      "label": "Company",
+      "about": "About",
+      "blog": "Blog",
+      "careers": "Careers"
+    },
+    "legal": {
+      "label": "Legal",
+      "privacy": "Privacy",
+      "terms": "Terms"
+    },
+    "copyright": "© {{year}} Trestle Labs. All rights reserved."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you're looking for doesn't exist or has moved.",
+    "cta": "Back to home"
+  }
+}
