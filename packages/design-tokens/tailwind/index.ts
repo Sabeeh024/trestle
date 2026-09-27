@@ -45,7 +45,20 @@ export const tailwindPreset: Partial<Config> = {
       borderRadius: tokens.primitive.radius,
       fontSize: tokens.primitive.fontSize,
       fontWeight: tokens.primitive.fontWeight,
-      fontFamily: tokens.primitive.fontFamily,
+      // var(--font-sans, ...) lets an app load the actual font file via next/font's
+      // `variable` option (which only exposes it through a CSS variable, never the
+      // literal family name) while still falling back to the raw token value when
+      // no such variable is set, e.g. previewing a component in isolation.
+      fontFamily: {
+        sans: (() => {
+          const sans = tokens.primitive.fontFamily.sans;
+          if (!sans || sans.length === 0) {
+            throw new Error("tokens.primitive.fontFamily.sans must define at least one font");
+          }
+          const [primary, ...fallbacks] = sans;
+          return [`var(--font-sans, ${primary})`, ...fallbacks];
+        })(),
+      },
       lineHeight: tokens.primitive.lineHeight,
       zIndex: tokens.primitive.zIndex,
     },
