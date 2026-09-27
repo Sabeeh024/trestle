@@ -1,8 +1,14 @@
 {
-  "status": {
+  "taskStatus": {
     "todo": "Todo",
     "inProgress": "In progress",
+    "inReview": "In review",
     "done": "Done"
+  },
+  "projectStatus": {
+    "active": "Active",
+    "planning": "Planning",
+    "onHold": "On hold"
   },
   "priority": {
     "urgent": "Urgent",

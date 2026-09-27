@@ -1,8 +1,14 @@
 {
-  "status": {
+  "taskStatus": {
     "todo": "کرنا ہے",
     "inProgress": "جاری ہے",
+    "inReview": "زیرِ جائزہ",
     "done": "مکمل"
+  },
+  "projectStatus": {
+    "active": "فعال",
+    "planning": "منصوبہ بندی",
+    "onHold": "مؤخر"
   },
   "priority": {
     "urgent": "فوری",
