@@ -1,0 +1,13 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@trestle/design-tokens/tailwind/theme.css";
+
+@config "../tailwind.config.ts";
+@source "./";
+
+@import "@trestle/ui/styles/tokens.css";
+
+body {
+  font-size: 14px;
+}
