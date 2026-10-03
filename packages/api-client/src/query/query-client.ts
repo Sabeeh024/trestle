@@ -1,6 +1,6 @@
 import { defaultShouldDehydrateQuery, isServer, QueryClient } from "@tanstack/react-query";
 
-import { isApiError } from "../client";
+import { isApiError } from "../errors";
 
 function makeQueryClient() {
   return new QueryClient({

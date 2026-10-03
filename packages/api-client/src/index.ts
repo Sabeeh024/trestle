@@ -1,3 +1,4 @@
-export { createApi, type Api, type RequestOptions } from "./api";
-export { ApiError, createApiClient, isApiError, type ApiClientOptions } from "./client";
+export { createApi, type Api } from "./api";
+export { ApiError, isApiError } from "./errors";
+export type { CacheMode, NextFetchOptions, RequestConfig, RequestOptions, Transport, TransportOptions } from "./transport";
 export type * from "./types";

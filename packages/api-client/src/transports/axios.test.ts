@@ -3,10 +3,11 @@ import { describe, it } from "node:test";
 
 import { AxiosError, type AxiosAdapter, type InternalAxiosRequestConfig } from "axios";
 
-import { ApiError, createApiClient, isApiError, type ApiClientOptions } from "./client";
+import { ApiError, isApiError } from "../errors";
+import { createAxiosTransport, type AxiosTransportOptions } from "./axios";
 
-function clientWith(adapter: AxiosAdapter, options: Partial<ApiClientOptions> = {}) {
-  return createApiClient({ baseURL: "http://api.test", axiosConfig: { adapter }, ...options });
+function clientWith(adapter: AxiosAdapter, options: Partial<AxiosTransportOptions> = {}) {
+  return createAxiosTransport({ baseURL: "http://api.test", axiosConfig: { adapter }, ...options }).client;
 }
 
 const respond =
@@ -17,7 +18,7 @@ const respond =
     return response;
   };
 
-describe("createApiClient", () => {
+describe("createAxiosTransport", () => {
   it("sends the bearer token, awaiting async token sources", async () => {
     let seen: InternalAxiosRequestConfig | undefined;
     const client = clientWith(async (config) => ((seen = config), { data: {}, status: 200, statusText: "", headers: {}, config }), {

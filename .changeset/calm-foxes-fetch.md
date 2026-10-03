@@ -2,9 +2,13 @@
 "@trestle/api-client": minor
 ---
 
-Initial release of the shared API client:
+Initial release of the shared API client, with the HTTP library behind a pluggable transport:
 
-- `createApiClient`, an axios instance that attaches the bearer token and rejects with a typed `ApiError` (`code`, `status`), with a hook for 401s and distinct network and timeout errors
-- `createApi`, typed endpoint functions for auth, the dashboard, projects, tasks and comments, and the admin users, organizations and audit log, with request and response types exported from `@trestle/api-client/types`
-- `@trestle/api-client/query`: hierarchical query keys, React Query option factories that work for both `useQuery` and server-side `prefetchQuery`, and `getQueryClient`, which is per-request on the server and shared in the browser
+- `createApi(transport)`, typed endpoint functions for auth, the dashboard, projects, tasks and comments, and the admin users, organizations and audit log, with request and response types exported from `@trestle/api-client/types`
+- `@trestle/api-client/fetch`: `createFetchTransport`, built on native `fetch`, for Next.js. It passes `next` (`revalidate`, `tags`) and `cache` options through per request, so Server Components keep Next's caching and revalidation
+- `@trestle/api-client/axios`: `createAxiosTransport`, for the Vite SPA and React Native, with the underlying instance exposed for extra interceptors
+- Both transports attach the bearer token, reject with a typed `ApiError` (`code`, `status`), call `onUnauthorized` on 401, and report network failures and timeouts distinctly; a caller's own abort is passed through untouched
+- `@trestle/api-client/query`: hierarchical query keys, React Query option factories that serve both `useQuery` and server-side `prefetchQuery`, and `getQueryClient`, which is per-request on the server and shared in the browser
 - `@trestle/api-client/react`: `ApiProvider` and ready-made query and mutation hooks that invalidate the right queries after writes
+
+`axios`, `@tanstack/react-query` and `react` are optional peer dependencies, so an app installs only what its transport and rendering need.
