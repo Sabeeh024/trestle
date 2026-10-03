@@ -2,7 +2,8 @@ import { Hono } from "hono";
 
 import { ME_ID, type TaskRecord } from "../data/seed";
 import type { Db } from "../db";
-import { badRequest, matches, notFound, oneOf, paginate, readBody, str } from "../http";
+import { commentSchema, createTaskSchema } from "@trestle/api-client/schemas";
+import { badRequest, matches, notFound, oneOf, paginate, parseBody, readBody, str } from "../http";
 import type { Priority, TaskStatus } from "@trestle/api-client/types";
 
 const STATUSES = ["todo", "inProgress", "inReview", "done"] as const satisfies readonly TaskStatus[];
@@ -32,9 +33,9 @@ export function taskRoutes(db: Db) {
 
   app.post("/", async (c) => {
     const body = await readBody(c);
-    const title = str(body.title);
-    const projectId = str(body.projectId);
-    if (!title || !projectId) return badRequest(c, "title and projectId are required");
+    const parsed = parseBody(c, createTaskSchema, body);
+    if (!parsed.ok) return parsed.response;
+    const { title, projectId, description, priority, status, dueDate } = parsed.data;
     if (!db.state.projects.some((p) => p.id === projectId)) return badRequest(c, "projectId does not match a project");
 
     const assigneeId = str(body.assigneeId) ?? null;
@@ -45,11 +46,11 @@ export function taskRoutes(db: Db) {
       id: `TASK-${highest + 1}`,
       projectId,
       title,
-      description: str(body.description) ?? "",
-      status: oneOf(body.status, STATUSES) ?? "todo",
-      priority: oneOf(body.priority, PRIORITIES) ?? "medium",
+      description: description ?? "",
+      status: status ?? "todo",
+      priority: priority ?? "medium",
       assigneeId,
-      dueDate: str(body.dueDate) ?? null,
+      dueDate: dueDate || null,
       updatedAt: new Date().toISOString(),
     };
     db.state.tasks.push(record);
@@ -91,8 +92,9 @@ export function taskRoutes(db: Db) {
     const record = db.state.tasks.find((t) => t.id === c.req.param("id"));
     if (!record) return notFound(c, "Task");
 
-    const text = str((await readBody(c)).body);
-    if (!text) return badRequest(c, "body is required");
+    const parsed = parseBody(c, commentSchema, await readBody(c));
+    if (!parsed.ok) return parsed.response;
+    const text = parsed.data.body;
 
     const comment = { id: db.nextId("cmt"), taskId: record.id, authorId: ME_ID, body: text, createdAt: new Date().toISOString() };
     db.state.comments.push(comment);

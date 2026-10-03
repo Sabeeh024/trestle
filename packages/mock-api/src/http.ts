@@ -1,9 +1,16 @@
 import type { Context } from "hono";
-
+import { fieldErrors } from "@trestle/api-client/schemas";
 import type { Paginated } from "@trestle/api-client/types";
+import type { z } from "zod";
 
-export function fail(c: Context, status: 400 | 401 | 403 | 404 | 409, code: string, message: string) {
-  return c.json({ error: { code, message } }, status);
+export function fail(
+  c: Context,
+  status: 400 | 401 | 403 | 404 | 409 | 422,
+  code: string,
+  message: string,
+  fields?: Record<string, string>,
+) {
+  return c.json({ error: { code, message, ...(fields ? { fields } : {}) } }, status);
 }
 
 export const notFound = (c: Context, what: string) => fail(c, 404, "not_found", `${what} not found`);
@@ -16,6 +23,15 @@ export async function readBody(c: Context): Promise<Record<string, unknown>> {
   } catch {
     return {};
   }
+}
+
+type Parsed<S extends z.ZodType> = { ok: true; data: z.infer<S> } | { ok: false; response: Response };
+
+/** Validates a request body with a shared schema; on failure the response is a 422 with per-field messages. */
+export function parseBody<S extends z.ZodType>(c: Context, schema: S, body: unknown): Parsed<S> {
+  const result = schema.safeParse(body);
+  if (result.success) return { ok: true, data: result.data };
+  return { ok: false, response: fail(c, 422, "validation_failed", "Some fields are invalid", fieldErrors(result.error)) };
 }
 
 export const str = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : undefined);

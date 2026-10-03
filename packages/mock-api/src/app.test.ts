@@ -71,7 +71,7 @@ describe("product API", () => {
   it("adds comments and rejects an empty one", async () => {
     const ok = await call("/api/tasks/TASK-104/comments", { method: "POST", body: { body: "On it" } });
     assert.equal(ok.status, 201);
-    assert.equal((await call("/api/tasks/TASK-104/comments", { method: "POST", body: { body: " " } })).status, 400);
+    assert.equal((await call("/api/tasks/TASK-104/comments", { method: "POST", body: { body: " " } })).status, 422);
     const detail = await call<{ data: TaskDetail }>("/api/tasks/TASK-104");
     assert.equal(detail.json.data.comments.length, 3);
   });
@@ -132,6 +132,45 @@ describe("admin API", () => {
   it("lists organizations with member counts", async () => {
     const res = await call<Paginated<{ name: string; memberCount: number }>>("/api/admin/organizations?q=trestle");
     assert.deepEqual(res.json.data.map((o) => [o.name, o.memberCount]), [["Trestle Labs", 2]]);
+  });
+});
+
+describe("validation", () => {
+  type Failure = { error: { code: string; fields: Record<string, string> } };
+
+  async function rejected(path: string, body: unknown, method = "POST") {
+    const res = await call<Failure>(path, { method, body });
+    assert.equal(res.status, 422);
+    assert.equal(res.json.error.code, "validation_failed");
+    return res.json.error.fields;
+  }
+
+  it("returns per-field message keys from the shared schemas", async () => {
+    assert.deepEqual(await rejected("/api/auth/login", { email: "", password: "" }), { email: "required", password: "required" });
+    assert.deepEqual(await rejected("/api/auth/login", { email: "nope", password: "x" }), { email: "emailInvalid" });
+    assert.deepEqual(await rejected("/api/projects", { name: " ", dueDate: "soon" }), { name: "required", dueDate: "dateInvalid" });
+    assert.deepEqual(await rejected("/api/tasks", { projectId: "website-redesign", title: "" }), { title: "required" });
+    assert.deepEqual(await rejected("/api/admin/users/invite", { email: "bad", orgId: "" }), { email: "emailInvalid", orgId: "required" });
+    assert.deepEqual(await rejected("/api/admin/users/usr_000001", { role: "root" }, "PATCH"), { role: "invalidChoice" });
+    assert.deepEqual(await rejected("/api/admin/organizations", { name: "a".repeat(81) }), { name: "tooLong" });
+  });
+
+  it("does not create anything when validation fails", async () => {
+    await rejected("/api/projects", { name: "" });
+    const projects = await call<Paginated<Project>>("/api/projects?pageSize=100");
+    assert.equal(projects.json.meta.total, 6);
+  });
+
+  it("accepts the empty optional values an untouched form submits", async () => {
+    const created = await call<{ data: Project }>("/api/projects", { method: "POST", body: { name: "Brand Refresh", description: "", dueDate: "" } });
+    assert.equal(created.status, 201);
+    assert.equal(created.json.data.dueDate, null);
+    assert.equal(created.json.data.description, "");
+  });
+
+  it("still returns 400 for a reference that does not exist", async () => {
+    const res = await call("/api/tasks", { method: "POST", body: { projectId: "nope", title: "x" } });
+    assert.equal(res.status, 400);
   });
 });
 

@@ -2,7 +2,8 @@ import { Hono, type Context } from "hono";
 
 import { ME_ID } from "../data/seed";
 import { initials, type Db } from "../db";
-import { badRequest, fail, matches, notFound, oneOf, paginate, readBody, sortBy, str } from "../http";
+import { changeRoleSchema, createOrganizationSchema, inviteUserSchema } from "@trestle/api-client/schemas";
+import { badRequest, fail, matches, notFound, oneOf, paginate, parseBody, readBody, sortBy } from "../http";
 import type { AdminUser, AuditAction, OrgPlan, OrgStatus, User, UserRole, UserStatus } from "@trestle/api-client/types";
 
 const ROLES = ["owner", "admin", "member", "viewer"] as const satisfies readonly UserRole[];
@@ -45,21 +46,21 @@ export function adminRoutes(db: Db) {
   });
 
   app.post("/users/invite", async (c) => {
-    const body = await readBody(c);
-    const email = str(body.email)?.toLowerCase();
-    const orgId = str(body.orgId);
-    if (!email || !orgId) return badRequest(c, "email and orgId are required");
+    const parsed = parseBody(c, inviteUserSchema, await readBody(c));
+    if (!parsed.ok) return parsed.response;
+    const { orgId, name: givenName, role } = parsed.data;
+    const email = parsed.data.email.toLowerCase();
     if (!db.org(orgId)) return badRequest(c, "orgId does not match an organization");
     if (db.state.users.some((u) => u.email.toLowerCase() === email)) return fail(c, 409, "email_taken", "A user with this email already exists");
 
-    const name = str(body.name) ?? email.split("@")[0]!;
+    const name = givenName || email.split("@")[0]!;
     const user: User = {
       id: `usr_${String(db.state.users.length + 1).padStart(6, "0")}`,
       name,
       initials: initials(name),
       email,
       orgId,
-      role: oneOf(body.role, ROLES) ?? "member",
+      role: role ?? "member",
       status: "invited",
       joinedAt: new Date().toISOString(),
       lastActiveAt: null,
@@ -95,8 +96,9 @@ export function adminRoutes(db: Db) {
     const user = db.user(c.req.param("id"));
     if (!user) return notFound(c, "User");
 
-    const role = oneOf((await readBody(c)).role, ROLES);
-    if (!role) return badRequest(c, "role must be one of owner, admin, member, viewer");
+    const parsed = parseBody(c, changeRoleSchema, await readBody(c));
+    if (!parsed.ok) return parsed.response;
+    const { role } = parsed.data;
     user.role = role;
     db.log("update_role", `${user.email} → ${role}`);
     return c.json({ data: withOrg(user) });
@@ -143,14 +145,14 @@ export function adminRoutes(db: Db) {
   });
 
   app.post("/organizations", async (c) => {
-    const body = await readBody(c);
-    const name = str(body.name);
-    if (!name) return badRequest(c, "name is required");
+    const parsed = parseBody(c, createOrganizationSchema, await readBody(c));
+    if (!parsed.ok) return parsed.response;
+    const { name, plan } = parsed.data;
 
     const record = {
       id: `org_${name.toLowerCase().replace(/[^a-z0-9]+/g, "")}`,
       name,
-      plan: oneOf(body.plan, PLANS) ?? "free",
+      plan: plan ?? "free",
       status: "trialing" as const,
       createdAt: new Date().toISOString(),
     };

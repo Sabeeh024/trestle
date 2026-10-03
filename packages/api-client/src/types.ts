@@ -115,7 +115,7 @@ export interface Paginated<T> {
 }
 
 export interface ApiError {
-  error: { code: string; message: string };
+  error: { code: string; message: string; fields?: Record<string, string> };
 }
 
 // ---- Request shapes ----

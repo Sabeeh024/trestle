@@ -1,0 +1,7 @@
+{
+  "required": "This field is required",
+  "emailInvalid": "Enter a valid email address",
+  "tooLong": "That's too long",
+  "dateInvalid": "Enter a valid date",
+  "invalidChoice": "Choose an option"
+}
