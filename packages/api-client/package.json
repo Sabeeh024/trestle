@@ -5,14 +5,15 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./types": "./src/types.ts",
-    "./fetch": "./src/transports/fetch.ts",
     "./axios": "./src/transports/axios.ts",
+    "./fetch": "./src/transports/fetch.ts",
     "./query": "./src/query/index.ts",
-    "./react": "./src/react/index.ts"
+    "./react": "./src/react/index.ts",
+    "./schemas": "./src/schemas.ts",
+    "./types": "./src/types.ts"
   },
   "scripts": {
-    "test": "tsx --test src/transports/axios.test.ts src/transports/fetch.test.ts",
+    "test": "tsx --test src/errors.test.ts src/schemas.test.ts src/transports/axios.test.ts src/transports/fetch.test.ts",
     "check-types": "tsc --noEmit"
   },
   "peerDependencies": {
@@ -40,5 +41,8 @@
     "react": {
       "optional": true
     }
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
   }
 }

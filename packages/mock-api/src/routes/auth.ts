@@ -1,7 +1,8 @@
 import { Hono, type Context } from "hono";
 
 import type { Db } from "../db";
-import { badRequest, fail, readBody, str } from "../http";
+import { loginSchema } from "@trestle/api-client/schemas";
+import { fail, parseBody, readBody } from "../http";
 import type { User } from "@trestle/api-client/types";
 
 const TOKEN_PREFIX = "mock-token-";
@@ -17,10 +18,10 @@ export function authRoutes(db: Db) {
 
   // Any non-empty password works, except the literal "wrong", so the failure path is easy to trigger.
   app.post("/login", async (c) => {
-    const body = await readBody(c);
-    const email = str(body.email)?.toLowerCase();
-    const password = str(body.password);
-    if (!email || !password) return badRequest(c, "email and password are required");
+    const parsed = parseBody(c, loginSchema, await readBody(c));
+    if (!parsed.ok) return parsed.response;
+    const email = parsed.data.email.toLowerCase();
+    const { password } = parsed.data;
 
     const user = db.state.users.find((u) => u.email.toLowerCase() === email);
     if (!user || password === "wrong") {

@@ -1,4 +1,7 @@
 import { getT } from "next-i18next/server";
+import { lng } from "next/root-params";
+
+import type { Priority, TaskStatus } from "@trestle/api-client/types";
 
 import { Button } from "@trestle/ui/components/ui/button";
 import { Badge } from "@trestle/ui/components/ui/badge";
@@ -13,9 +16,11 @@ import {
 } from "@trestle/ui/components/ui/table";
 import { Checkbox } from "@trestle/ui/components/ui/checkbox";
 
+import { NewTaskDialog } from "@/components/new-task-dialog";
 import { Sidebar } from "@/components/sidebar";
 import { TopBar } from "@/components/topbar";
-import { currentUser, dashboardTasks, projects, type Priority, type TaskStatus } from "@/lib/mock-data";
+import { api } from "@/lib/api";
+import { formatDate, formatRelative } from "@/lib/format";
 
 const priorityVariant: Record<Priority, "destructive" | "warning" | "secondary"> = {
   urgent: "destructive",
@@ -33,7 +38,12 @@ const statusVariant: Record<TaskStatus, "secondary" | "accent" | "success"> = {
 
 export default async function DashboardPage() {
   const { t } = await getT(["app", "domain"]);
-  const recentProjects = projects.slice(0, 4);
+  const locale = await lng();
+  const [{ me, recentProjects, myTasks }, projects] = await Promise.all([
+    api.dashboard.get(),
+    api.projects.list({ pageSize: 100 }),
+  ]);
+  const projectNames = new Map(projects.data.map((project) => [project.id, project.name]));
 
   return (
     <>
@@ -46,11 +56,13 @@ export default async function DashboardPage() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <h1 className="text-2xl leading-heading font-bold">
-                {t("app:dashboard.greeting", { name: currentUser.name.split(" ")[0] })}
+                {t("app:dashboard.greeting", { name: me.name.split(" ")[0] })}
               </h1>
               <p className="mt-1 text-sm text-text-secondary">{t("app:dashboard.subtitle")}</p>
             </div>
-            <Button>{t("app:dashboard.newTask")}</Button>
+            <NewTaskDialog projects={projects.data.map(({ id, name }) => ({ id, name }))} assigneeId={me.id}>
+              <Button>{t("app:dashboard.newTask")}</Button>
+            </NewTaskDialog>
           </div>
 
           <section className="flex flex-col gap-4">
@@ -91,14 +103,14 @@ export default async function DashboardPage() {
 
                   <div className="mt-auto flex items-center justify-between">
                     <AvatarGroup>
-                      {project.members.map((initials) => (
-                        <Avatar key={initials} size="sm">
-                          <AvatarFallback>{initials}</AvatarFallback>
+                      {project.members.map((member) => (
+                        <Avatar key={member.id} size="sm">
+                          <AvatarFallback>{member.initials}</AvatarFallback>
                         </Avatar>
                       ))}
                     </AvatarGroup>
                     <p className="text-xs text-text-disabled">
-                      {t("app:dashboard.updatedAgo", { time: project.updatedAgo })}
+                      {t("app:dashboard.updated", { time: formatRelative(project.updatedAt, locale) })}
                     </p>
                   </div>
                 </div>
@@ -131,8 +143,7 @@ export default async function DashboardPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {dashboardTasks.map((task) => {
-                    const project = projects.find((p) => p.id === task.projectId);
+                  {myTasks.map((task) => {
                     const done = task.status === "done";
                     return (
                       <TableRow key={task.id}>
@@ -144,7 +155,7 @@ export default async function DashboardPage() {
                         </TableCell>
                         <TableCell>
                           <Badge variant="secondary" shape="tag">
-                            {project?.name}
+                            {projectNames.get(task.projectId)}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -152,7 +163,7 @@ export default async function DashboardPage() {
                             {t(`domain:priority.${task.priority}`)}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-text-secondary">{task.due}</TableCell>
+                        <TableCell className="text-text-secondary">{formatDate(task.dueDate, locale)}</TableCell>
                         <TableCell>
                           <Badge variant={statusVariant[task.status]} dot>
                             {t(`domain:taskStatus.${task.status}`)}

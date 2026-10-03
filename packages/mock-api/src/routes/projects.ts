@@ -2,7 +2,8 @@ import { Hono } from "hono";
 
 import { ME_ID } from "../data/seed";
 import type { Db } from "../db";
-import { badRequest, matches, notFound, oneOf, paginate, readBody, str } from "../http";
+import { createProjectSchema } from "@trestle/api-client/schemas";
+import { matches, notFound, oneOf, paginate, parseBody, readBody, str } from "../http";
 import type { CategoricalColor, ProjectStatus } from "@trestle/api-client/types";
 
 const COLORS = ["purple", "cyan", "green", "orange", "blue", "pink"] as const satisfies readonly CategoricalColor[];
@@ -29,8 +30,9 @@ export function projectRoutes(db: Db) {
 
   app.post("/", async (c) => {
     const body = await readBody(c);
-    const name = str(body.name);
-    if (!name) return badRequest(c, "name is required");
+    const parsed = parseBody(c, createProjectSchema, body);
+    if (!parsed.ok) return parsed.response;
+    const { name, description, dueDate } = parsed.data;
 
     let id = slugify(name) || db.nextId("project");
     if (db.state.projects.some((p) => p.id === id)) id = `${id}-${db.nextId("copy")}`;
@@ -38,12 +40,12 @@ export function projectRoutes(db: Db) {
     const record = {
       id,
       name,
-      description: str(body.description) ?? "",
+      description: description ?? "",
       color: oneOf(body.color, COLORS) ?? "purple",
       status: oneOf(body.status, STATUSES) ?? "planning",
       progress: 0,
       memberIds: [ME_ID],
-      dueDate: str(body.dueDate) ?? null,
+      dueDate: dueDate || null,
       updatedAt: new Date().toISOString(),
     };
     db.state.projects.push(record);
