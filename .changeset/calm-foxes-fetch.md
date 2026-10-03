@@ -5,7 +5,7 @@
 Initial release of the shared API client, with the HTTP library behind a pluggable transport:
 
 - `createApi(transport)`, typed endpoint functions for auth, the dashboard, projects, tasks and comments, and the admin users, organizations and audit log, with request and response types exported from `@trestle/api-client/types`
-- `@trestle/api-client/fetch`: `createFetchTransport`, built on native `fetch`, for Next.js. It passes `next` (`revalidate`, `tags`) and `cache` options through per request, so Server Components keep Next's caching and revalidation
+- `@trestle/api-client/fetch`: `createFetchTransport`, built on native `fetch`, for Next.js. It passes `next` (`revalidate`, `tags`) and `cache` options through per request, so Server Components keep Next's caching and revalidation. It sends no abort signal and no timeout by default, because a signal switches off Next's request memoization; set `timeoutMs` to opt in
 - `@trestle/api-client/axios`: `createAxiosTransport`, for the Vite SPA and React Native, with the underlying instance exposed for extra interceptors
 - Both transports attach the bearer token, reject with a typed `ApiError` (`code`, `status`), call `onUnauthorized` on 401, and report network failures and timeouts distinctly; a caller's own abort is passed through untouched
 - `@trestle/api-client/query`: hierarchical query keys, React Query option factories that serve both `useQuery` and server-side `prefetchQuery`, and `getQueryClient`, which is per-request on the server and shared in the browser

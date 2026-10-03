@@ -56,6 +56,16 @@ describe("createFetchTransport", () => {
     assert.equal(new Headers(calls[0]?.init.headers).get("Content-Type"), "application/json");
   });
 
+  it("attaches no abort signal by default, so Next.js can memoize identical GETs", async () => {
+    const { calls, transport } = transportWith(() => json(200, {}));
+    await transport.request({ method: "GET", url: "/api/projects" });
+    assert.equal(calls[0]?.init.signal, undefined);
+
+    const withTimeout = transportWith(() => json(200, {}), { timeoutMs: 5000 });
+    await withTimeout.transport.request({ method: "GET", url: "/api/projects" });
+    assert.ok(withTimeout.calls[0]?.init.signal);
+  });
+
   it("passes Next.js caching options through to fetch", async () => {
     const { calls, transport } = transportWith(() => json(200, {}));
     await transport.request({ method: "GET", url: "/api/projects", next: { revalidate: 60, tags: ["projects"] }, cache: "force-cache" });

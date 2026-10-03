@@ -6,6 +6,9 @@ export interface FetchTransportOptions extends TransportOptions {
   fetch?: typeof fetch;
 }
 
+// timeoutMs defaults to 0 (no timeout) here, unlike the axios transport. Next.js only memoizes identical
+// GETs within a render when the request carries no abort signal, and a timeout would add one.
+
 function buildUrl(baseURL: string, url: string, params: object | undefined) {
   // Joined as strings, not resolved with new URL(url, base), so a path in baseURL (e.g. /v1) is kept.
   const target = new URL(`${baseURL.replace(/\/+$/, "")}/${url.replace(/^\/+/, "")}`);
@@ -20,7 +23,7 @@ export function createFetchTransport({
   baseURL,
   getToken,
   onUnauthorized,
-  timeoutMs = 15_000,
+  timeoutMs = 0,
   fetch: fetchImpl = globalThis.fetch,
 }: FetchTransportOptions): Transport {
   return {
@@ -30,12 +33,10 @@ export function createFetchTransport({
       const token = await getToken?.();
       if (token) headers.set("Authorization", `Bearer ${token}`);
 
-      const timeout = AbortSignal.timeout(timeoutMs);
-      const init: RequestInit & { next?: RequestConfig["next"]; cache?: RequestConfig["cache"] } = {
-        method,
-        headers,
-        signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
-      };
+      const timeout = timeoutMs > 0 ? AbortSignal.timeout(timeoutMs) : undefined;
+      const signals = [signal, timeout].filter((s): s is AbortSignal => s !== undefined);
+      const init: RequestInit & { next?: RequestConfig["next"]; cache?: RequestConfig["cache"] } = { method, headers };
+      if (signals.length > 0) init.signal = signals.length === 1 ? signals[0]! : AbortSignal.any(signals);
       if (body !== undefined) init.body = JSON.stringify(body);
       if (next) init.next = next;
       if (cache) init.cache = cache;
@@ -45,7 +46,7 @@ export function createFetchTransport({
         response = await fetchImpl(buildUrl(baseURL, url, params), init);
       } catch (error) {
         if (signal?.aborted) throw error;
-        throw timeout.aborted ? timeoutError() : networkError();
+        throw timeout?.aborted ? timeoutError() : networkError();
       }
 
       if (!response.ok) {
