@@ -2,10 +2,11 @@ import { getT } from "next-i18next/server";
 
 import { Avatar, AvatarFallback } from "@trestle/ui/components/ui/avatar";
 
-import { currentUser } from "@/lib/mock-data";
+import { api } from "@/lib/api";
 
 export async function TopBar({ crumbs }: { crumbs: string[] }) {
   const { t } = await getT("app");
+  const me = await api.auth.me();
 
   return (
     <div className="flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border px-6">
@@ -29,7 +30,7 @@ export async function TopBar({ crumbs }: { crumbs: string[] }) {
 
       <div className="flex shrink-0 items-center gap-4">
         <Avatar size="sm">
-          <AvatarFallback>{currentUser.initials}</AvatarFallback>
+          <AvatarFallback>{me.initials}</AvatarFallback>
         </Avatar>
       </div>
     </div>

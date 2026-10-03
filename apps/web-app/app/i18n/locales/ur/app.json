@@ -49,7 +49,7 @@
       "status": "صورتحال"
     },
     "percentComplete": "{{percent}}% مکمل",
-    "updatedAgo": "{{time}} پہلے اپڈیٹ ہوا"
+    "updated": "اپڈیٹ ہوا {{time}}"
   },
   "projects": {
     "title": "منصوبے",
@@ -88,6 +88,5 @@
       "addComment": "تبصرہ شامل کریں...",
       "send": "بھیجیں"
     }
-  },
-  "timeAgo": "{{time}} پہلے"
+  }
 }
