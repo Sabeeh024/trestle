@@ -7,6 +7,7 @@ import { createQueries, getQueryClient } from "@trestle/api-client/query";
 import { Button } from "@trestle/ui/components/ui/button";
 import { Avatar, AvatarFallback, AvatarGroup } from "@trestle/ui/components/ui/avatar";
 
+import { NewTaskDialog } from "@/components/new-task-dialog";
 import { Sidebar } from "@/components/sidebar";
 import { TopBar } from "@/components/topbar";
 import { api } from "@/lib/api";
@@ -51,7 +52,9 @@ export default async function ProjectViewPage({ params }: { params: Promise<{ pr
                 </Avatar>
               ))}
             </AvatarGroup>
-            <Button>{t("projectView.newTask")}</Button>
+            <NewTaskDialog projectId={projectId}>
+              <Button>{t("projectView.newTask")}</Button>
+            </NewTaskDialog>
           </div>
         </div>
 

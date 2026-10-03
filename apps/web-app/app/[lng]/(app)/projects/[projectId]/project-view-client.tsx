@@ -4,8 +4,10 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import { useT } from "next-i18next/client";
 
+import { commentSchema } from "@trestle/api-client/schemas";
 import type { Priority, Task, TaskStatus } from "@trestle/api-client/types";
 import { useAddComment, useProjectTasks, useTask } from "@trestle/api-client/react";
+import { fieldError, rootError, submitForm, useZodForm } from "@trestle/forms";
 import { Button } from "@trestle/ui/components/ui/button";
 import { Badge } from "@trestle/ui/components/ui/badge";
 import { Input } from "@trestle/ui/components/ui/input";
@@ -23,6 +25,7 @@ import { SidePanel, SidePanelBody, SidePanelFooter, SidePanelHeader } from "@tre
 import { PropertyList, PropertyItem } from "@trestle/ui/components/property-list";
 
 import { formatDate, formatRelative } from "@/lib/format";
+import { useValidationTranslate } from "@/lib/use-validation-translate";
 
 const priorityVariant: Record<Priority, "destructive" | "warning" | "secondary"> = {
   urgent: "destructive",
@@ -70,11 +73,11 @@ export function ProjectViewClient({ projectId }: { projectId: string }) {
   const { t: tDomain } = useT("domain");
   const { t: tCommon } = useT("common");
   const { lng } = useParams<{ lng: string }>();
+  const tv = useValidationTranslate();
 
   const [view, setView] = useState<"board" | "list">("board");
   // undefined means "not chosen yet", which opens the first task; null means the panel was closed.
   const [selectedId, setSelectedId] = useState<string | null | undefined>(undefined);
-  const [comment, setComment] = useState("");
 
   const tasksQuery = useProjectTasks(projectId);
   const tasks = tasksQuery.data?.data ?? [];
@@ -82,12 +85,17 @@ export function ProjectViewClient({ projectId }: { projectId: string }) {
   const task = useTask(activeId);
   const addComment = useAddComment();
 
-  const submitComment = (event: React.FormEvent) => {
-    event.preventDefault();
-    const body = comment.trim();
-    if (!activeId || !body) return;
-    addComment.mutate({ taskId: activeId, body }, { onSuccess: () => setComment("") });
-  };
+  const commentForm = useZodForm(commentSchema, { defaultValues: { body: "" } });
+  const submitComment = submitForm(
+    commentForm,
+    async ({ body }) => {
+      if (!activeId) return;
+      await addComment.mutateAsync({ taskId: activeId, body });
+      commentForm.reset();
+    },
+    t("forms.genericError"),
+  );
+  const commentError = fieldError(commentForm, "body", tv) ?? rootError(commentForm, tv);
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -242,20 +250,20 @@ export function ProjectViewClient({ projectId }: { projectId: string }) {
               ) : null}
             </SidePanelBody>
             <SidePanelFooter className="flex-col">
-              <form className="flex gap-2" onSubmit={submitComment}>
+              <form className="flex gap-2" onSubmit={submitComment} noValidate>
                 <Input
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
+                  aria-label={t("projectView.panel.addComment")}
+                  aria-invalid={commentError ? true : undefined}
                   placeholder={t("projectView.panel.addComment")}
-                  disabled={addComment.isPending}
+                  {...commentForm.register("body")}
                 />
-                <Button size="sm" type="submit" disabled={addComment.isPending || !comment.trim()}>
+                <Button size="sm" type="submit" disabled={commentForm.formState.isSubmitting}>
                   {t("projectView.panel.send")}
                 </Button>
               </form>
-              {addComment.error ? (
+              {commentError ? (
                 <p role="alert" className="text-xs text-feedback-danger">
-                  {addComment.error.message}
+                  {commentError}
                 </p>
               ) : null}
             </SidePanelFooter>

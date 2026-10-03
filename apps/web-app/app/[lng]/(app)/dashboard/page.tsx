@@ -16,6 +16,7 @@ import {
 } from "@trestle/ui/components/ui/table";
 import { Checkbox } from "@trestle/ui/components/ui/checkbox";
 
+import { NewTaskDialog } from "@/components/new-task-dialog";
 import { Sidebar } from "@/components/sidebar";
 import { TopBar } from "@/components/topbar";
 import { api } from "@/lib/api";
@@ -59,7 +60,9 @@ export default async function DashboardPage() {
               </h1>
               <p className="mt-1 text-sm text-text-secondary">{t("app:dashboard.subtitle")}</p>
             </div>
-            <Button>{t("app:dashboard.newTask")}</Button>
+            <NewTaskDialog projects={projects.data.map(({ id, name }) => ({ id, name }))} assigneeId={me.id}>
+              <Button>{t("app:dashboard.newTask")}</Button>
+            </NewTaskDialog>
           </div>
 
           <section className="flex flex-col gap-4">

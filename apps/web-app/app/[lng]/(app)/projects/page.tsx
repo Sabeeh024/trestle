@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "@trestle/ui/components/ui/table";
 
+import { NewProjectDialog } from "@/components/new-project-dialog";
 import { Sidebar } from "@/components/sidebar";
 import { TopBar } from "@/components/topbar";
 import { api } from "@/lib/api";
@@ -41,7 +42,9 @@ export default async function ProjectsPage() {
         <div className="flex flex-1 flex-col gap-6 p-8">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <h1 className="text-2xl leading-heading font-bold">{t("app:projects.title")}</h1>
-            <Button>{t("app:projects.newProject")}</Button>
+            <NewProjectDialog>
+              <Button>{t("app:projects.newProject")}</Button>
+            </NewProjectDialog>
           </div>
 
           <div className="flex gap-1 self-start rounded-md bg-muted p-1">

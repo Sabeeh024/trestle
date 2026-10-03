@@ -11,7 +11,10 @@
     "or": "یا",
     "continueWithSso": "SSO کے ساتھ جاری رکھیں",
     "noAccount": "اکاؤنٹ نہیں ہے؟",
-    "signUp": "سائن اَپ کریں"
+    "signUp": "سائن اَپ کریں",
+    "invalidCredentials": "ای میل یا پاس ورڈ غلط ہے",
+    "accountSuspended": "یہ اکاؤنٹ معطل ہے",
+    "signingIn": "سائن ان ہو رہا ہے…"
   },
   "notFound": {
     "title": "صفحہ نہیں ملا",
@@ -88,5 +91,31 @@
       "addComment": "تبصرہ شامل کریں...",
       "send": "بھیجیں"
     }
+  },
+  "forms": {
+    "genericError": "کچھ غلط ہو گیا۔ براہ کرم دوبارہ کوشش کریں۔"
+  },
+  "newProject": {
+    "title": "نیا پروجیکٹ",
+    "description": "اپنے پروجیکٹ کو نام دیں اور چاہیں تو آخری تاریخ بھی مقرر کریں۔",
+    "nameLabel": "نام",
+    "namePlaceholder": "ویب سائٹ ری ڈیزائن",
+    "descriptionLabel": "تفصیل",
+    "dueDateLabel": "آخری تاریخ",
+    "create": "پروجیکٹ بنائیں",
+    "creating": "بنایا جا رہا ہے…"
+  },
+  "newTask": {
+    "title": "نیا ٹاسک",
+    "description": "ایک ٹاسک شامل کریں اور اسے کسی پروجیکٹ کو دیں۔",
+    "projectLabel": "پروجیکٹ",
+    "projectPlaceholder": "پروجیکٹ منتخب کریں",
+    "titleLabel": "عنوان",
+    "titlePlaceholder": "کیا کرنا ہے؟",
+    "descriptionLabel": "تفصیل",
+    "priorityLabel": "ترجیح",
+    "dueDateLabel": "آخری تاریخ",
+    "create": "ٹاسک بنائیں",
+    "creating": "بنایا جا رہا ہے…"
   }
 }

@@ -1,8 +1,9 @@
 import { getT } from "next-i18next/server";
 
 import { Button } from "@trestle/ui/components/ui/button";
-import { Input } from "@trestle/ui/components/ui/input";
 import { Logo } from "@trestle/ui/components/logo";
+
+import { LoginForm } from "./login-form";
 
 export default async function LoginPage() {
   const { t } = await getT("app");
@@ -18,30 +19,7 @@ export default async function LoginPage() {
           </div>
         </div>
 
-        <form className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="email" className="text-sm font-semibold text-text-secondary">
-              {t("login.emailLabel")}
-            </label>
-            <Input id="email" type="email" placeholder={t("login.emailPlaceholder")} />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-baseline justify-between">
-              <label htmlFor="password" className="text-sm font-semibold text-text-secondary">
-                {t("login.passwordLabel")}
-              </label>
-              <a href="#" className="text-sm text-action-primary hover:text-action-primaryHover">
-                {t("login.forgotPassword")}
-              </a>
-            </div>
-            <Input id="password" type="password" placeholder={t("login.passwordPlaceholder")} />
-          </div>
-
-          <Button type="submit" className="w-full">
-            {t("login.signIn")}
-          </Button>
-        </form>
+        <LoginForm />
 
         <div className="flex items-center gap-3">
           <div className="h-px flex-1 bg-border" />

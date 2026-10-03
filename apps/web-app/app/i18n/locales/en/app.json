@@ -11,7 +11,10 @@
     "or": "or",
     "continueWithSso": "Continue with SSO",
     "noAccount": "Don't have an account?",
-    "signUp": "Sign up"
+    "signUp": "Sign up",
+    "invalidCredentials": "Incorrect email or password",
+    "accountSuspended": "This account is suspended",
+    "signingIn": "Signing in…"
   },
   "notFound": {
     "title": "Page not found",
@@ -88,5 +91,31 @@
       "addComment": "Add a comment...",
       "send": "Send"
     }
+  },
+  "forms": {
+    "genericError": "Something went wrong. Please try again."
+  },
+  "newProject": {
+    "title": "New project",
+    "description": "Give your project a name and, if you like, a due date.",
+    "nameLabel": "Name",
+    "namePlaceholder": "Website redesign",
+    "descriptionLabel": "Description",
+    "dueDateLabel": "Due date",
+    "create": "Create project",
+    "creating": "Creating…"
+  },
+  "newTask": {
+    "title": "New task",
+    "description": "Add a task and give it to a project.",
+    "projectLabel": "Project",
+    "projectPlaceholder": "Choose a project",
+    "titleLabel": "Title",
+    "titlePlaceholder": "What needs to happen?",
+    "descriptionLabel": "Description",
+    "priorityLabel": "Priority",
+    "dueDateLabel": "Due date",
+    "create": "Create task",
+    "creating": "Creating…"
   }
 }

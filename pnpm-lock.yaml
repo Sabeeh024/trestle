@@ -327,6 +327,9 @@ importers:
       '@trestle/design-tokens':
         specifier: workspace:*
         version: link:../../packages/design-tokens
+      '@trestle/forms':
+        specifier: workspace:*
+        version: link:../../packages/forms
       '@trestle/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
