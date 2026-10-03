@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { ME_ID } from "../data/seed";
 import type { Db } from "../db";
 import { badRequest, matches, notFound, oneOf, paginate, readBody, str } from "../http";
-import type { CategoricalColor, ProjectStatus } from "../types";
+import type { CategoricalColor, ProjectStatus } from "@trestle/api-client/types";
 
 const COLORS = ["purple", "cyan", "green", "orange", "blue", "pink"] as const satisfies readonly CategoricalColor[];
 const STATUSES = ["active", "planning", "onHold"] as const satisfies readonly ProjectStatus[];

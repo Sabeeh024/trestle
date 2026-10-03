@@ -3,7 +3,7 @@ import { beforeEach, describe, it } from "node:test";
 
 import { createApp } from "./app";
 import { Db } from "./db";
-import type { AdminUser, AuditLogEntry, DashboardData, Paginated, Project, Task, TaskDetail } from "./types";
+import type { AdminUser, AuditLogEntry, DashboardData, Paginated, Project, Task, TaskDetail } from "@trestle/api-client/types";
 
 const db = new Db();
 const app = createApp({ db });

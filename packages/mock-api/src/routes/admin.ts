@@ -3,7 +3,7 @@ import { Hono, type Context } from "hono";
 import { ME_ID } from "../data/seed";
 import { initials, type Db } from "../db";
 import { badRequest, fail, matches, notFound, oneOf, paginate, readBody, sortBy, str } from "../http";
-import type { AdminUser, AuditAction, OrgPlan, OrgStatus, User, UserRole, UserStatus } from "../types";
+import type { AdminUser, AuditAction, OrgPlan, OrgStatus, User, UserRole, UserStatus } from "@trestle/api-client/types";
 
 const ROLES = ["owner", "admin", "member", "viewer"] as const satisfies readonly UserRole[];
 const USER_STATUSES = ["active", "invited", "suspended"] as const satisfies readonly UserStatus[];

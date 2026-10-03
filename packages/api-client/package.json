@@ -1,0 +1,32 @@
+{
+  "name": "@trestle/api-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./types": "./src/types.ts",
+    "./query": "./src/query/index.ts",
+    "./react": "./src/react/index.ts"
+  },
+  "scripts": {
+    "test": "tsx --test src/client.test.ts",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "axios": "^1.20.0"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5",
+    "react": "^19"
+  },
+  "devDependencies": {
+    "@tanstack/react-query": "^5.104.1",
+    "@trestle/typescript-config": "workspace:*",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "react": "19.2.8",
+    "tsx": "^4.19.2",
+    "typescript": "^5"
+  }
+}

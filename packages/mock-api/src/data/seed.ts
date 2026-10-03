@@ -7,7 +7,7 @@ import type {
   ProjectStatus,
   TaskStatus,
   User,
-} from "../types";
+} from "@trestle/api-client/types";
 
 export interface OrgRecord {
   id: string;

@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { ME_ID, type TaskRecord } from "../data/seed";
 import type { Db } from "../db";
 import { badRequest, matches, notFound, oneOf, paginate, readBody, str } from "../http";
-import type { Priority, TaskStatus } from "../types";
+import type { Priority, TaskStatus } from "@trestle/api-client/types";
 
 const STATUSES = ["todo", "inProgress", "inReview", "done"] as const satisfies readonly TaskStatus[];
 const PRIORITIES = ["urgent", "high", "medium", "low"] as const satisfies readonly Priority[];
