@@ -1,34 +1,33 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
+import type { UserStatus } from "@trestle/api-client/types";
+import {
+  useAdminUser,
+  useAdminUsers,
+  useBulkUserAction,
+  useDeleteUser,
+  useReinstateUser,
+  useResetUserPassword,
+  useSuspendUser,
+} from "@trestle/api-client/react";
 
 import { Button } from "@trestle/ui/components/ui/button";
 import { Input } from "@trestle/ui/components/ui/input";
 import { Badge } from "@trestle/ui/components/ui/badge";
 import { Checkbox } from "@trestle/ui/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@trestle/ui/components/ui/avatar";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@trestle/ui/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@trestle/ui/components/ui/table";
 import { SidePanel, SidePanelBody, SidePanelHeader } from "@trestle/ui/components/side-panel";
 import { PropertyList, PropertyItem } from "@trestle/ui/components/property-list";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@trestle/ui/components/ui/alert-dialog";
 
-import { PageHeader } from "@/components/page-header";
 import { BulkActionBar } from "@/components/bulk-action-bar";
-import { users, type UserStatus } from "@/lib/mock-data";
+import { ConfirmDialog, type Confirmation } from "@/components/confirm-dialog";
+import { PageHeader } from "@/components/page-header";
+import { PaginationBar } from "@/components/pagination-bar";
+import { TableStatusRow } from "@/components/table-status-row";
+import { formatDate, formatRelative } from "@/lib/format";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
+
+const PAGE_SIZE = 8;
 
 const statusVariant: Record<UserStatus, "success" | "warning" | "destructive"> = {
   active: "success",
@@ -38,53 +37,95 @@ const statusVariant: Record<UserStatus, "success" | "warning" | "destructive"> =
 
 export function UsersPage() {
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<string[]>([]);
   const [detailId, setDetailId] = useState<string | null>(null);
-  const [suspendTarget, setSuspendTarget] = useState<string | null>(null);
+  const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [passwordResetSent, setPasswordResetSent] = useState(false);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return users;
-    return users.filter(
-      (u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
-    );
-  }, [search]);
+  const q = useDebouncedValue(search.trim());
+  const users = useAdminUsers({ q: q || undefined, page, pageSize: PAGE_SIZE, sort: "name" });
+  const detail = useAdminUser(detailId);
 
-  const allSelected = filtered.length > 0 && selected.length === filtered.length;
-  const detail = users.find((u) => u.id === detailId) ?? null;
-  const suspendUser = users.find((u) => u.id === suspendTarget) ?? null;
+  const suspend = useSuspendUser();
+  const reinstate = useReinstateUser();
+  const remove = useDeleteUser();
+  const resetPassword = useResetUserPassword();
+  const bulk = useBulkUserAction();
 
-  function toggleAll() {
-    setSelected(allSelected ? [] : filtered.map((u) => u.id));
+  const rows = users.data?.data ?? [];
+  const total = users.data?.meta.total ?? 0;
+  const allSelected = rows.length > 0 && rows.every((u) => selected.includes(u.id));
+
+  async function run(action: () => Promise<unknown>) {
+    setActionError(null);
+    try {
+      await action();
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "Something went wrong");
+    }
   }
 
-  function toggleOne(id: string) {
+  const goToPage = (next: number) => {
+    setPage(next);
+    setSelected([]);
+  };
+
+  const toggleAll = () => setSelected(allSelected ? [] : rows.map((u) => u.id));
+  const toggleOne = (id: string) =>
     setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  }
+
+  const openDetail = (id: string) => {
+    setDetailId(id);
+    setPasswordResetSent(false);
+  };
+
+  const confirmBulk = (action: "suspend" | "delete") =>
+    setConfirmation({
+      title: `${action === "suspend" ? "Suspend" : "Delete"} ${selected.length} ${selected.length === 1 ? "user" : "users"}?`,
+      description:
+        action === "suspend"
+          ? "They will immediately lose access to all workspaces. They can be reinstated later."
+          : "This permanently removes the selected users and cannot be undone.",
+      confirmLabel: action === "suspend" ? "Suspend" : "Delete",
+      onConfirm: () =>
+        void run(async () => {
+          await bulk.mutateAsync({ action, ids: selected });
+          setSelected([]);
+        }),
+    });
+
+  const user = detail.data;
 
   return (
     <div className="flex min-w-0 flex-1">
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <PageHeader
-          crumb="Users"
-          title="Users"
-          action={<Button size="sm">+ Invite user</Button>}
-        />
+        <PageHeader crumb="Users" title="Users" action={<Button size="sm">+ Invite user</Button>} />
 
         <div className="px-4 pb-3">
           <Input
             placeholder="Search by name or email"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              goToPage(1);
+            }}
             className="max-w-xs"
           />
         </div>
 
+        {actionError ? (
+          <p role="alert" className="mx-4 mb-3 rounded-md bg-feedback-dangerBg px-3 py-2 text-[13px] text-feedback-danger">
+            {actionError}
+          </p>
+        ) : null}
+
         <BulkActionBar count={selected.length}>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => confirmBulk("suspend")}>
             Suspend
           </Button>
-          <Button variant="destructive" size="sm">
+          <Button variant="destructive" size="sm" onClick={() => confirmBulk("delete")}>
             Delete
           </Button>
         </BulkActionBar>
@@ -95,7 +136,7 @@ export function UsersPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-8">
-                    <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
+                    <Checkbox checked={allSelected} onCheckedChange={toggleAll} aria-label="Select all users" />
                   </TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
@@ -106,17 +147,26 @@ export function UsersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((u) => (
+                <TableStatusRow
+                  colSpan={7}
+                  isPending={users.isPending}
+                  error={users.error}
+                  isEmpty={rows.length === 0}
+                  emptyLabel="No users match your search"
+                  onRetry={() => void users.refetch()}
+                />
+                {rows.map((u) => (
                   <TableRow
                     key={u.id}
                     className="cursor-pointer"
                     data-state={selected.includes(u.id) ? "selected" : undefined}
-                    onClick={() => setDetailId(u.id)}
+                    onClick={() => openDetail(u.id)}
                   >
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <Checkbox
                         checked={selected.includes(u.id)}
                         onCheckedChange={() => toggleOne(u.id)}
+                        aria-label={`Select ${u.name}`}
                       />
                     </TableCell>
                     <TableCell>
@@ -128,95 +178,131 @@ export function UsersPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-text-secondary">{u.email}</TableCell>
-                    <TableCell className="text-text-secondary">{u.org}</TableCell>
+                    <TableCell className="text-text-secondary">{u.orgName}</TableCell>
                     <TableCell className="text-text-secondary capitalize">{u.role}</TableCell>
                     <TableCell>
                       <Badge variant={statusVariant[u.status]} dot className="capitalize">
                         {u.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-text-disabled">{u.joined}</TableCell>
+                    <TableCell className="text-text-disabled">{formatDate(u.joinedAt)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-            <div className="flex items-center justify-between border-t border-border bg-background-subtle px-3 py-2 text-xs text-text-secondary">
-              <span>
-                Showing 1–{filtered.length} of {users.length} users
-              </span>
-            </div>
+            <PaginationBar noun="users" page={page} pageSize={PAGE_SIZE} total={total} onPageChange={goToPage} />
           </div>
         </div>
       </div>
 
-      {detail ? (
+      {detailId ? (
         <SidePanel>
           <SidePanelHeader onClose={() => setDetailId(null)}>User detail</SidePanelHeader>
           <SidePanelBody className="gap-4">
-            <div className="flex items-center gap-3">
-              <Avatar size="lg">
-                <AvatarFallback>{detail.initials}</AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="text-[15px] font-bold">{detail.name}</p>
-                <p className="text-xs text-text-secondary">{detail.email}</p>
-              </div>
-            </div>
+            {detail.isPending ? <p className="text-text-secondary">Loading…</p> : null}
+            {detail.error ? (
+              <p role="alert" className="text-feedback-danger">
+                {detail.error.message}
+              </p>
+            ) : null}
+            {user ? (
+              <>
+                <div className="flex items-center gap-3">
+                  <Avatar size="lg">
+                    <AvatarFallback>{user.initials}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-[15px] font-bold">{user.name}</p>
+                    <p className="text-xs text-text-secondary">{user.email}</p>
+                  </div>
+                </div>
 
-            <PropertyList>
-              <PropertyItem label="Status">
-                <Badge variant={statusVariant[detail.status]} dot className="capitalize">
-                  {detail.status}
-                </Badge>
-              </PropertyItem>
-              <PropertyItem label="Organization">{detail.org}</PropertyItem>
-              <PropertyItem label="Role">
-                <span className="capitalize">{detail.role}</span>
-              </PropertyItem>
-              <PropertyItem label="Joined">{detail.joined}</PropertyItem>
-              <PropertyItem label="Last active">{detail.lastActive}</PropertyItem>
-              <PropertyItem label="User ID">
-                <span className="font-mono text-xs text-text-disabled">{detail.id}</span>
-              </PropertyItem>
-            </PropertyList>
+                <PropertyList>
+                  <PropertyItem label="Status">
+                    <Badge variant={statusVariant[user.status]} dot className="capitalize">
+                      {user.status}
+                    </Badge>
+                  </PropertyItem>
+                  <PropertyItem label="Organization">{user.orgName}</PropertyItem>
+                  <PropertyItem label="Role">
+                    <span className="capitalize">{user.role}</span>
+                  </PropertyItem>
+                  <PropertyItem label="Joined">{formatDate(user.joinedAt)}</PropertyItem>
+                  <PropertyItem label="Last active">{formatRelative(user.lastActiveAt)}</PropertyItem>
+                  <PropertyItem label="User ID">
+                    <span className="font-mono text-xs text-text-disabled">{user.id}</span>
+                  </PropertyItem>
+                </PropertyList>
 
-            <div className="flex flex-col gap-2 border-t border-border pt-4">
-              <Button variant="outline" className="justify-start">
-                Reset password
-              </Button>
-              <Button variant="outline" className="justify-start">
-                Change role
-              </Button>
-              <Button
-                variant="outline"
-                className="justify-start border-feedback-warning text-feedback-warning"
-                onClick={() => setSuspendTarget(detail.id)}
-              >
-                Suspend user
-              </Button>
-              <Button variant="destructive" className="justify-start">
-                Delete user
-              </Button>
-            </div>
+                <div className="flex flex-col gap-2 border-t border-border pt-4">
+                  <Button
+                    variant="outline"
+                    className="justify-start"
+                    disabled={resetPassword.isPending || passwordResetSent}
+                    onClick={() =>
+                      void run(async () => {
+                        await resetPassword.mutateAsync(user.id);
+                        setPasswordResetSent(true);
+                      })
+                    }
+                  >
+                    {passwordResetSent ? "Reset email sent" : "Reset password"}
+                  </Button>
+                  <Button variant="outline" className="justify-start">
+                    Change role
+                  </Button>
+                  {user.status === "suspended" ? (
+                    <Button
+                      variant="outline"
+                      className="justify-start"
+                      disabled={reinstate.isPending}
+                      onClick={() => void run(() => reinstate.mutateAsync(user.id))}
+                    >
+                      Reinstate user
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      className="justify-start border-feedback-warning text-feedback-warning"
+                      onClick={() =>
+                        setConfirmation({
+                          title: `Suspend ${user.name}?`,
+                          description:
+                            "This will immediately revoke their access to all workspaces. They can be reinstated later.",
+                          confirmLabel: "Suspend",
+                          onConfirm: () => void run(() => suspend.mutateAsync(user.id)),
+                        })
+                      }
+                    >
+                      Suspend user
+                    </Button>
+                  )}
+                  <Button
+                    variant="destructive"
+                    className="justify-start"
+                    onClick={() =>
+                      setConfirmation({
+                        title: `Delete ${user.name}?`,
+                        description: "This permanently removes the user and cannot be undone.",
+                        confirmLabel: "Delete",
+                        onConfirm: () =>
+                          void run(async () => {
+                            await remove.mutateAsync(user.id);
+                            setDetailId(null);
+                          }),
+                      })
+                    }
+                  >
+                    Delete user
+                  </Button>
+                </div>
+              </>
+            ) : null}
           </SidePanelBody>
         </SidePanel>
       ) : null}
 
-      <AlertDialog open={!!suspendTarget} onOpenChange={(open) => !open && setSuspendTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Suspend {suspendUser?.name}?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will immediately revoke their access to all workspaces. They can be reinstated
-              later.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => setSuspendTarget(null)}>Suspend</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog confirmation={confirmation} onClose={() => setConfirmation(null)} />
     </div>
   );
 }

@@ -1,19 +1,19 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
+import type { OrgPlan, OrgStatus } from "@trestle/api-client/types";
+import { useAdminOrganizations } from "@trestle/api-client/react";
 
 import { Button } from "@trestle/ui/components/ui/button";
 import { Input } from "@trestle/ui/components/ui/input";
 import { Badge } from "@trestle/ui/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@trestle/ui/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@trestle/ui/components/ui/table";
 
 import { PageHeader } from "@/components/page-header";
-import { organizations, type OrgPlan, type OrgStatus } from "@/lib/mock-data";
+import { PaginationBar } from "@/components/pagination-bar";
+import { TableStatusRow } from "@/components/table-status-row";
+import { formatDate } from "@/lib/format";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
+
+const PAGE_SIZE = 8;
 
 const statusVariant: Record<OrgStatus, "success" | "warning" | "destructive"> = {
   active: "success",
@@ -35,26 +35,24 @@ const planLabel: Record<OrgPlan, string> = {
 
 export function OrganizationsPage() {
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return organizations;
-    return organizations.filter((o) => o.name.toLowerCase().includes(q));
-  }, [search]);
+  const q = useDebouncedValue(search.trim());
+  const orgs = useAdminOrganizations({ q: q || undefined, page, pageSize: PAGE_SIZE });
+  const rows = orgs.data?.data ?? [];
 
   return (
     <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-      <PageHeader
-        crumb="Organizations"
-        title="Organizations"
-        action={<Button size="sm">+ New organization</Button>}
-      />
+      <PageHeader crumb="Organizations" title="Organizations" action={<Button size="sm">+ New organization</Button>} />
 
       <div className="px-4 pb-3">
         <Input
           placeholder="Search organizations"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
           className="max-w-xs"
         />
       </div>
@@ -72,26 +70,36 @@ export function OrganizationsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((o) => (
+              <TableStatusRow
+                colSpan={5}
+                isPending={orgs.isPending}
+                error={orgs.error}
+                isEmpty={rows.length === 0}
+                emptyLabel="No organizations match your search"
+                onRetry={() => void orgs.refetch()}
+              />
+              {rows.map((o) => (
                 <TableRow key={o.id}>
                   <TableCell className="font-semibold text-text-primary">{o.name}</TableCell>
                   <TableCell className="text-text-secondary">{planLabel[o.plan]}</TableCell>
-                  <TableCell className="text-text-secondary">{o.members}</TableCell>
+                  <TableCell className="text-text-secondary">{o.memberCount}</TableCell>
                   <TableCell>
                     <Badge variant={statusVariant[o.status]} dot>
                       {statusLabel[o.status]}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-text-disabled">{o.created}</TableCell>
+                  <TableCell className="text-text-disabled">{formatDate(o.createdAt)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-          <div className="flex items-center justify-between border-t border-border bg-background-subtle px-3 py-2 text-xs text-text-secondary">
-            <span>
-              Showing 1–{filtered.length} of {organizations.length} organizations
-            </span>
-          </div>
+          <PaginationBar
+            noun="organizations"
+            page={page}
+            pageSize={PAGE_SIZE}
+            total={orgs.data?.meta.total ?? 0}
+            onPageChange={setPage}
+          />
         </div>
       </div>
     </div>

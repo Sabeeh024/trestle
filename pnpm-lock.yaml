@@ -178,12 +178,21 @@ importers:
 
   apps/admin-panel:
     dependencies:
+      '@tanstack/react-query':
+        specifier: ^5.104.1
+        version: 5.104.1(react@19.2.8)
+      '@trestle/api-client':
+        specifier: workspace:*
+        version: link:../../packages/api-client
       '@trestle/design-tokens':
         specifier: workspace:*
         version: link:../../packages/design-tokens
       '@trestle/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      axios:
+        specifier: ^1.20.0
+        version: 1.20.0(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
       cn:
         specifier: ^0.4.0
         version: 0.4.0
