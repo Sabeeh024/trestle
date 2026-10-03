@@ -20,7 +20,9 @@ import { SidePanel, SidePanelBody, SidePanelHeader } from "@trestle/ui/component
 import { PropertyList, PropertyItem } from "@trestle/ui/components/property-list";
 
 import { BulkActionBar } from "@/components/bulk-action-bar";
+import { ChangeRoleDialog } from "@/components/change-role-dialog";
 import { ConfirmDialog, type Confirmation } from "@/components/confirm-dialog";
+import { InviteUserDialog } from "@/components/invite-user-dialog";
 import { PageHeader } from "@/components/page-header";
 import { PaginationBar } from "@/components/pagination-bar";
 import { TableStatusRow } from "@/components/table-status-row";
@@ -101,7 +103,15 @@ export function UsersPage() {
   return (
     <div className="flex min-w-0 flex-1">
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <PageHeader crumb="Users" title="Users" action={<Button size="sm">+ Invite user</Button>} />
+        <PageHeader
+          crumb="Users"
+          title="Users"
+          action={
+            <InviteUserDialog>
+              <Button size="sm">+ Invite user</Button>
+            </InviteUserDialog>
+          }
+        />
 
         <div className="px-4 pb-3">
           <Input
@@ -248,9 +258,11 @@ export function UsersPage() {
                   >
                     {passwordResetSent ? "Reset email sent" : "Reset password"}
                   </Button>
-                  <Button variant="outline" className="justify-start">
-                    Change role
-                  </Button>
+                  <ChangeRoleDialog user={user}>
+                    <Button variant="outline" className="justify-start">
+                      Change role
+                    </Button>
+                  </ChangeRoleDialog>
                   {user.status === "suspended" ? (
                     <Button
                       variant="outline"

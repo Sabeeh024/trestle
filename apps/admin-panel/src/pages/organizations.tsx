@@ -7,6 +7,7 @@ import { Input } from "@trestle/ui/components/ui/input";
 import { Badge } from "@trestle/ui/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@trestle/ui/components/ui/table";
 
+import { NewOrganizationDialog } from "@/components/new-organization-dialog";
 import { PageHeader } from "@/components/page-header";
 import { PaginationBar } from "@/components/pagination-bar";
 import { TableStatusRow } from "@/components/table-status-row";
@@ -43,7 +44,11 @@ export function OrganizationsPage() {
 
   return (
     <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-      <PageHeader crumb="Organizations" title="Organizations" action={<Button size="sm">+ New organization</Button>} />
+      <PageHeader crumb="Organizations" title="Organizations" action={
+          <NewOrganizationDialog>
+            <Button size="sm">+ New organization</Button>
+          </NewOrganizationDialog>
+        } />
 
       <div className="px-4 pb-3">
         <Input
