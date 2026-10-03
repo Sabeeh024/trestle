@@ -10,6 +10,8 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.104.1",
+    "@trestle/api-client": "workspace:*",
     "@trestle/design-tokens": "workspace:*",
     "@trestle/i18n": "workspace:*",
     "@trestle/ui": "workspace:*",

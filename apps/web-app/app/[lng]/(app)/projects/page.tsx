@@ -1,4 +1,7 @@
 import { getT } from "next-i18next/server";
+import { lng } from "next/root-params";
+
+import type { ProjectStatus } from "@trestle/api-client/types";
 
 import { Button } from "@trestle/ui/components/ui/button";
 import { Badge } from "@trestle/ui/components/ui/badge";
@@ -14,7 +17,8 @@ import {
 
 import { Sidebar } from "@/components/sidebar";
 import { TopBar } from "@/components/topbar";
-import { projects, type ProjectStatus } from "@/lib/mock-data";
+import { api } from "@/lib/api";
+import { formatDate, formatRelative } from "@/lib/format";
 
 const statusVariant: Record<ProjectStatus, "success" | "warning" | "secondary"> = {
   active: "success",
@@ -24,6 +28,8 @@ const statusVariant: Record<ProjectStatus, "success" | "warning" | "secondary"> 
 
 export default async function ProjectsPage() {
   const { t } = await getT(["app", "domain"]);
+  const locale = await lng();
+  const projects = await api.projects.list({ pageSize: 100 });
 
   return (
     <>
@@ -59,7 +65,7 @@ export default async function ProjectsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {projects.map((project) => (
+                {projects.data.map((project) => (
                   <TableRow key={project.id}>
                     <TableCell>
                       <a href={`projects/${project.id}`} className="flex items-center gap-2.5 hover:underline">
@@ -90,16 +96,16 @@ export default async function ProjectsPage() {
                     </TableCell>
                     <TableCell>
                       <AvatarGroup>
-                        {project.members.map((initials) => (
-                          <Avatar key={initials} size="sm">
-                            <AvatarFallback>{initials}</AvatarFallback>
+                        {project.members.map((member) => (
+                          <Avatar key={member.id} size="sm">
+                            <AvatarFallback>{member.initials}</AvatarFallback>
                           </Avatar>
                         ))}
                       </AvatarGroup>
                     </TableCell>
-                    <TableCell className="text-text-secondary">{project.due ?? "—"}</TableCell>
+                    <TableCell className="text-text-secondary">{formatDate(project.dueDate, locale)}</TableCell>
                     <TableCell className="text-text-disabled">
-                      {t("app:timeAgo", { time: project.updatedAgo })}
+                      {formatRelative(project.updatedAt, locale)}
                     </TableCell>
                   </TableRow>
                 ))}

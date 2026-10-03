@@ -49,7 +49,7 @@
       "status": "Status"
     },
     "percentComplete": "{{percent}}% complete",
-    "updatedAgo": "Updated {{time}} ago"
+    "updated": "Updated {{time}}"
   },
   "projects": {
     "title": "Projects",
@@ -88,6 +88,5 @@
       "addComment": "Add a comment...",
       "send": "Send"
     }
-  },
-  "timeAgo": "{{time}} ago"
+  }
 }
