@@ -1,5 +1,5 @@
 import { createSeed, ME_ID, type ProjectRecord, type Seed, type TaskRecord } from "./data/seed";
-import type { AuditAction, Comment, Organization, Project, Task, TaskDetail, User, UserSummary } from "./types";
+import type { AuditAction, Comment, Organization, Project, Task, TaskDetail, User, UserSummary } from "@trestle/api-client/types";
 
 export class Db {
   state: Seed = createSeed();

@@ -1,6 +1,6 @@
 import type { Context } from "hono";
 
-import type { Paginated } from "./types";
+import type { Paginated } from "@trestle/api-client/types";
 
 export function fail(c: Context, status: 400 | 401 | 403 | 404 | 409, code: string, message: string) {
   return c.json({ error: { code, message } }, status);

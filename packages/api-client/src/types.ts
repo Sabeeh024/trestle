@@ -117,3 +117,110 @@ export interface Paginated<T> {
 export interface ApiError {
   error: { code: string; message: string };
 }
+
+// ---- Request shapes ----
+
+export interface PageParams {
+  page?: number;
+  pageSize?: number;
+}
+
+export interface ProjectListParams extends PageParams {
+  q?: string;
+  status?: ProjectStatus;
+}
+
+export interface TaskListParams extends PageParams {
+  projectId?: string;
+  /** A user id, or "me" for the signed-in user. */
+  assignee?: string;
+  status?: TaskStatus;
+  priority?: Priority;
+  q?: string;
+}
+
+export type UserSortKey = "name" | "email" | "role" | "status" | "joinedAt";
+
+export interface UserListParams extends PageParams {
+  q?: string;
+  role?: UserRole;
+  status?: UserStatus;
+  orgId?: string;
+  sort?: UserSortKey;
+  direction?: "asc" | "desc";
+}
+
+export interface OrganizationListParams extends PageParams {
+  q?: string;
+  plan?: OrgPlan;
+  status?: OrgStatus;
+  direction?: "asc" | "desc";
+}
+
+export interface AuditLogParams extends PageParams {
+  q?: string;
+  action?: AuditAction;
+}
+
+export interface LoginInput {
+  email: string;
+  password: string;
+}
+
+export interface LoginResult {
+  token: string;
+  user: User;
+}
+
+export interface CreateProjectInput {
+  name: string;
+  description?: string;
+  color?: CategoricalColor;
+  status?: ProjectStatus;
+  dueDate?: string;
+}
+
+export interface UpdateProjectInput {
+  name?: string;
+  description?: string;
+  color?: CategoricalColor;
+  status?: ProjectStatus;
+  progress?: number;
+  dueDate?: string | null;
+}
+
+export interface CreateTaskInput {
+  projectId: string;
+  title: string;
+  description?: string;
+  status?: TaskStatus;
+  priority?: Priority;
+  assigneeId?: string;
+  dueDate?: string;
+}
+
+export interface UpdateTaskInput {
+  title?: string;
+  description?: string;
+  status?: TaskStatus;
+  priority?: Priority;
+  assigneeId?: string | null;
+  dueDate?: string | null;
+}
+
+export interface InviteUserInput {
+  email: string;
+  orgId: string;
+  name?: string;
+  role?: UserRole;
+}
+
+export interface BulkUserActionInput {
+  action: "suspend" | "delete";
+  ids: string[];
+}
+
+export interface CreateOrganizationInput {
+  name: string;
+  plan?: OrgPlan;
+}

@@ -2,7 +2,7 @@ import { Hono, type Context } from "hono";
 
 import type { Db } from "../db";
 import { badRequest, fail, readBody, str } from "../http";
-import type { User } from "../types";
+import type { User } from "@trestle/api-client/types";
 
 const TOKEN_PREFIX = "mock-token-";
 

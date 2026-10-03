@@ -8,7 +8,7 @@ import { adminRoutes } from "./routes/admin";
 import { authRoutes, userFromRequest } from "./routes/auth";
 import { projectRoutes } from "./routes/projects";
 import { taskRoutes } from "./routes/tasks";
-import type { DashboardData } from "./types";
+import type { DashboardData } from "@trestle/api-client/types";
 
 export interface AppOptions {
   db?: Db;
