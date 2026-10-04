@@ -1,12 +1,20 @@
 import { useState } from "react";
-import type { OrgPlan, OrgStatus } from "@trestle/api-client/types";
+import { MoreHorizontalIcon } from "lucide-react";
+import type { OrgPlan, OrgStatus, Organization } from "@trestle/api-client/types";
 import { useAdminOrganizations } from "@trestle/api-client/react";
 
 import { Button } from "@trestle/ui/components/ui/button";
 import { Input } from "@trestle/ui/components/ui/input";
 import { Badge } from "@trestle/ui/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@trestle/ui/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@trestle/ui/components/ui/table";
 
+import { EditOrganizationDialog } from "@/components/edit-organization-dialog";
 import { NewOrganizationDialog } from "@/components/new-organization-dialog";
 import { PageHeader } from "@/components/page-header";
 import { PaginationBar } from "@/components/pagination-bar";
@@ -37,6 +45,7 @@ const planLabel: Record<OrgPlan, string> = {
 export function OrganizationsPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [editing, setEditing] = useState<Organization | null>(null);
 
   const q = useDebouncedValue(search.trim());
   const orgs = useAdminOrganizations({ q: q || undefined, page, pageSize: PAGE_SIZE });
@@ -72,11 +81,14 @@ export function OrganizationsPage() {
                 <TableHead>Members</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Created</TableHead>
+                <TableHead className="w-10">
+                  <span className="sr-only">Actions</span>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <TableStatusRow
-                colSpan={5}
+                colSpan={6}
                 isPending={orgs.isPending}
                 error={orgs.error}
                 isEmpty={rows.length === 0}
@@ -94,6 +106,19 @@ export function OrganizationsPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-text-disabled">{formatDate(o.createdAt)}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        aria-label={`Actions for ${o.name}`}
+                        className="rounded-md p-1 text-text-secondary outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/30"
+                      >
+                        <MoreHorizontalIcon className="size-4" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onSelect={() => setEditing(o)}>Edit organization</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -107,6 +132,8 @@ export function OrganizationsPage() {
           />
         </div>
       </div>
+
+      <EditOrganizationDialog organization={editing} onClose={() => setEditing(null)} />
     </div>
   );
 }

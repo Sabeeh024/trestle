@@ -3,13 +3,19 @@ import { MoonIcon, SunIcon } from "lucide-react";
 
 import { Badge } from "@trestle/ui/components/ui/badge";
 import { Button } from "@trestle/ui/components/ui/button";
-import { Avatar, AvatarFallback } from "@trestle/ui/components/ui/avatar";
+import { UserMenu } from "@/components/user-menu";
 
 export function AdminTopBar() {
-  const [dark, setDark] = useState(false);
+  // The index.html script has already applied the saved theme, so start from what the page shows.
+  const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
+    try {
+      localStorage.setItem("trestle-admin-theme", dark ? "dark" : "light");
+    } catch {
+      // Private browsing can refuse storage; the theme then just lasts for this visit.
+    }
   }, [dark]);
 
   return (
@@ -29,9 +35,7 @@ export function AdminTopBar() {
         >
           {dark ? <MoonIcon /> : <SunIcon />}
         </Button>
-        <Avatar size="sm">
-          <AvatarFallback>JK</AvatarFallback>
-        </Avatar>
+        <UserMenu />
       </div>
     </div>
   );

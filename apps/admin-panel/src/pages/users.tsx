@@ -22,6 +22,7 @@ import { PropertyList, PropertyItem } from "@trestle/ui/components/property-list
 import { BulkActionBar } from "@/components/bulk-action-bar";
 import { ChangeRoleDialog } from "@/components/change-role-dialog";
 import { ConfirmDialog, type Confirmation } from "@/components/confirm-dialog";
+import { EditUserDialog } from "@/components/edit-user-dialog";
 import { InviteUserDialog } from "@/components/invite-user-dialog";
 import { PageHeader } from "@/components/page-header";
 import { PaginationBar } from "@/components/pagination-bar";
@@ -245,6 +246,11 @@ export function UsersPage() {
                 </PropertyList>
 
                 <div className="flex flex-col gap-2 border-t border-border pt-4">
+                  <EditUserDialog user={user}>
+                    <Button variant="outline" className="justify-start">
+                      Edit user
+                    </Button>
+                  </EditUserDialog>
                   <Button
                     variant="outline"
                     className="justify-start"
