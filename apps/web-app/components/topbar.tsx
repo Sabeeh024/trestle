@@ -2,6 +2,7 @@ import { getT } from "next-i18next/server";
 
 import { Avatar, AvatarFallback } from "@trestle/ui/components/ui/avatar";
 
+import { CommandMenu } from "@/components/command-menu";
 import { api } from "@/lib/api";
 
 export async function TopBar({ crumbs }: { crumbs: string[] }) {
@@ -21,12 +22,7 @@ export async function TopBar({ crumbs }: { crumbs: string[] }) {
         ))}
       </div>
 
-      <div className="flex max-w-90 flex-1 items-center justify-between gap-2 rounded-md bg-muted px-2.5 py-1.5">
-        <span className="text-sm text-text-disabled">{t("topbar.searchPlaceholder")}</span>
-        <span className="rounded-sm border border-border-strong px-1 text-xs font-semibold text-text-disabled">
-          ⌘K
-        </span>
-      </div>
+      <CommandMenu placeholder={t("topbar.searchPlaceholder")} />
 
       <div className="flex shrink-0 items-center gap-4">
         <Avatar size="sm">

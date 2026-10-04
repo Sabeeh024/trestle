@@ -190,5 +190,16 @@
   "tasks": {
     "markDone": "Mark \"{{title}}\" as done",
     "markTodo": "Mark \"{{title}}\" as not done"
+  },
+  "search": {
+    "title": "Search",
+    "description": "Search projects and tasks, or jump to a page.",
+    "inputLabel": "Search projects and tasks",
+    "pages": "Pages",
+    "projects": "Projects",
+    "tasks": "Tasks",
+    "empty": "No results for “{{query}}”",
+    "searching": "Searching…",
+    "failed": "Search is unavailable right now."
   }
 }

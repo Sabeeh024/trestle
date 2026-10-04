@@ -68,7 +68,7 @@ function TaskCard({ task, active, onOpen }: { task: Task; active: boolean; onOpe
   );
 }
 
-export function ProjectViewClient({ projectId }: { projectId: string }) {
+export function ProjectViewClient({ projectId, initialTaskId }: { projectId: string; initialTaskId: string | null }) {
   const { t } = useT("app");
   const { t: tDomain } = useT("domain");
   const { t: tCommon } = useT("common");
@@ -76,12 +76,12 @@ export function ProjectViewClient({ projectId }: { projectId: string }) {
   const tv = useValidationTranslate();
 
   const [view, setView] = useState<"board" | "list">("board");
-  // undefined means "not chosen yet", which opens the first task; null means the panel was closed.
-  const [selectedId, setSelectedId] = useState<string | null | undefined>(undefined);
+  // The server picks the first open task (or the one named in the URL); null means the panel was closed.
+  const [selectedId, setSelectedId] = useState<string | null>(initialTaskId);
 
   const tasksQuery = useProjectTasks(projectId);
   const tasks = tasksQuery.data?.data ?? [];
-  const activeId = selectedId === undefined ? (tasks[0]?.id ?? null) : selectedId;
+  const activeId = selectedId;
   const task = useTask(activeId);
   const addComment = useAddComment();
 

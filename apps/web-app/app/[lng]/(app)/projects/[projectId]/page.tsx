@@ -15,8 +15,15 @@ import { TopBar } from "@/components/topbar";
 import { api } from "@/lib/api";
 import { ProjectViewClient } from "./project-view-client";
 
-export default async function ProjectViewPage({ params }: { params: Promise<{ projectId: string }> }) {
+export default async function ProjectViewPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ projectId: string }>;
+  searchParams: Promise<{ task?: string }>;
+}) {
   const { projectId } = await params;
+  const { task: requestedTask } = await searchParams;
 
   const project = await api.projects.get(projectId).catch((error: unknown) => {
     if (isApiError(error) && error.status === 404) notFound();
@@ -29,8 +36,9 @@ export default async function ProjectViewPage({ params }: { params: Promise<{ pr
   const queries = createQueries(api);
   const queryClient = getQueryClient();
   const tasks = await queryClient.fetchQuery(queries.projects.tasks(projectId));
-  const firstTask = tasks.data[0];
-  if (firstTask) await queryClient.prefetchQuery(queries.tasks.detail(firstTask.id));
+  // Open the task named in the URL (a search result links to one), otherwise the first.
+  const openTask = tasks.data.find((task) => task.id === requestedTask) ?? tasks.data[0];
+  if (openTask) await queryClient.prefetchQuery(queries.tasks.detail(openTask.id));
 
   const { t } = await getT(["app", "domain"]);
   const archived = project.status === "archived";
@@ -66,7 +74,8 @@ export default async function ProjectViewPage({ params }: { params: Promise<{ pr
         </div>
 
         <HydrationBoundary state={dehydrate(queryClient)}>
-          <ProjectViewClient projectId={projectId} />
+          {/* Keyed by the opened task so choosing another task from search in the same project re-selects it. */}
+          <ProjectViewClient key={openTask?.id} projectId={projectId} initialTaskId={openTask?.id ?? null} />
         </HydrationBoundary>
       </div>
     </>
