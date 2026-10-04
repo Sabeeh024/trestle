@@ -37,7 +37,9 @@ export function LoginForm() {
             ? t("login.invalidCredentials")
             : result.code === "account_suspended"
               ? t("login.accountSuspended")
-              : result.message;
+              : result.code === "rate_limited"
+                ? t("login.tooManyAttempts")
+                : result.message;
         throw new ApiError(message, result.code, result.status, result.fields);
       }
       router.push(destination);

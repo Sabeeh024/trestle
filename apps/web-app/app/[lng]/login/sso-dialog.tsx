@@ -39,7 +39,14 @@ export function SsoDialog({ children }: { children: React.ReactNode }) {
     async (values) => {
       const result = await ssoAction(values);
       if (!result.ok) {
-        const message = result.code === "sso_not_enabled" ? t("sso.notEnabled") : result.code === "account_suspended" ? t("login.accountSuspended") : result.message;
+        const message =
+          result.code === "sso_not_enabled"
+            ? t("sso.notEnabled")
+            : result.code === "sso_not_configured"
+              ? t("sso.notConfigured")
+              : result.code === "account_suspended"
+                ? t("login.accountSuspended")
+                : result.message;
         throw new ApiError(message, result.code, result.status, result.fields);
       }
       router.push(`/${lng}/dashboard`);

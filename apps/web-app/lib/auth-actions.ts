@@ -7,6 +7,7 @@ import {
   fieldErrors,
   forgotPasswordSchema,
   loginSchema,
+  resetPasswordSchema,
   signupSchema,
   ssoSchema,
   type z,
@@ -79,6 +80,17 @@ export async function forgotPasswordAction(input: unknown): Promise<ActionResult
   if (!parsed.success) return invalid(parsed.error);
   try {
     await api.auth.forgotPassword(parsed.data);
+    return { ok: true };
+  } catch (error) {
+    return failure(error);
+  }
+}
+
+export async function resetPasswordAction(input: unknown): Promise<ActionResult> {
+  const parsed = resetPasswordSchema.safeParse(input);
+  if (!parsed.success) return invalid(parsed.error);
+  try {
+    await api.auth.resetPassword(parsed.data);
     return { ok: true };
   } catch (error) {
     return failure(error);
