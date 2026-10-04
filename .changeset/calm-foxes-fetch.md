@@ -14,3 +14,5 @@ Initial release of the shared API client, with the HTTP library behind a pluggab
 - `@trestle/api-client/schemas`: zod request schemas (login, project, task, comment, invite user, change role, organization) shared by the apps and the mock server. Their messages are keys such as `required` and `emailInvalid`, not prose, so each app translates them. `ApiError` carries per-field messages (`fields`) from a validation failure.
 
 `axios`, `@tanstack/react-query` and `react` are optional peer dependencies, so an app installs only what its transport and rendering need.
+
+- Account and edit endpoints: `auth.signup`, `auth.sso`, `auth.forgotPassword` and `auth.updateProfile`, plus `admin.users.update` and `admin.organizations.update`, each with a schema and a React Query hook. Projects gain an `archived` status.

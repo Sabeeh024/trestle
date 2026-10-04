@@ -2,7 +2,7 @@ import { Hono, type Context } from "hono";
 
 import { ME_ID } from "../data/seed";
 import { initials, type Db } from "../db";
-import { changeRoleSchema, createOrganizationSchema, inviteUserSchema } from "@trestle/api-client/schemas";
+import { createOrganizationSchema, inviteUserSchema, updateOrganizationSchema, updateUserSchema } from "@trestle/api-client/schemas";
 import { badRequest, fail, matches, notFound, oneOf, paginate, parseBody, readBody, sortBy } from "../http";
 import type { AdminUser, AuditAction, OrgPlan, OrgStatus, User, UserRole, UserStatus } from "@trestle/api-client/types";
 
@@ -22,6 +22,9 @@ const AUDIT_ACTIONS = [
   "create_organization",
   "billing_charge",
   "login_failed",
+  "update_user",
+  "update_organization",
+  "signup",
 ] as const satisfies readonly AuditAction[];
 const USER_SORT_KEYS = ["name", "email", "role", "status", "joinedAt"] as const;
 
@@ -55,7 +58,7 @@ export function adminRoutes(db: Db) {
 
     const name = givenName || email.split("@")[0]!;
     const user: User = {
-      id: `usr_${String(db.state.users.length + 1).padStart(6, "0")}`,
+      id: db.nextUserId(),
       name,
       initials: initials(name),
       email,
@@ -96,11 +99,25 @@ export function adminRoutes(db: Db) {
     const user = db.user(c.req.param("id"));
     if (!user) return notFound(c, "User");
 
-    const parsed = parseBody(c, changeRoleSchema, await readBody(c));
+    const parsed = parseBody(c, updateUserSchema, await readBody(c));
     if (!parsed.ok) return parsed.response;
-    const { role } = parsed.data;
-    user.role = role;
-    db.log("update_role", `${user.email} → ${role}`);
+    const { name, email, role } = parsed.data;
+
+    if (email && db.state.users.some((u) => u.id !== user.id && u.email.toLowerCase() === email.toLowerCase())) {
+      return fail(c, 422, "validation_failed", "Some fields are invalid", { email: "emailTaken" });
+    }
+
+    const profileChanged = (name && name !== user.name) || (email && email !== user.email);
+    if (name) {
+      user.name = name;
+      user.initials = initials(name);
+    }
+    if (email) user.email = email;
+    if (profileChanged) db.log("update_user", user.email);
+    if (role && role !== user.role) {
+      user.role = role;
+      db.log("update_role", `${user.email} → ${role}`);
+    }
     return c.json({ data: withOrg(user) });
   });
 
@@ -161,6 +178,23 @@ export function adminRoutes(db: Db) {
     db.state.orgs.push(record);
     db.log("create_organization", name);
     return c.json({ data: db.org(record.id) }, 201);
+  });
+
+  app.patch("/organizations/:id", async (c) => {
+    const record = db.state.orgs.find((o) => o.id === c.req.param("id"));
+    if (!record) return notFound(c, "Organization");
+
+    const parsed = parseBody(c, updateOrganizationSchema, await readBody(c));
+    if (!parsed.ok) return parsed.response;
+    const { name, plan } = parsed.data;
+    if (db.state.orgs.some((o) => o.id !== record.id && o.name.toLowerCase() === name.toLowerCase())) {
+      return fail(c, 409, "name_taken", "An organization with this name already exists");
+    }
+
+    record.name = name;
+    if (plan) record.plan = plan;
+    db.log("update_organization", name);
+    return c.json({ data: db.org(record.id) });
   });
 
   app.get("/organizations/:id", (c) => {

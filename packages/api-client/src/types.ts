@@ -1,7 +1,7 @@
 // API contract shared by the mock server and its consumers. Dates are ISO 8601 strings.
 
 export type CategoricalColor = "purple" | "cyan" | "green" | "orange" | "blue" | "pink";
-export type ProjectStatus = "active" | "planning" | "onHold";
+export type ProjectStatus = "active" | "planning" | "onHold" | "archived";
 export type TaskStatus = "todo" | "inProgress" | "inReview" | "done";
 export type Priority = "urgent" | "high" | "medium" | "low";
 
@@ -21,7 +21,10 @@ export type AuditAction =
   | "delete_project"
   | "create_organization"
   | "billing_charge"
-  | "login_failed";
+  | "login_failed"
+  | "update_user"
+  | "update_organization"
+  | "signup";
 
 export interface User {
   id: string;
@@ -165,6 +168,36 @@ export interface AuditLogParams extends PageParams {
 export interface LoginInput {
   email: string;
   password: string;
+}
+
+export interface SignupInput {
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface ForgotPasswordInput {
+  email: string;
+}
+
+export interface SsoInput {
+  email: string;
+}
+
+export interface UpdateProfileInput {
+  name: string;
+  email: string;
+}
+
+export interface UpdateUserInput {
+  name?: string;
+  email?: string;
+  role?: UserRole;
+}
+
+export interface UpdateOrganizationInput {
+  name: string;
+  plan?: OrgPlan;
 }
 
 export interface LoginResult {

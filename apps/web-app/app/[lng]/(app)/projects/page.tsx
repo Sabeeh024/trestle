@@ -25,6 +25,7 @@ const statusVariant: Record<ProjectStatus, "success" | "warning" | "secondary"> 
   active: "success",
   planning: "warning",
   onHold: "secondary",
+  archived: "secondary",
 };
 
 export default async function ProjectsPage() {

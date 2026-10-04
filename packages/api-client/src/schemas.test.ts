@@ -11,6 +11,10 @@ import {
   inviteUserSchema,
   isValidationKey,
   loginSchema,
+  signupSchema,
+  updateOrganizationSchema,
+  updateProfileSchema,
+  updateUserSchema,
 } from "./schemas";
 
 const errorsFor = (result: { success: boolean; error?: Parameters<typeof fieldErrors>[0] }) =>
@@ -51,6 +55,24 @@ describe("schemas", () => {
     assert.deepEqual(errorsFor(inviteUserSchema.safeParse({ email: "bad", orgId: "" })), { email: "emailInvalid", orgId: "required" });
     assert.deepEqual(errorsFor(createOrganizationSchema.safeParse({ name: "" })), { name: "required" });
     assert.deepEqual(errorsFor(commentSchema.safeParse({ body: " " })), { body: "required" });
+  });
+
+  it("requires a password of at least 8 characters to sign up", () => {
+    assert.equal(signupSchema.safeParse({ name: "Dana", email: "dana@example.com", password: "12345678" }).success, true);
+    assert.deepEqual(errorsFor(signupSchema.safeParse({ name: "Dana", email: "dana@example.com", password: "1234567" })), { password: "passwordTooShort" });
+    assert.deepEqual(errorsFor(signupSchema.safeParse({ name: "", email: "bad", password: "" })), { name: "required", email: "emailInvalid", password: "passwordTooShort" });
+  });
+
+  it("validates a profile, and accepts a partial user update", () => {
+    assert.deepEqual(errorsFor(updateProfileSchema.safeParse({ name: " ", email: "x" })), { name: "required", email: "emailInvalid" });
+    assert.equal(updateUserSchema.safeParse({}).success, true);
+    assert.equal(updateUserSchema.safeParse({ role: "admin" }).success, true);
+    assert.deepEqual(errorsFor(updateUserSchema.safeParse({ name: "", email: "no", role: "root" })), { name: "required", email: "emailInvalid", role: "invalidChoice" });
+  });
+
+  it("requires a name to rename an organization", () => {
+    assert.deepEqual(errorsFor(updateOrganizationSchema.safeParse({ name: "" })), { name: "required" });
+    assert.equal(updateOrganizationSchema.safeParse({ name: "Verity Labs", plan: "pro" }).success, true);
   });
 
   it("knows which messages are validation keys", () => {

@@ -99,6 +99,7 @@ export function createSeed(): Seed {
     { id: "q3-marketing-campaign", name: "Q3 Marketing Campaign", description: "Launch campaign for Q3 product push", color: "green", status: "active", progress: 90, memberIds: ["usr_000009"], dueDate: "2026-09-28", updatedAt: hoursAgo(24) },
     { id: "api-migration", name: "API Migration", description: "Migrating auth to new identity provider", color: "orange", status: "active", progress: 30, memberIds: ["usr_000001", ME_ID], dueDate: "2026-12-15", updatedAt: hoursAgo(72) },
     { id: "design-system-audit", name: "Design System Audit", description: "Review component coverage and gaps", color: "blue", status: "planning", progress: 5, memberIds: [ME_ID], dueDate: "2026-11-20", updatedAt: hoursAgo(144) },
+    { id: "holiday-campaign-2025", name: "Holiday Campaign 2025", description: "Seasonal promotion, wrapped up last year", color: "orange", status: "archived", progress: 100, memberIds: ["usr_000009"], dueDate: "2025-12-24", updatedAt: hoursAgo(2400) },
     { id: "customer-portal", name: "Customer Portal", description: "Self-serve billing and support portal", color: "pink", status: "onHold", progress: 55, memberIds: ["usr_000002"], dueDate: null, updatedAt: hoursAgo(336) },
   ];
 

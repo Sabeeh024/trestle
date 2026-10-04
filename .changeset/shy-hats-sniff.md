@@ -16,3 +16,4 @@ Initial release of the shared i18n package:
   `status`), alongside a new `projectStatus` group, since a task's status
   and a project's status are different concepts
 - A shared `validation` namespace (English and Urdu) holding the messages for the keys produced by the `@trestle/api-client` schemas
+- `projectStatus` gains `archived`, and the `validation` namespace gains `passwordTooShort` and `emailTaken`

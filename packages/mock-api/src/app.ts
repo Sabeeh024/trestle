@@ -58,7 +58,8 @@ export function createApp({ db = new Db(), latencyMs = 0, requireAuth = false, l
 
   app.get("/api/dashboard", (c) => {
     const me = userFromRequest(c, db) ?? db.me;
-    const recentProjects = [...db.state.projects]
+    const recentProjects = db.state.projects
+      .filter((p) => p.status !== "archived")
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
       .slice(0, 4)
       .map((p) => db.project(p));

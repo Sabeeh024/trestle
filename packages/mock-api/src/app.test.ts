@@ -3,7 +3,7 @@ import { beforeEach, describe, it } from "node:test";
 
 import { createApp } from "./app";
 import { Db } from "./db";
-import type { AdminUser, AuditLogEntry, DashboardData, Paginated, Project, Task, TaskDetail } from "@trestle/api-client/types";
+import type { AdminUser, AuditLogEntry, DashboardData, LoginResult, Organization, Paginated, Project, Task, TaskDetail, User } from "@trestle/api-client/types";
 
 const db = new Db();
 const app = createApp({ db });
@@ -158,7 +158,7 @@ describe("validation", () => {
   it("does not create anything when validation fails", async () => {
     await rejected("/api/projects", { name: "" });
     const projects = await call<Paginated<Project>>("/api/projects?pageSize=100");
-    assert.equal(projects.json.meta.total, 6);
+    assert.equal(projects.json.meta.total, 7);
   });
 
   it("accepts the empty optional values an untouched form submits", async () => {
@@ -171,6 +171,88 @@ describe("validation", () => {
   it("still returns 400 for a reference that does not exist", async () => {
     const res = await call("/api/tasks", { method: "POST", body: { projectId: "nope", title: "x" } });
     assert.equal(res.status, 400);
+  });
+});
+
+describe("accounts", () => {
+  type Failure = { error: { code: string; fields?: Record<string, string> } };
+
+  it("signs up into a new trial workspace the person owns", async () => {
+    const res = await call<{ data: LoginResult }>("/api/auth/signup", { method: "POST", body: { name: "Dana Lee", email: "Dana@Example.com", password: "longenough" } });
+    assert.equal(res.status, 201);
+    assert.equal(res.json.data.user.role, "owner");
+    assert.equal(res.json.data.user.email, "dana@example.com");
+    assert.equal(res.json.data.user.initials, "DL");
+
+    const orgs = await call<Paginated<Organization>>("/api/admin/organizations?q=Dana");
+    assert.deepEqual(orgs.json.data.map((o) => [o.name, o.status, o.memberCount]), [["Dana Lee's workspace", "trialing", 1]]);
+  });
+
+  it("rejects a short password and an email that already has an account, on the right fields", async () => {
+    const short = await call<Failure>("/api/auth/signup", { method: "POST", body: { name: "Dana", email: "dana@example.com", password: "short" } });
+    assert.equal(short.status, 422);
+    assert.deepEqual(short.json.error.fields, { password: "passwordTooShort" });
+
+    const taken = await call<Failure>("/api/auth/signup", { method: "POST", body: { name: "Alex", email: "alex.kim@northwind.io", password: "longenough" } });
+    assert.equal(taken.status, 422);
+    assert.deepEqual(taken.json.error.fields, { email: "emailTaken" });
+  });
+
+  it("gives a new user an id that cannot collide after a deletion", async () => {
+    await call("/api/admin/users/usr_000009", { method: "DELETE" });
+    const a = await call<{ data: LoginResult }>("/api/auth/signup", { method: "POST", body: { name: "A B", email: "a@example.com", password: "longenough" } });
+    const b = await call<{ data: LoginResult }>("/api/auth/signup", { method: "POST", body: { name: "C D", email: "c@example.com", password: "longenough" } });
+    assert.notEqual(a.json.data.user.id, b.json.data.user.id);
+  });
+
+  it("allows single sign-on only for enterprise organizations", async () => {
+    const ok = await call<{ data: LoginResult }>("/api/auth/sso", { method: "POST", body: { email: "jordan.kim@trestle.io" } });
+    assert.equal(ok.status, 200);
+    const pro = await call<Failure>("/api/auth/sso", { method: "POST", body: { email: "alex.kim@northwind.io" } });
+    assert.equal(pro.status, 403);
+    assert.equal(pro.json.error.code, "sso_not_enabled");
+    const unknown = await call<Failure>("/api/auth/sso", { method: "POST", body: { email: "nobody@nowhere.io" } });
+    assert.equal(unknown.json.error.code, "sso_not_enabled");
+  });
+
+  it("answers forgot-password the same for known and unknown addresses", async () => {
+    assert.equal((await call("/api/auth/forgot-password", { method: "POST", body: { email: "alex.kim@northwind.io" } })).status, 204);
+    assert.equal((await call("/api/auth/forgot-password", { method: "POST", body: { email: "nobody@nowhere.io" } })).status, 204);
+    assert.equal((await call("/api/auth/forgot-password", { method: "POST", body: { email: "bad" } })).status, 422);
+  });
+
+  it("updates the signed-in user's profile and refuses someone else's email", async () => {
+    const auth = { authorization: "Bearer mock-token-usr_000001" };
+    const ok = await call<{ data: User }>("/api/auth/me", { method: "PATCH", headers: auth, body: { name: "Alexander Kim", email: "alex@northwind.io" } });
+    assert.deepEqual([ok.json.data.name, ok.json.data.initials, ok.json.data.email], ["Alexander Kim", "AK", "alex@northwind.io"]);
+
+    const clash = await call<Failure>("/api/auth/me", { method: "PATCH", headers: auth, body: { name: "Alex", email: "maya@fontaineco.com" } });
+    assert.equal(clash.status, 422);
+    assert.deepEqual(clash.json.error.fields, { email: "emailTaken" });
+  });
+
+  it("edits a user's name, email and role through one endpoint, logging each change", async () => {
+    const res = await call<{ data: AdminUser }>("/api/admin/users/usr_000007", { method: "PATCH", body: { name: "Elena Cho-Lee", role: "admin" } });
+    assert.deepEqual([res.json.data.name, res.json.data.initials, res.json.data.role], ["Elena Cho-Lee", "EC", "admin"]);
+    const log = await call<Paginated<AuditLogEntry>>("/api/admin/audit-log?q=elena");
+    assert.deepEqual(log.json.data.slice(0, 2).map((e) => e.action).sort(), ["update_role", "update_user"]);
+
+    const clash = await call<Failure>("/api/admin/users/usr_000007", { method: "PATCH", body: { email: "alex.kim@northwind.io" } });
+    assert.equal(clash.status, 422);
+  });
+
+  it("renames an organization and moves its plan, refusing a name already in use", async () => {
+    const res = await call<{ data: Organization }>("/api/admin/organizations/org_verity", { method: "PATCH", body: { name: "Verity Labs", plan: "enterprise" } });
+    assert.deepEqual([res.json.data.name, res.json.data.plan, res.json.data.memberCount], ["Verity Labs", "enterprise", 1]);
+    assert.equal((await call("/api/admin/organizations/org_verity", { method: "PATCH", body: { name: "northwind" } })).status, 409);
+    assert.equal((await call("/api/admin/organizations/nope", { method: "PATCH", body: { name: "x" } })).status, 404);
+  });
+
+  it("keeps archived projects out of the dashboard but in the project list", async () => {
+    const dashboard = await call<{ data: DashboardData }>("/api/dashboard");
+    assert.ok(dashboard.json.data.recentProjects.every((p) => p.status !== "archived"));
+    const archived = await call<Paginated<Project>>("/api/projects?status=archived");
+    assert.deepEqual(archived.json.data.map((p) => p.id), ["holiday-campaign-2025"]);
   });
 });
 

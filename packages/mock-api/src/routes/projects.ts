@@ -7,7 +7,7 @@ import { matches, notFound, oneOf, paginate, parseBody, readBody, str } from "..
 import type { CategoricalColor, ProjectStatus } from "@trestle/api-client/types";
 
 const COLORS = ["purple", "cyan", "green", "orange", "blue", "pink"] as const satisfies readonly CategoricalColor[];
-const STATUSES = ["active", "planning", "onHold"] as const satisfies readonly ProjectStatus[];
+const STATUSES = ["active", "planning", "onHold", "archived"] as const satisfies readonly ProjectStatus[];
 
 const slugify = (name: string) =>
   name

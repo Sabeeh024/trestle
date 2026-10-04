@@ -8,7 +8,8 @@
   "projectStatus": {
     "active": "فعال",
     "planning": "منصوبہ بندی",
-    "onHold": "مؤخر"
+    "onHold": "مؤخر",
+    "archived": "محفوظ شدہ"
   },
   "priority": {
     "urgent": "فوری",

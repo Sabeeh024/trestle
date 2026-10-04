@@ -8,7 +8,8 @@
   "projectStatus": {
     "active": "Active",
     "planning": "Planning",
-    "onHold": "On hold"
+    "onHold": "On hold",
+    "archived": "Archived"
   },
   "priority": {
     "urgent": "Urgent",

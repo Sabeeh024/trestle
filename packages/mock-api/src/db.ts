@@ -15,6 +15,12 @@ export class Db {
     return `${prefix}_${this.counter}`;
   }
 
+  /** The next usr_000123 id, from the highest in use so deleting a user never causes a collision. */
+  nextUserId() {
+    const highest = this.state.users.reduce((max, u) => Math.max(max, Number.parseInt(u.id.replace("usr_", ""), 10) || 0), 0);
+    return `usr_${String(highest + 1).padStart(6, "0")}`;
+  }
+
   get me(): User {
     return this.user(ME_ID)!;
   }

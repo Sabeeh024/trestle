@@ -14,8 +14,11 @@ import type {
   OrganizationListParams,
   ProjectListParams,
   TaskListParams,
+  UpdateOrganizationInput,
+  UpdateProfileInput,
   UpdateProjectInput,
   UpdateTaskInput,
+  UpdateUserInput,
   UserListParams,
   UserRole,
 } from "../types";
@@ -75,6 +78,15 @@ export function useAuditLog(params?: AuditLogParams) {
 export function useLogin() {
   const { api } = useApi();
   return useMutation({ mutationFn: (input: LoginInput) => api.auth.login(input) });
+}
+
+export function useUpdateProfile() {
+  const { api } = useApi();
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: (input: UpdateProfileInput) => api.auth.updateProfile(input),
+    onSuccess: () => invalidate(queryKeys.me, queryKeys.dashboard),
+  });
 }
 
 function useInvalidate() {
@@ -159,6 +171,11 @@ export function useInviteUser() {
   return useAdminMutation((input: InviteUserInput) => api.admin.users.invite(input), queryKeys.admin.organizations.all);
 }
 
+export function useUpdateUser() {
+  const { api } = useApi();
+  return useAdminMutation(({ id, ...input }: UpdateUserInput & { id: string }) => api.admin.users.update(id, input));
+}
+
 export function useChangeUserRole() {
   const { api } = useApi();
   return useAdminMutation(({ id, role }: { id: string; role: UserRole }) => api.admin.users.changeRole(id, role));
@@ -187,6 +204,15 @@ export function useDeleteUser() {
 export function useBulkUserAction() {
   const { api } = useApi();
   return useAdminMutation((input: BulkUserActionInput) => api.admin.users.bulk(input), queryKeys.admin.organizations.all);
+}
+
+export function useUpdateOrganization() {
+  const { api } = useApi();
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: ({ id, ...input }: UpdateOrganizationInput & { id: string }) => api.admin.organizations.update(id, input),
+    onSuccess: () => invalidate(queryKeys.admin.organizations.all, queryKeys.admin.users.all),
+  });
 }
 
 export function useCreateOrganization() {

@@ -3,5 +3,7 @@
   "emailInvalid": "Enter a valid email address",
   "tooLong": "That's too long",
   "dateInvalid": "Enter a valid date",
-  "invalidChoice": "Choose an option"
+  "invalidChoice": "Choose an option",
+  "passwordTooShort": "Use at least 8 characters",
+  "emailTaken": "An account with this email already exists"
 }

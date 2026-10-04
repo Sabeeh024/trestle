@@ -4,11 +4,17 @@ import type {
   CreateOrganizationInput,
   CreateProjectInput,
   CreateTaskInput,
+  ForgotPasswordInput,
   InviteUserInput,
   LoginInput,
   OrgPlan,
   Priority,
+  SignupInput,
+  SsoInput,
   TaskStatus,
+  UpdateOrganizationInput,
+  UpdateProfileInput,
+  UpdateUserInput,
   UserRole,
 } from "./types";
 
@@ -22,6 +28,8 @@ export const msg = {
   tooLong: "tooLong",
   dateInvalid: "dateInvalid",
   invalidChoice: "invalidChoice",
+  passwordTooShort: "passwordTooShort",
+  emailTaken: "emailTaken",
 } as const;
 
 export type ValidationKey = (typeof msg)[keyof typeof msg];
@@ -46,6 +54,32 @@ const taskStatuses = ["todo", "inProgress", "inReview", "done"] as const satisfi
 export const loginSchema = z.object({
   email,
   password: z.string().min(1, msg.required),
+});
+
+export const signupSchema = z.object({
+  name: requiredText(80),
+  email,
+  password: z.string().min(8, msg.passwordTooShort).max(128, msg.tooLong),
+});
+
+export const forgotPasswordSchema = z.object({ email });
+
+export const ssoSchema = z.object({ email });
+
+export const updateProfileSchema = z.object({
+  name: requiredText(80),
+  email,
+});
+
+export const updateUserSchema = z.object({
+  name: requiredText(80).optional(),
+  email: email.optional(),
+  role: z.enum(roles, { error: msg.invalidChoice }).optional(),
+});
+
+export const updateOrganizationSchema = z.object({
+  name: requiredText(80),
+  plan: z.enum(plans, { error: msg.invalidChoice }).optional(),
 });
 
 export const createProjectSchema = z.object({
@@ -91,6 +125,12 @@ export type SchemaMatchesEndpointTypes = [
   Assert<z.infer<typeof createTaskSchema> extends CreateTaskInput ? true : false>,
   Assert<z.infer<typeof inviteUserSchema> extends InviteUserInput ? true : false>,
   Assert<z.infer<typeof createOrganizationSchema> extends CreateOrganizationInput ? true : false>,
+  Assert<z.infer<typeof signupSchema> extends SignupInput ? true : false>,
+  Assert<z.infer<typeof forgotPasswordSchema> extends ForgotPasswordInput ? true : false>,
+  Assert<z.infer<typeof ssoSchema> extends SsoInput ? true : false>,
+  Assert<z.infer<typeof updateProfileSchema> extends UpdateProfileInput ? true : false>,
+  Assert<z.infer<typeof updateUserSchema> extends UpdateUserInput ? true : false>,
+  Assert<z.infer<typeof updateOrganizationSchema> extends UpdateOrganizationInput ? true : false>,
 ];
 
 /** Flattens a failed parse into `{ field: messageKey }`, keeping the first message per field. */
