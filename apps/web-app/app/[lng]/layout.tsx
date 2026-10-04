@@ -5,6 +5,8 @@ import { I18nProvider } from "next-i18next/client";
 import { notFound } from "next/navigation";
 import { getDirection, isLocale } from "@trestle/i18n";
 import i18nConfig from "../../i18n.config";
+import { ThemeSync } from "@/components/theme-sync";
+import { themeInitScript } from "@/lib/theme";
 import "../globals.css";
 
 const manrope = Manrope({
@@ -38,8 +40,13 @@ export default async function RootLayout({
   const resources = getResources(i18n);
 
   return (
-    <html lang={lng} dir={getDirection(lng)} className={manrope.variable}>
+    // suppressHydrationWarning: the theme script adds the "dark" class before React hydrates.
+    <html lang={lng} dir={getDirection(lng)} className={manrope.variable} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body>
+        <ThemeSync />
         <I18nProvider language={lng} resources={resources}>
           {children}
         </I18nProvider>

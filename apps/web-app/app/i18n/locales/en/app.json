@@ -147,5 +147,27 @@
   },
   "account": {
     "signOut": "Sign out"
+  },
+  "settings": {
+    "title": "Settings",
+    "profile": {
+      "title": "Profile",
+      "description": "Your name and email appear on your tasks and comments.",
+      "save": "Save changes",
+      "saving": "Saving…",
+      "saved": "Changes saved"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "description": "Choose how Trestle looks on this device.",
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "language": {
+      "title": "Language",
+      "description": "Trestle is available in English and Urdu.",
+      "label": "Language"
+    }
   }
 }
