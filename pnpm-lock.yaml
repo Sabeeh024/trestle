@@ -269,9 +269,15 @@ importers:
 
   apps/marketing-app:
     dependencies:
+      '@trestle/api-client':
+        specifier: workspace:*
+        version: link:../../packages/api-client
       '@trestle/design-tokens':
         specifier: workspace:*
         version: link:../../packages/design-tokens
+      '@trestle/forms':
+        specifier: workspace:*
+        version: link:../../packages/forms
       '@trestle/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n

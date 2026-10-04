@@ -1,13 +1,17 @@
 import { getT } from "next-i18next/server";
+import { lng } from "next/root-params";
 
 import { Button } from "@trestle/ui/components/ui/button";
 import { Badge } from "@trestle/ui/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@trestle/ui/components/ui/card";
 
+import { appLink } from "@/lib/links";
+
 const planKeys = ["free", "pro", "enterprise"] as const;
 
 export default async function PricingPage() {
   const { t } = await getT("marketing");
+  const locale = await lng();
 
   return (
     <section className="mx-auto max-w-5xl px-6 py-24">
@@ -46,7 +50,7 @@ export default async function PricingPage() {
                 </CardContent>
                 <CardFooter>
                   <Button className="w-full" variant={badge ? "default" : "outline"} asChild>
-                    <a href="#">{t(`pricing.plans.${key}.cta`)}</a>
+                    <a href={key === "enterprise" ? `/${locale}/contact` : appLink(locale, "/signup")}>{t(`pricing.plans.${key}.cta`)}</a>
                   </Button>
                 </CardFooter>
               </Card>

@@ -1,8 +1,11 @@
 import { getT } from "next-i18next/server";
+import { lng } from "next/root-params";
 
 import { Button } from "@trestle/ui/components/ui/button";
 import { Badge } from "@trestle/ui/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@trestle/ui/components/ui/card";
+
+import { appLink } from "@/lib/links";
 
 const socialProofNames = ["Northwind", "Fontaine Co.", "Umbra Labs", "Verity", "Haldane"];
 
@@ -10,6 +13,7 @@ const featureKeys = ["tasks", "projects", "boards", "collaboration"] as const;
 
 export default async function HomePage() {
   const { t } = await getT("marketing");
+  const locale = await lng();
 
   return (
     <>
@@ -86,7 +90,7 @@ export default async function HomePage() {
       <section id="get-started" className="mx-auto flex max-w-2xl flex-col items-center gap-6 px-6 py-24 text-center">
         <h2 className="text-3xl leading-heading font-bold">{t("finalCta.title")}</h2>
         <Button size="lg" asChild>
-          <a href="#">{t("finalCta.cta")}</a>
+          <a href={appLink(locale, "/signup")}>{t("finalCta.cta")}</a>
         </Button>
       </section>
     </>
@@ -95,6 +99,7 @@ export default async function HomePage() {
 
 async function PricingSection() {
   const { t } = await getT("marketing");
+  const locale = await lng();
   const planKeys = ["free", "pro", "enterprise"] as const;
 
   return (
@@ -134,7 +139,7 @@ async function PricingSection() {
                 </CardContent>
                 <CardFooter>
                   <Button className="w-full" variant={badge ? "default" : "outline"} asChild>
-                    <a href="#">{t(`pricing.plans.${key}.cta`)}</a>
+                    <a href={key === "enterprise" ? `/${locale}/contact` : appLink(locale, "/signup")}>{t(`pricing.plans.${key}.cta`)}</a>
                   </Button>
                 </CardFooter>
               </Card>

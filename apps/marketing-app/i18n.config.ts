@@ -3,10 +3,10 @@ import { baseI18nConfig, locales, sharedResources } from "@trestle/i18n";
 
 const i18nConfig: I18nConfig = {
   ...baseI18nConfig,
-  ns: ["common", "domain", "marketing"],
+  ns: ["common", "domain", "validation", "marketing"],
   resourceLoader: (language, namespace) => {
     const lang = language as (typeof locales)[number];
-    if (namespace === "common" || namespace === "domain") {
+    if (namespace === "common" || namespace === "domain" || namespace === "validation") {
       return Promise.resolve(sharedResources[lang][namespace]);
     }
     return import(`./app/i18n/locales/${lang}/${namespace}.json`);

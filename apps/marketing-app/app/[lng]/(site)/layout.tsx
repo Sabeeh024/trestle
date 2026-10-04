@@ -4,6 +4,8 @@ import { lng } from "next/root-params";
 import { Button } from "@trestle/ui/components/ui/button";
 import { Logo } from "@trestle/ui/components/logo";
 
+import { appLink } from "@/lib/links";
+
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const { t } = await getT("marketing");
   const locale = await lng();
@@ -30,11 +32,11 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           </div>
 
           <div className="flex items-center gap-4">
-            <a href="#" className="hidden text-sm font-semibold text-text-primary md:inline">
+            <a href={appLink(locale, "/login")} className="hidden text-sm font-semibold text-text-primary md:inline">
               {t("nav.logIn")}
             </a>
             <Button asChild size="sm">
-              <a href="#">{t("nav.getStarted")}</a>
+              <a href={appLink(locale, "/signup")}>{t("nav.getStarted")}</a>
             </Button>
           </div>
         </nav>
@@ -66,13 +68,13 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
               <span className="text-xs font-semibold tracking-wide text-text-disabled uppercase">
                 {t("footer.company.label")}
               </span>
-              <a href="#" className="text-sm text-text-secondary hover:text-text-primary">
+              <a href={`/${locale}/about`} className="text-sm text-text-secondary hover:text-text-primary">
                 {t("footer.company.about")}
               </a>
-              <a href="#" className="text-sm text-text-secondary hover:text-text-primary">
+              <a href={`/${locale}/blog`} className="text-sm text-text-secondary hover:text-text-primary">
                 {t("footer.company.blog")}
               </a>
-              <a href="#" className="text-sm text-text-secondary hover:text-text-primary">
+              <a href={`/${locale}/careers`} className="text-sm text-text-secondary hover:text-text-primary">
                 {t("footer.company.careers")}
               </a>
             </div>

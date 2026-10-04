@@ -57,7 +57,11 @@
         "price": "$0",
         "period": "/mo",
         "cta": "Get started",
-        "features": ["Up to 3 projects", "Unlimited tasks", "Board & list views"]
+        "features": [
+          "Up to 3 projects",
+          "Unlimited tasks",
+          "Board & list views"
+        ]
       },
       "pro": {
         "name": "Pro",
@@ -66,7 +70,12 @@
         "period": "/user/mo",
         "badge": "Popular",
         "cta": "Start free trial",
-        "features": ["Unlimited projects", "Priority support", "Advanced permissions", "Activity history"]
+        "features": [
+          "Unlimited projects",
+          "Priority support",
+          "Advanced permissions",
+          "Activity history"
+        ]
       },
       "enterprise": {
         "name": "Enterprise",
@@ -74,7 +83,11 @@
         "price": "Custom",
         "period": "",
         "cta": "Contact sales",
-        "features": ["SSO & SCIM", "Dedicated support", "Custom contracts"]
+        "features": [
+          "SSO & SCIM",
+          "Dedicated support",
+          "Custom contracts"
+        ]
       }
     }
   },
@@ -127,5 +140,65 @@
     "title": "Page not found",
     "description": "The page you're looking for doesn't exist or has moved.",
     "cta": "Back to home"
+  },
+  "pages": {
+    "updated": "Last updated: {{date}}",
+    "about": {
+      "title": "About Trestle",
+      "intro": "Trestle is project management that keeps your team moving.",
+      "missionTitle": "What we're building",
+      "missionBody": "Work gets lost between tools. Trestle puts projects, tasks and conversations in one place, so everyone can see what matters and what comes next.",
+      "valuesTitle": "How we work",
+      "valuesBody": "We keep things simple, make them fast, and design for every language and every device from the start."
+    },
+    "blog": {
+      "title": "Blog",
+      "intro": "Product updates and notes from the team.",
+      "empty": "No posts yet. Check back soon."
+    },
+    "careers": {
+      "title": "Careers",
+      "intro": "Help us build the way teams get work done.",
+      "empty": "There are no open roles right now.",
+      "cta": "Tell us about yourself"
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "intro": "This page explains what information Trestle collects and how it is used.",
+      "collectTitle": "What we collect",
+      "collectBody": "Your name and email address when you create an account, and the projects, tasks and comments you add.",
+      "useTitle": "How we use it",
+      "useBody": "To run your workspace, keep it secure, and contact you about your account. We do not sell your information.",
+      "rightsTitle": "Your choices",
+      "rightsBody": "You can edit your profile in Settings, and ask us to delete your account at any time through the contact page."
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "intro": "These terms govern your use of Trestle.",
+      "useTitle": "Using Trestle",
+      "useBody": "Use Trestle lawfully, and do not interfere with the service or with anyone else's use of it.",
+      "accountsTitle": "Your account",
+      "accountsBody": "You are responsible for the activity under your account and for keeping your password safe.",
+      "changesTitle": "Changes",
+      "changesBody": "We may update these terms. If a change is significant, we will tell you before it takes effect."
+    },
+    "contact": {
+      "title": "Contact sales",
+      "intro": "Tell us about your team and we'll get back to you.",
+      "nameLabel": "Name",
+      "namePlaceholder": "Jordan Kim",
+      "emailLabel": "Work email",
+      "emailPlaceholder": "you@company.com",
+      "companyLabel": "Company",
+      "companyHint": "Optional",
+      "messageLabel": "How can we help?",
+      "messagePlaceholder": "Team size, what you want to do, anything else we should know.",
+      "submit": "Send message",
+      "submitting": "Sending…",
+      "sentTitle": "Thanks, we've got your message",
+      "sentBody": "We'll reply to {{email}} soon.",
+      "back": "Back to home",
+      "genericError": "Something went wrong. Please try again."
+    }
   }
 }
