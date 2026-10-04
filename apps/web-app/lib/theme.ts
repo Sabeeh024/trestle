@@ -16,9 +16,18 @@ export function applyTheme(choice: ThemeChoice) {
   document.documentElement.classList.toggle("dark", dark);
 }
 
+const listeners = new Set<() => void>();
+
+// The cookie is the source of truth; this lets React subscribe to it (see useThemeChoice).
+export function subscribeToTheme(listener: () => void) {
+  listeners.add(listener);
+  return () => void listeners.delete(listener);
+}
+
 export function saveThemeChoice(choice: ThemeChoice) {
   document.cookie =
     choice === "system"
       ? `${THEME_COOKIE}=; path=/; max-age=0; samesite=lax`
       : `${THEME_COOKIE}=${choice}; path=/; max-age=31536000; samesite=lax`;
+  listeners.forEach((listener) => listener());
 }

@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useT } from "next-i18next/client";
 import { MonitorIcon, MoonIcon, SunIcon } from "lucide-react";
 
-import { applyTheme, readThemeChoice, saveThemeChoice, type ThemeChoice } from "@/lib/theme";
+import { applyTheme, saveThemeChoice, type ThemeChoice } from "@/lib/theme";
+import { useThemeChoice } from "@/lib/use-theme-choice";
 
 const options = [
   { value: "system", icon: MonitorIcon },
@@ -14,11 +15,7 @@ const options = [
 
 export function ThemeSwitcher() {
   const { t } = useT("app");
-  const [choice, setChoice] = useState<ThemeChoice>("system");
-
-  // The saved choice lives in a cookie that the head script reads before first paint, so it is read here
-  // after mount rather than during render, which keeps the server and client markup identical.
-  useEffect(() => setChoice(readThemeChoice()), []);
+  const choice = useThemeChoice();
 
   // While on "system", follow the operating system if it changes.
   useEffect(() => {
@@ -30,7 +27,6 @@ export function ThemeSwitcher() {
   }, [choice]);
 
   function select(next: ThemeChoice) {
-    setChoice(next);
     saveThemeChoice(next);
     applyTheme(next);
   }
