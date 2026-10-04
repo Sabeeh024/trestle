@@ -54,8 +54,10 @@ export function createFetchTransport({
         if (response.status === 401) onUnauthorized?.(error);
         throw error;
       }
-      if (response.status === 204) return undefined as T;
-      return (await response.json()) as T;
+      // Any success can be bodyless (204, but also a 201 or 202 with nothing to say), so read the text and
+      // only parse JSON when there is some.
+      const text = await response.text();
+      return (text ? JSON.parse(text) : undefined) as T;
     },
   };
 }

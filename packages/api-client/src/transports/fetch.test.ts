@@ -66,6 +66,18 @@ describe("createFetchTransport", () => {
     assert.ok(withTimeout.calls[0]?.init.signal);
   });
 
+  it("resolves undefined for any success with an empty body, not only 204", async () => {
+    for (const status of [200, 201, 202]) {
+      const { transport } = transportWith(() => new Response(null, { status }));
+      assert.equal(await transport.request({ method: "POST", url: "/api/contact", body: {} }), undefined);
+    }
+  });
+
+  it("still parses a JSON body", async () => {
+    const { transport } = transportWith(() => json(200, { data: { ok: true } }));
+    assert.deepEqual(await transport.request({ method: "GET", url: "/x" }), { data: { ok: true } });
+  });
+
   it("passes Next.js caching options through to fetch", async () => {
     const { calls, transport } = transportWith(() => json(200, {}));
     await transport.request({ method: "GET", url: "/api/projects", next: { revalidate: 60, tags: ["projects"] }, cache: "force-cache" });

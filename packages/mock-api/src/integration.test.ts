@@ -88,6 +88,15 @@ for (const [name, makeTransport] of Object.entries(transports)) {
       assert.equal(log.data[0]?.actor, "jordan.kim@trestle.io");
     });
 
+    it("sends a contact message, which the server answers with an empty 201", async () => {
+      await getApi().contact.send({ name: "Dana", email: "dana@example.com", message: "Hello" });
+      assert.equal(db.state.contacts.length, 1);
+      await assert.rejects(
+        getApi().contact.send({ name: "", email: "nope", message: "" }),
+        (error: unknown) => isApiError(error) && error.status === 422 && error.fields?.email === "emailInvalid",
+      );
+    });
+
     it("fetches through a QueryClient and caches under the exported keys", async () => {
       const queryClient = new QueryClient();
       const queries = createQueries(getApi());
