@@ -5,6 +5,7 @@ import {
   changeRoleSchema,
   commentSchema,
   createOrganizationSchema,
+  contactSchema,
   createProjectSchema,
   createTaskSchema,
   fieldErrors,
@@ -70,9 +71,23 @@ describe("schemas", () => {
     assert.deepEqual(errorsFor(updateUserSchema.safeParse({ name: "", email: "no", role: "root" })), { name: "required", email: "emailInvalid", role: "invalidChoice" });
   });
 
+  it("requires a name, an email and a message to contact sales, and treats the company as optional", () => {
+    assert.equal(contactSchema.safeParse({ name: "Dana", email: "dana@example.com", message: "Hello" }).success, true);
+    assert.deepEqual(errorsFor(contactSchema.safeParse({ name: "", email: "x", message: " " })), { name: "required", email: "emailInvalid", message: "required" });
+    assert.deepEqual(errorsFor(contactSchema.safeParse({ name: "Dana", email: "dana@example.com", message: "a".repeat(2001) })), { message: "tooLong" });
+  });
+
   it("requires a name to rename an organization", () => {
     assert.deepEqual(errorsFor(updateOrganizationSchema.safeParse({ name: "" })), { name: "required" });
     assert.equal(updateOrganizationSchema.safeParse({ name: "Verity Labs", plan: "pro" }).success, true);
+  });
+
+  it("treats a field that is missing altogether the same as an empty one", () => {
+    assert.deepEqual(errorsFor(loginSchema.safeParse({})), { email: "required", password: "required" });
+    assert.deepEqual(errorsFor(createProjectSchema.safeParse({})), { name: "required" });
+    assert.deepEqual(errorsFor(inviteUserSchema.safeParse({})), { email: "required", orgId: "required" });
+    assert.deepEqual(errorsFor(createTaskSchema.safeParse({})), { projectId: "required", title: "required" });
+    assert.deepEqual(errorsFor(contactSchema.safeParse({})), { name: "required", email: "required", message: "required" });
   });
 
   it("knows which messages are validation keys", () => {

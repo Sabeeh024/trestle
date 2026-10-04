@@ -2,8 +2,9 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 
+import { contactSchema } from "@trestle/api-client/schemas";
 import { Db } from "./db";
-import { fail } from "./http";
+import { fail, parseBody, readBody } from "./http";
 import { adminRoutes } from "./routes/admin";
 import { authRoutes, userFromRequest } from "./routes/auth";
 import { projectRoutes } from "./routes/projects";
@@ -55,6 +56,15 @@ export function createApp({ db = new Db(), latencyMs = 0, requireAuth = false, l
   app.route("/api/projects", projectRoutes(db));
   app.route("/api/tasks", taskRoutes(db));
   app.route("/api/admin", adminRoutes(db));
+
+  // The marketing site's contact form. Messages are kept in memory only.
+  app.post("/api/contact", async (c) => {
+    const parsed = parseBody(c, contactSchema, await readBody(c));
+    if (!parsed.ok) return parsed.response;
+    const { name, email, company, message } = parsed.data;
+    db.state.contacts.push({ id: db.nextId("msg"), name, email, company: company ?? "", message, receivedAt: new Date().toISOString() });
+    return c.body(null, 201);
+  });
 
   app.get("/api/dashboard", (c) => {
     const me = userFromRequest(c, db) ?? db.me;

@@ -7,3 +7,5 @@ Initial release of the mock API server: a Hono app on port 4000 with in-memory s
 Request bodies are validated with the shared `@trestle/api-client/schemas`, and a failure returns HTTP 422 with `{ error: { code: "validation_failed", fields } }`, so the apps' client-side validation and the server cannot disagree.
 
 The server also covers sign up (into a new trial workspace), single sign-on for enterprise organizations, forgot password, profile updates, editing users and organizations, and archived projects, which are kept out of the dashboard.
+
+A `POST /api/contact` endpoint receives the marketing site's contact form, validated with the shared schema.

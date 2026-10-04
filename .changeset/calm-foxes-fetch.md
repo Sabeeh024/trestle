@@ -16,3 +16,4 @@ Initial release of the shared API client, with the HTTP library behind a pluggab
 `axios`, `@tanstack/react-query` and `react` are optional peer dependencies, so an app installs only what its transport and rendering need.
 
 - Account and edit endpoints: `auth.signup`, `auth.sso`, `auth.forgotPassword` and `auth.updateProfile`, plus `admin.users.update` and `admin.organizations.update`, each with a schema and a React Query hook. Projects gain an `archived` status.
+- `contact.send` and a `contactSchema` for the marketing site's contact form

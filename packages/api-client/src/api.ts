@@ -4,6 +4,7 @@ import type {
   AuditLogParams,
   BulkUserActionInput,
   Comment,
+  ContactInput,
   CreateOrganizationInput,
   CreateProjectInput,
   CreateTaskInput,
@@ -64,6 +65,12 @@ export function createApi(transport: Transport) {
       },
       updateProfile: (input: UpdateProfileInput) => send<User>("PATCH", "/api/auth/me", input),
       logout: () => post("/api/auth/logout"),
+    },
+
+    contact: {
+      send: async (input: ContactInput) => {
+        await transport.request<void>({ method: "POST", url: "/api/contact", body: input });
+      },
     },
 
     dashboard: {

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import type {
+  ContactInput,
   CreateOrganizationInput,
   CreateProjectInput,
   CreateTaskInput,
@@ -37,9 +38,11 @@ export type ValidationKey = (typeof msg)[keyof typeof msg];
 export const isValidationKey = (value: unknown): value is ValidationKey =>
   typeof value === "string" && (Object.values(msg) as string[]).includes(value);
 
-const requiredText = (max: number) => z.string().trim().min(1, msg.required).max(max, msg.tooLong);
+// A field that is missing altogether (not just empty) is also "required", rather than zod's own wording.
+const text = () => z.string({ error: msg.required });
+const requiredText = (max: number) => text().trim().min(1, msg.required).max(max, msg.tooLong);
 const optionalText = (max: number) => z.string().trim().max(max, msg.tooLong).optional();
-const email = z.string().trim().min(1, msg.required).email(msg.emailInvalid);
+const email = text().trim().min(1, msg.required).email(msg.emailInvalid);
 // An empty string means "not set", which is what an untouched date input submits.
 const optionalDate = z
   .string()
@@ -53,16 +56,23 @@ const taskStatuses = ["todo", "inProgress", "inReview", "done"] as const satisfi
 
 export const loginSchema = z.object({
   email,
-  password: z.string().min(1, msg.required),
+  password: text().min(1, msg.required),
 });
 
 export const signupSchema = z.object({
   name: requiredText(80),
   email,
-  password: z.string().min(8, msg.passwordTooShort).max(128, msg.tooLong),
+  password: text().min(8, msg.passwordTooShort).max(128, msg.tooLong),
 });
 
 export const forgotPasswordSchema = z.object({ email });
+
+export const contactSchema = z.object({
+  name: requiredText(80),
+  email,
+  company: optionalText(80),
+  message: requiredText(2000),
+});
 
 export const ssoSchema = z.object({ email });
 
@@ -89,7 +99,7 @@ export const createProjectSchema = z.object({
 });
 
 export const createTaskSchema = z.object({
-  projectId: z.string().min(1, msg.required),
+  projectId: text().min(1, msg.required),
   title: requiredText(120),
   description: optionalText(2000),
   priority: z.enum(priorities, { error: msg.invalidChoice }).optional(),
@@ -104,7 +114,7 @@ export const commentSchema = z.object({
 export const inviteUserSchema = z.object({
   email,
   name: optionalText(80),
-  orgId: z.string().min(1, msg.required),
+  orgId: text().min(1, msg.required),
   role: z.enum(roles, { error: msg.invalidChoice }).optional(),
 });
 
@@ -126,6 +136,7 @@ export type SchemaMatchesEndpointTypes = [
   Assert<z.infer<typeof inviteUserSchema> extends InviteUserInput ? true : false>,
   Assert<z.infer<typeof createOrganizationSchema> extends CreateOrganizationInput ? true : false>,
   Assert<z.infer<typeof signupSchema> extends SignupInput ? true : false>,
+  Assert<z.infer<typeof contactSchema> extends ContactInput ? true : false>,
   Assert<z.infer<typeof forgotPasswordSchema> extends ForgotPasswordInput ? true : false>,
   Assert<z.infer<typeof ssoSchema> extends SsoInput ? true : false>,
   Assert<z.infer<typeof updateProfileSchema> extends UpdateProfileInput ? true : false>,

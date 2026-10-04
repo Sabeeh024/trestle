@@ -256,6 +256,22 @@ describe("accounts", () => {
   });
 });
 
+describe("contact", () => {
+  it("accepts a message, with the company optional", async () => {
+    assert.equal((await call("/api/contact", { method: "POST", body: { name: "Dana", email: "dana@example.com", message: "We need SSO" } })).status, 201);
+    assert.equal((await call("/api/contact", { method: "POST", body: { name: "Dana", email: "dana@example.com", company: "Acme", message: "Hi" } })).status, 201);
+    assert.equal(db.state.contacts.length, 2);
+    assert.equal(db.state.contacts[0]?.company, "");
+  });
+
+  it("rejects an incomplete message on the right fields and stores nothing", async () => {
+    const res = await call<{ error: { fields: Record<string, string> } }>("/api/contact", { method: "POST", body: { name: "Dana", email: "nope" } });
+    assert.equal(res.status, 422);
+    assert.deepEqual(res.json.error.fields, { email: "emailInvalid", message: "required" });
+    assert.equal(db.state.contacts.length, 0);
+  });
+});
+
 describe("options", () => {
   it("enforces auth and admin role when requireAuth is on", async () => {
     const guarded = createApp({ db, requireAuth: true });

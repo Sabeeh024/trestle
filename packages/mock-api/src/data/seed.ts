@@ -57,6 +57,15 @@ export interface AuditRecord {
   target: string;
 }
 
+export interface ContactRecord {
+  id: string;
+  name: string;
+  email: string;
+  company: string;
+  message: string;
+  receivedAt: string;
+}
+
 export interface Seed {
   users: User[];
   orgs: OrgRecord[];
@@ -64,6 +73,7 @@ export interface Seed {
   tasks: TaskRecord[];
   comments: CommentRecord[];
   audit: AuditRecord[];
+  contacts: ContactRecord[];
 }
 
 // The signed-in user for the product app and the admin panel.
@@ -142,5 +152,5 @@ export function createSeed(): Seed {
     { id: "aud_1", timestamp: "2026-09-20T08:58:44.000Z", actor: "jordan.kim@trestle.io", action: "create_organization", target: "Umbra Labs" },
   ];
 
-  return { users, orgs, projects, tasks, comments, audit };
+  return { users, orgs, projects, tasks, comments, audit, contacts: [] };
 }

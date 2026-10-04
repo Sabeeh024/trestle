@@ -200,6 +200,13 @@ export interface UpdateOrganizationInput {
   plan?: OrgPlan;
 }
 
+export interface ContactInput {
+  name: string;
+  email: string;
+  company?: string;
+  message: string;
+}
+
 export interface LoginResult {
   token: string;
   user: User;
