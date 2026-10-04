@@ -1,11 +1,14 @@
+import { LogOutIcon } from "lucide-react";
 import { getT } from "next-i18next/server";
 import { lng } from "next/root-params";
 
 import { Logo } from "@trestle/ui/components/logo";
 import { Avatar, AvatarFallback } from "@trestle/ui/components/ui/avatar";
+import { Button } from "@trestle/ui/components/ui/button";
 import { NavItem } from "@trestle/ui/components/nav-item";
 
 import { api } from "@/lib/api";
+import { signOutAction } from "@/lib/auth-actions";
 
 const colorDot: Record<string, string> = {
   purple: "bg-categorical-purple-light dark:bg-categorical-purple-dark",
@@ -61,10 +64,15 @@ export async function Sidebar({ active }: { active: "home" | "myTasks" | "projec
         <Avatar size="sm">
           <AvatarFallback>{me.initials}</AvatarFallback>
         </Avatar>
-        <div className="flex min-w-0 flex-col">
+        <div className="flex min-w-0 flex-1 flex-col">
           <span className="truncate text-sm font-medium">{me.name}</span>
           <span className="truncate text-xs text-text-disabled">{t(`domain:role.${me.role}`)}</span>
         </div>
+        <form action={signOutAction.bind(null, locale)}>
+          <Button type="submit" variant="ghost" size="icon-sm" aria-label={t("app:account.signOut")} title={t("app:account.signOut")}>
+            <LogOutIcon className="rtl:-scale-x-100" />
+          </Button>
+        </form>
       </div>
     </aside>
   );

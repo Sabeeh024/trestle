@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { ME_ID, type TaskRecord } from "../data/seed";
 import type { Db } from "../db";
 import { commentSchema, createTaskSchema } from "@trestle/api-client/schemas";
+import { userFromRequest } from "./auth";
 import { badRequest, matches, notFound, oneOf, paginate, parseBody, readBody, str } from "../http";
 import type { Priority, TaskStatus } from "@trestle/api-client/types";
 
@@ -96,7 +97,7 @@ export function taskRoutes(db: Db) {
     if (!parsed.ok) return parsed.response;
     const text = parsed.data.body;
 
-    const comment = { id: db.nextId("cmt"), taskId: record.id, authorId: ME_ID, body: text, createdAt: new Date().toISOString() };
+    const comment = { id: db.nextId("cmt"), taskId: record.id, authorId: (userFromRequest(c, db) ?? db.me).id, body: text, createdAt: new Date().toISOString() };
     db.state.comments.push(comment);
     return c.json({ data: db.taskDetail(record).comments.find((cm) => cm.id === comment.id) }, 201);
   });

@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 
-import { ME_ID } from "../data/seed";
 import type { Db } from "../db";
 import { createProjectSchema } from "@trestle/api-client/schemas";
+import { userFromRequest } from "./auth";
 import { matches, notFound, oneOf, paginate, parseBody, readBody, str } from "../http";
 import type { CategoricalColor, ProjectStatus } from "@trestle/api-client/types";
 
@@ -44,7 +44,7 @@ export function projectRoutes(db: Db) {
       color: oneOf(body.color, COLORS) ?? "purple",
       status: oneOf(body.status, STATUSES) ?? "planning",
       progress: 0,
-      memberIds: [ME_ID],
+      memberIds: [(userFromRequest(c, db) ?? db.me).id],
       dueDate: dueDate || null,
       updatedAt: new Date().toISOString(),
     };

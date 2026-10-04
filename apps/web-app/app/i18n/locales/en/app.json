@@ -117,5 +117,35 @@
     "dueDateLabel": "Due date",
     "create": "Create task",
     "creating": "Creating…"
+  },
+  "signup": {
+    "title": "Create your account",
+    "subtitle": "Start your free trial. No credit card required.",
+    "nameLabel": "Full name",
+    "namePlaceholder": "Jordan Kim",
+    "passwordHint": "At least 8 characters.",
+    "submit": "Create account",
+    "submitting": "Creating account…",
+    "haveAccount": "Already have an account?",
+    "signIn": "Sign in"
+  },
+  "forgotPassword": {
+    "title": "Reset your password",
+    "subtitle": "Enter your email and we'll send you a link to reset it.",
+    "submit": "Send reset link",
+    "submitting": "Sending…",
+    "sentTitle": "Check your email",
+    "sentBody": "If an account exists for {{email}}, a link to reset your password is on its way.",
+    "back": "Back to sign in"
+  },
+  "sso": {
+    "title": "Continue with SSO",
+    "description": "Enter your work email and we'll take you to your company's sign-in.",
+    "submit": "Continue",
+    "submitting": "Checking…",
+    "notEnabled": "Single sign-on isn't enabled for this organization"
+  },
+  "account": {
+    "signOut": "Sign out"
   }
 }

@@ -1,46 +1,33 @@
 "use client";
 
-import Link from "next/link";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useT } from "next-i18next/client";
 
 import { ApiError } from "@trestle/api-client";
-import { loginSchema } from "@trestle/api-client/schemas";
+import { signupSchema } from "@trestle/api-client/schemas";
 import { fieldError, rootError, submitForm, useZodForm } from "@trestle/forms";
 import { Button } from "@trestle/ui/components/ui/button";
 import { Input } from "@trestle/ui/components/ui/input";
 import { Field, FormError } from "@trestle/ui/components/field";
 
-import { loginAction } from "@/lib/auth-actions";
+import { signupAction } from "@/lib/auth-actions";
 import { useValidationTranslate } from "@/lib/use-validation-translate";
 
-export function LoginForm() {
+export function SignupForm() {
   const { t } = useT("app");
   const tv = useValidationTranslate();
   const router = useRouter();
   const { lng } = useParams<{ lng: string }>();
-  const next = useSearchParams().get("next");
 
-  // Only follow a `next` that stays inside this locale, so the login page cannot bounce anyone off-site.
-  const destination = next && next.startsWith(`/${lng}/`) && !next.startsWith("//") ? next : `/${lng}/dashboard`;
-
-  const form = useZodForm(loginSchema, { defaultValues: { email: "", password: "" } });
+  const form = useZodForm(signupSchema, { defaultValues: { name: "", email: "", password: "" } });
 
   const onSubmit = submitForm(
     form,
     async (values) => {
-      const result = await loginAction(values);
-      if (!result.ok) {
-        // The server's messages are English, so the two failures a person can cause get their own text.
-        const message =
-          result.code === "invalid_credentials"
-            ? t("login.invalidCredentials")
-            : result.code === "account_suspended"
-              ? t("login.accountSuspended")
-              : result.message;
-        throw new ApiError(message, result.code, result.status, result.fields);
-      }
-      router.push(destination);
+      const result = await signupAction(values);
+      // An email that is already registered arrives as a field error and lands on the email field.
+      if (!result.ok) throw new ApiError(result.message, result.code, result.status, result.fields);
+      router.push(`/${lng}/dashboard`);
     },
     t("forms.genericError"),
   );
@@ -51,7 +38,13 @@ export function LoginForm() {
     <form className="flex flex-col gap-4" onSubmit={onSubmit} noValidate>
       {formError ? <FormError>{formError}</FormError> : null}
 
-      <Field label={t("login.emailLabel")} error={fieldError(form, "email", tv)}>
+      <Field label={t("signup.nameLabel")} error={fieldError(form, "name", tv)} required>
+        {(control) => (
+          <Input autoComplete="name" placeholder={t("signup.namePlaceholder")} {...control} {...form.register("name")} />
+        )}
+      </Field>
+
+      <Field label={t("login.emailLabel")} error={fieldError(form, "email", tv)} required>
         {(control) => (
           <Input
             type="email"
@@ -65,17 +58,14 @@ export function LoginForm() {
 
       <Field
         label={t("login.passwordLabel")}
+        description={t("signup.passwordHint")}
         error={fieldError(form, "password", tv)}
-        labelAction={
-          <Link href={`/${lng}/forgot-password`} className="text-sm text-action-primary hover:text-action-primaryHover">
-            {t("login.forgotPassword")}
-          </Link>
-        }
+        required
       >
         {(control) => (
           <Input
             type="password"
-            autoComplete="current-password"
+            autoComplete="new-password"
             placeholder={t("login.passwordPlaceholder")}
             {...control}
             {...form.register("password")}
@@ -84,7 +74,7 @@ export function LoginForm() {
       </Field>
 
       <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-        {form.formState.isSubmitting ? t("login.signingIn") : t("login.signIn")}
+        {form.formState.isSubmitting ? t("signup.submitting") : t("signup.submit")}
       </Button>
     </form>
   );
