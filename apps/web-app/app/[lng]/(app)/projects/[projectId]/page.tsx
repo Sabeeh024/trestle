@@ -4,9 +4,11 @@ import { getT } from "next-i18next/server";
 
 import { isApiError } from "@trestle/api-client";
 import { createQueries, getQueryClient } from "@trestle/api-client/query";
+import { Badge } from "@trestle/ui/components/ui/badge";
 import { Button } from "@trestle/ui/components/ui/button";
 import { Avatar, AvatarFallback, AvatarGroup } from "@trestle/ui/components/ui/avatar";
 
+import { ArchiveProjectButton } from "@/components/archive-project-button";
 import { NewTaskDialog } from "@/components/new-task-dialog";
 import { Sidebar } from "@/components/sidebar";
 import { TopBar } from "@/components/topbar";
@@ -30,18 +32,22 @@ export default async function ProjectViewPage({ params }: { params: Promise<{ pr
   const firstTask = tasks.data[0];
   if (firstTask) await queryClient.prefetchQuery(queries.tasks.detail(firstTask.id));
 
-  const { t } = await getT("app");
+  const { t } = await getT(["app", "domain"]);
+  const archived = project.status === "archived";
 
   return (
     <>
       <Sidebar active="projects" />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar crumbs={[t("nav.workspace"), t("nav.projects"), project.name]} />
+        <TopBar crumbs={[t("app:nav.workspace"), t("app:nav.projects"), project.name]} />
 
         <div className="flex shrink-0 flex-wrap items-end justify-between gap-4 px-6 pt-6">
           <div>
-            <h1 className="text-2xl leading-heading font-bold">{project.name}</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl leading-heading font-bold">{project.name}</h1>
+              {archived ? <Badge variant="secondary">{t("domain:projectStatus.archived")}</Badge> : null}
+            </div>
             <p className="mt-1 text-sm text-text-secondary">{project.description}</p>
           </div>
           <div className="flex items-center gap-4">
@@ -52,8 +58,9 @@ export default async function ProjectViewPage({ params }: { params: Promise<{ pr
                 </Avatar>
               ))}
             </AvatarGroup>
+            <ArchiveProjectButton projectId={projectId} name={project.name} archived={archived} />
             <NewTaskDialog projectId={projectId}>
-              <Button>{t("projectView.newTask")}</Button>
+              <Button>{t("app:projectView.newTask")}</Button>
             </NewTaskDialog>
           </div>
         </div>

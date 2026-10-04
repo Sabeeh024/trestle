@@ -17,6 +17,7 @@ import {
 
 import { NewProjectDialog } from "@/components/new-project-dialog";
 import { Sidebar } from "@/components/sidebar";
+import { TabLinks } from "@/components/tab-links";
 import { TopBar } from "@/components/topbar";
 import { api } from "@/lib/api";
 import { formatDate, formatRelative } from "@/lib/format";
@@ -28,10 +29,21 @@ const statusVariant: Record<ProjectStatus, "success" | "warning" | "secondary"> 
   archived: "secondary",
 };
 
-export default async function ProjectsPage() {
+type Tab = "all" | "active" | "archived";
+const tabs: Tab[] = ["all", "active", "archived"];
+
+export default async function ProjectsPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const { t } = await getT(["app", "domain"]);
   const locale = await lng();
-  const projects = await api.projects.list({ pageSize: 100 });
+  const { tab: requested } = await searchParams;
+  const tab: Tab = tabs.find((candidate) => candidate === requested) ?? "all";
+
+  const all = await api.projects.list({ pageSize: 100 });
+  // "All" is every project; "Active" is everything not archived, so planning and on-hold work still shows.
+  const projects = {
+    ...all,
+    data: all.data.filter((project) => (tab === "all" ? true : (project.status === "archived") === (tab === "archived"))),
+  };
 
   return (
     <>
@@ -48,13 +60,13 @@ export default async function ProjectsPage() {
             </NewProjectDialog>
           </div>
 
-          <div className="flex gap-1 self-start rounded-md bg-muted p-1">
-            <span className="rounded-sm bg-background px-3 py-1.5 text-sm font-semibold shadow-sm">
-              {t("app:projects.tabs.all")}
-            </span>
-            <span className="px-3 py-1.5 text-sm text-text-secondary">{t("app:projects.tabs.active")}</span>
-            <span className="px-3 py-1.5 text-sm text-text-secondary">{t("app:projects.tabs.archived")}</span>
-          </div>
+          <TabLinks
+            items={tabs.map((candidate) => ({
+              label: t(`app:projects.tabs.${candidate}`),
+              href: candidate === "all" ? `/${locale}/projects` : `/${locale}/projects?tab=${candidate}`,
+              active: candidate === tab,
+            }))}
+          />
 
           <div className="overflow-hidden rounded-lg border border-border">
             <Table>
@@ -69,6 +81,13 @@ export default async function ProjectsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
+                {projects.data.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="py-8 text-center text-text-secondary">
+                      {t("app:projects.empty")}
+                    </TableCell>
+                  </TableRow>
+                ) : null}
                 {projects.data.map((project) => (
                   <TableRow key={project.id}>
                     <TableCell>

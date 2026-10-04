@@ -19,3 +19,6 @@ export function formatRelative(iso: string, locale: string, now = Date.now()) {
   }
   return formatter.format(0, "second");
 }
+
+/** Today's date as YYYY-MM-DD in UTC, comparable with the API's date-only due dates. */
+export const todayIso = () => new Date().toISOString().slice(0, 10);

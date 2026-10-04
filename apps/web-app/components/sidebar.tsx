@@ -22,7 +22,7 @@ const colorDot: Record<string, string> = {
 export async function Sidebar({ active }: { active: "home" | "myTasks" | "projects" | "settings" }) {
   const { t } = await getT(["app", "domain"]);
   const locale = await lng();
-  const [me, projects] = await Promise.all([api.auth.me(), api.projects.list({ pageSize: 3 })]);
+  const [me, projects] = await Promise.all([api.auth.me(), api.projects.list({ pageSize: 100 })]);
 
   return (
     <aside className="flex w-60 shrink-0 flex-col gap-1 border-e border-border bg-background-subtle p-3">
@@ -43,7 +43,10 @@ export async function Sidebar({ active }: { active: "home" | "myTasks" | "projec
 
       {active === "projects" || active === "home" ? (
         <div className="my-0.5 ms-6.5 flex flex-col gap-0.5">
-          {projects.data.map((project) => (
+          {projects.data
+            .filter((project) => project.status !== "archived")
+            .slice(0, 3)
+            .map((project) => (
             <a
               key={project.id}
               href={`/${locale}/projects/${project.id}`}

@@ -52,7 +52,8 @@
       "status": "Status"
     },
     "percentComplete": "{{percent}}% complete",
-    "updated": "Updated {{time}}"
+    "updated": "Updated {{time}}",
+    "empty": "No tasks in this view."
   },
   "projects": {
     "title": "Projects",
@@ -69,7 +70,8 @@
       "members": "Members",
       "due": "Due",
       "updated": "Updated"
-    }
+    },
+    "empty": "No projects in this view."
   },
   "projectView": {
     "newTask": "New Task",
@@ -90,7 +92,13 @@
       "comments": "Comments",
       "addComment": "Add a comment...",
       "send": "Send"
-    }
+    },
+    "archive": "Archive project",
+    "restore": "Restore project",
+    "archiveTitle": "Archive {{name}}?",
+    "archiveBody": "It will leave your dashboard and sidebar. You can restore it any time from the Archived tab.",
+    "archiveConfirm": "Archive",
+    "restoring": "Restoring…"
   },
   "forms": {
     "genericError": "Something went wrong. Please try again."
@@ -169,5 +177,18 @@
       "description": "Trestle is available in English and Urdu.",
       "label": "Language"
     }
+  },
+  "myTasks": {
+    "title": "My Tasks",
+    "subtitle": "Everything assigned to you.",
+    "tabs": {
+      "all": "All"
+    },
+    "empty": "No tasks match this view.",
+    "overdue": "Overdue"
+  },
+  "tasks": {
+    "markDone": "Mark \"{{title}}\" as done",
+    "markTodo": "Mark \"{{title}}\" as not done"
   }
 }

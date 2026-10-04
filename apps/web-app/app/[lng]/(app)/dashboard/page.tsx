@@ -1,49 +1,42 @@
+import Link from "next/link";
 import { getT } from "next-i18next/server";
 import { lng } from "next/root-params";
 
-import type { Priority, TaskStatus } from "@trestle/api-client/types";
-
 import { Button } from "@trestle/ui/components/ui/button";
-import { Badge } from "@trestle/ui/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarGroup } from "@trestle/ui/components/ui/avatar";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@trestle/ui/components/ui/table";
-import { Checkbox } from "@trestle/ui/components/ui/checkbox";
 
 import { NewTaskDialog } from "@/components/new-task-dialog";
 import { Sidebar } from "@/components/sidebar";
+import { TabLinks } from "@/components/tab-links";
+import { TaskTable } from "@/components/task-table";
 import { TopBar } from "@/components/topbar";
 import { api } from "@/lib/api";
-import { formatDate, formatRelative } from "@/lib/format";
+import { formatRelative, todayIso } from "@/lib/format";
 
-const priorityVariant: Record<Priority, "destructive" | "warning" | "secondary"> = {
-  urgent: "destructive",
-  high: "warning",
-  medium: "secondary",
-  low: "secondary",
-};
+type Tab = "all" | "today" | "upcoming";
+const tabs: Tab[] = ["all", "today", "upcoming"];
 
-const statusVariant: Record<TaskStatus, "secondary" | "accent" | "success"> = {
-  todo: "secondary",
-  inProgress: "accent",
-  inReview: "accent",
-  done: "success",
-};
-
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const { t } = await getT(["app", "domain"]);
   const locale = await lng();
+  const { tab: requested } = await searchParams;
+  const tab: Tab = tabs.find((candidate) => candidate === requested) ?? "all";
+
   const [{ me, recentProjects, myTasks }, projects] = await Promise.all([
     api.dashboard.get(),
     api.projects.list({ pageSize: 100 }),
   ]);
   const projectNames = new Map(projects.data.map((project) => [project.id, project.name]));
+  const openProjects = projects.data.filter((project) => project.status !== "archived");
+
+  // "Today" is what is due today or already overdue and still open, since that is what needs attention
+  // now; "Upcoming" is anything due after today.
+  const today = todayIso();
+  const visibleTasks = myTasks.filter((task) => {
+    if (tab === "today") return task.status !== "done" && task.dueDate !== null && task.dueDate <= today;
+    if (tab === "upcoming") return task.dueDate !== null && task.dueDate > today;
+    return true;
+  });
 
   return (
     <>
@@ -60,7 +53,7 @@ export default async function DashboardPage() {
               </h1>
               <p className="mt-1 text-sm text-text-secondary">{t("app:dashboard.subtitle")}</p>
             </div>
-            <NewTaskDialog projects={projects.data.map(({ id, name }) => ({ id, name }))} assigneeId={me.id}>
+            <NewTaskDialog projects={openProjects.map(({ id, name }) => ({ id, name }))} assigneeId={me.id}>
               <Button>{t("app:dashboard.newTask")}</Button>
             </NewTaskDialog>
           </div>
@@ -68,16 +61,17 @@ export default async function DashboardPage() {
           <section className="flex flex-col gap-4">
             <div className="flex items-baseline justify-between">
               <h2 className="text-lg font-semibold">{t("app:dashboard.recentProjects")}</h2>
-              <a href="#" className="text-sm text-text-secondary hover:text-text-primary">
+              <Link href={`/${locale}/projects`} className="text-sm text-text-secondary hover:text-text-primary">
                 {t("app:dashboard.viewAll")}
-              </a>
+              </Link>
             </div>
 
             <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
               {recentProjects.map((project) => (
-                <div
+                <Link
                   key={project.id}
-                  className="flex flex-col gap-3 rounded-xl border border-border bg-background-subtle p-5"
+                  href={`/${locale}/projects/${project.id}`}
+                  className="flex flex-col gap-3 rounded-xl border border-border bg-background-subtle p-5 hover:border-border-strong"
                 >
                   <div className="flex items-center gap-3">
                     <div
@@ -113,7 +107,7 @@ export default async function DashboardPage() {
                       {t("app:dashboard.updated", { time: formatRelative(project.updatedAt, locale) })}
                     </p>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </section>
@@ -121,60 +115,21 @@ export default async function DashboardPage() {
           <section className="flex flex-col gap-4">
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <h2 className="text-lg font-semibold">{t("app:dashboard.myTasks")}</h2>
-              <div className="flex gap-1 rounded-md bg-muted p-1">
-                <span className="rounded-sm bg-background px-3 py-1.5 text-sm font-semibold shadow-sm">
-                  {t("app:dashboard.tabs.all")}
-                </span>
-                <span className="px-3 py-1.5 text-sm text-text-secondary">{t("app:dashboard.tabs.today")}</span>
-                <span className="px-3 py-1.5 text-sm text-text-secondary">{t("app:dashboard.tabs.upcoming")}</span>
-              </div>
+              <TabLinks
+                items={tabs.map((candidate) => ({
+                  label: t(`app:dashboard.tabs.${candidate}`),
+                  href: candidate === "all" ? `/${locale}/dashboard` : `/${locale}/dashboard?tab=${candidate}`,
+                  active: candidate === tab,
+                }))}
+              />
             </div>
 
-            <div className="overflow-hidden rounded-lg border border-border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-10" />
-                    <TableHead>{t("app:dashboard.table.task")}</TableHead>
-                    <TableHead>{t("app:dashboard.table.project")}</TableHead>
-                    <TableHead>{t("app:dashboard.table.priority")}</TableHead>
-                    <TableHead>{t("app:dashboard.table.due")}</TableHead>
-                    <TableHead>{t("app:dashboard.table.status")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {myTasks.map((task) => {
-                    const done = task.status === "done";
-                    return (
-                      <TableRow key={task.id}>
-                        <TableCell>
-                          <Checkbox checked={done} />
-                        </TableCell>
-                        <TableCell className={done ? "text-text-disabled line-through" : "text-text-primary"}>
-                          {task.title}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary" shape="tag">
-                            {projectNames.get(task.projectId)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={priorityVariant[task.priority]} dot>
-                            {t(`domain:priority.${task.priority}`)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-text-secondary">{formatDate(task.dueDate, locale)}</TableCell>
-                        <TableCell>
-                          <Badge variant={statusVariant[task.status]} dot>
-                            {t(`domain:taskStatus.${task.status}`)}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
+            <TaskTable
+              tasks={visibleTasks}
+              projectNames={projectNames}
+              locale={locale}
+              emptyLabel={t("app:dashboard.empty")}
+            />
           </section>
         </div>
       </main>

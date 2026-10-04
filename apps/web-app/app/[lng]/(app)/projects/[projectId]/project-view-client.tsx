@@ -20,10 +20,10 @@ import {
   TableHeader,
   TableRow,
 } from "@trestle/ui/components/ui/table";
-import { Checkbox } from "@trestle/ui/components/ui/checkbox";
 import { SidePanel, SidePanelBody, SidePanelFooter, SidePanelHeader } from "@trestle/ui/components/side-panel";
 import { PropertyList, PropertyItem } from "@trestle/ui/components/property-list";
 
+import { TaskCheckbox } from "@/components/task-checkbox";
 import { formatDate, formatRelative } from "@/lib/format";
 import { useValidationTranslate } from "@/lib/use-validation-translate";
 
@@ -161,7 +161,7 @@ export function ProjectViewClient({ projectId }: { projectId: string }) {
                 {tasks.map((item) => (
                   <TableRow key={item.id} className="cursor-pointer" onClick={() => setSelectedId(item.id)}>
                     <TableCell onClick={(e) => e.stopPropagation()}>
-                      <Checkbox checked={item.status === "done"} />
+                      <TaskCheckbox taskId={item.id} title={item.title} done={item.status === "done"} />
                     </TableCell>
                     <TableCell className={item.status === "done" ? "text-text-disabled line-through" : "text-text-primary"}>
                       {item.title}
