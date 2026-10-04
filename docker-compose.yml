@@ -1,0 +1,21 @@
+# Local PostgreSQL for apps/api. `docker compose up -d db`, then `pnpm --filter api db:migrate && pnpm --filter api db:seed`.
+# No Docker? `pnpm --filter api db:embedded` runs a real PostgreSQL with the same credentials.
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: trestle
+      POSTGRES_PASSWORD: trestle
+      POSTGRES_DB: trestle
+    ports:
+      - "5432:5432"
+    volumes:
+      - trestle-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trestle -d trestle"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  trestle-pgdata:

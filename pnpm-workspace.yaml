@@ -5,3 +5,8 @@ allowBuilds:
   esbuild: true
   unrs-resolver: false
   sharp: false
+  '@embedded-postgres/windows-x64': true
+  '@embedded-postgres/linux-x64': true
+  '@embedded-postgres/linux-arm64': true
+  '@embedded-postgres/darwin-x64': true
+  '@embedded-postgres/darwin-arm64': true

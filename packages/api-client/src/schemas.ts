@@ -6,6 +6,7 @@ import type {
   CreateProjectInput,
   CreateTaskInput,
   ForgotPasswordInput,
+  ResetPasswordInput,
   InviteUserInput,
   LoginInput,
   OrgPlan,
@@ -15,6 +16,8 @@ import type {
   TaskStatus,
   UpdateOrganizationInput,
   UpdateProfileInput,
+  UpdateProjectInput,
+  UpdateTaskInput,
   UpdateUserInput,
   UserRole,
 } from "./types";
@@ -67,6 +70,11 @@ export const signupSchema = z.object({
 
 export const forgotPasswordSchema = z.object({ email });
 
+export const resetPasswordSchema = z.object({
+  token: text().min(1, msg.required),
+  password: text().min(8, msg.passwordTooShort).max(128, msg.tooLong),
+});
+
 export const contactSchema = z.object({
   name: requiredText(80),
   email,
@@ -92,10 +100,24 @@ export const updateOrganizationSchema = z.object({
   plan: z.enum(plans, { error: msg.invalidChoice }).optional(),
 });
 
+const projectColors = ["purple", "cyan", "green", "orange", "blue", "pink"] as const;
+const projectStatuses = ["active", "planning", "onHold", "archived"] as const;
+
 export const createProjectSchema = z.object({
   name: requiredText(80),
   description: optionalText(500),
+  color: z.enum(projectColors, { error: msg.invalidChoice }).optional(),
+  status: z.enum(projectStatuses, { error: msg.invalidChoice }).optional(),
   dueDate: optionalDate,
+});
+
+export const updateProjectSchema = z.object({
+  name: requiredText(80).optional(),
+  description: optionalText(500),
+  color: z.enum(projectColors, { error: msg.invalidChoice }).optional(),
+  status: z.enum(projectStatuses, { error: msg.invalidChoice }).optional(),
+  // null clears the date.
+  dueDate: optionalDate.or(z.null()),
 });
 
 export const createTaskSchema = z.object({
@@ -104,7 +126,17 @@ export const createTaskSchema = z.object({
   description: optionalText(2000),
   priority: z.enum(priorities, { error: msg.invalidChoice }).optional(),
   status: z.enum(taskStatuses, { error: msg.invalidChoice }).optional(),
+  assigneeId: z.string().min(1, msg.required).optional(),
   dueDate: optionalDate,
+});
+
+export const updateTaskSchema = z.object({
+  title: requiredText(120).optional(),
+  description: optionalText(2000),
+  priority: z.enum(priorities, { error: msg.invalidChoice }).optional(),
+  status: z.enum(taskStatuses, { error: msg.invalidChoice }).optional(),
+  assigneeId: z.string().min(1, msg.required).or(z.null()).optional(),
+  dueDate: optionalDate.or(z.null()),
 });
 
 export const commentSchema = z.object({
@@ -142,6 +174,9 @@ export type SchemaMatchesEndpointTypes = [
   Assert<z.infer<typeof updateProfileSchema> extends UpdateProfileInput ? true : false>,
   Assert<z.infer<typeof updateUserSchema> extends UpdateUserInput ? true : false>,
   Assert<z.infer<typeof updateOrganizationSchema> extends UpdateOrganizationInput ? true : false>,
+  Assert<z.infer<typeof updateProjectSchema> extends UpdateProjectInput ? true : false>,
+  Assert<z.infer<typeof updateTaskSchema> extends UpdateTaskInput ? true : false>,
+  Assert<z.infer<typeof resetPasswordSchema> extends ResetPasswordInput ? true : false>,
 ];
 
 /** Flattens a failed parse into `{ field: messageKey }`, keeping the first message per field. */

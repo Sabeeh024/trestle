@@ -13,6 +13,7 @@ import type {
   InviteUserInput,
   LoginInput,
   LoginResult,
+  ResetPasswordInput,
   Organization,
   OrganizationListParams,
   Paginated,
@@ -62,6 +63,9 @@ export function createApi(transport: Transport) {
       sso: (input: SsoInput) => send<LoginResult>("POST", "/api/auth/sso", input),
       forgotPassword: async (input: ForgotPasswordInput) => {
         await transport.request<void>({ method: "POST", url: "/api/auth/forgot-password", body: input });
+      },
+      resetPassword: async (input: ResetPasswordInput) => {
+        await transport.request<void>({ method: "POST", url: "/api/auth/reset-password", body: input });
       },
       updateProfile: (input: UpdateProfileInput) => send<User>("PATCH", "/api/auth/me", input),
       logout: () => post("/api/auth/logout"),

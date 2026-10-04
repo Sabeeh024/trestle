@@ -180,6 +180,11 @@ export interface ForgotPasswordInput {
   email: string;
 }
 
+export interface ResetPasswordInput {
+  token: string;
+  password: string;
+}
+
 export interface SsoInput {
   email: string;
 }
@@ -225,7 +230,6 @@ export interface UpdateProjectInput {
   description?: string;
   color?: CategoricalColor;
   status?: ProjectStatus;
-  progress?: number;
   dueDate?: string | null;
 }
 
