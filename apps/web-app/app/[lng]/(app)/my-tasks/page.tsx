@@ -31,7 +31,7 @@ export default async function MyTasksPage({ searchParams }: { searchParams: Prom
       <Sidebar active="myTasks" />
 
       <main className="flex min-w-0 flex-1 flex-col">
-        <TopBar crumbs={[t("app:nav.workspace"), t("app:myTasks.title")]} />
+        <TopBar crumbs={[t("app:myTasks.title")]} />
 
         <div className="flex flex-1 flex-col gap-6 p-8">
           <div>

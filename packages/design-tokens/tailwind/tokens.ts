@@ -115,4 +115,3 @@ export const tokens = {
 };
 
 export type Tokens = typeof tokens;
-export type ThemeMode = "light" | "dark";

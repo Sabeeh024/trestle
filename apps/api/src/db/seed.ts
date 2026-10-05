@@ -70,9 +70,9 @@ export async function seed(db: Db, password: string) {
 
     // The demo workspace is Trestle Labs, whose members are Jordan and Jamie. Other organizations have
     // their own (empty) workspaces, so tenant isolation is visible straight away.
-    const project = (id: string, name: string, description: string, color: typeof schema.projectColor.enumValues[number], status: typeof schema.projectStatus.enumValues[number], dueDate: string | null, updated: number) => ({
+    const project = (id: string, name: string, description: string, color: typeof schema.projectColor.enumValues[number], status: typeof schema.projectStatus.enumValues[number], dueDate: string | null, updated: number, org: string = ORG.trestle) => ({
       id,
-      orgId: ORG.trestle,
+      orgId: org,
       name,
       description,
       color,
@@ -89,6 +89,11 @@ export async function seed(db: Db, password: string) {
       project("design-system-audit", "Design System Audit", "Review component coverage and gaps", "blue", "planning", "2026-11-20", 144),
       project("holiday-campaign-2025", "Holiday Campaign 2025", "Seasonal promotion, wrapped up last year", "orange", "archived", "2025-12-24", 2400),
       project("customer-portal", "Customer Portal", "Self-serve billing and support portal", "pink", "onHold", null, 336),
+      // The other organizations have workspaces of their own, which the Trestle accounts never see.
+      project("northwind-checkout", "Checkout Revamp", "Faster, simpler checkout for the storefront", "blue", "active", "2026-11-14", 8, ORG.northwind),
+      project("northwind-loyalty", "Loyalty Program", "Points and tiers for returning customers", "green", "planning", "2027-01-31", 60, ORG.northwind),
+      project("fontaine-rebrand", "Fontaine Rebrand", "New identity, packaging and site", "pink", "active", "2026-12-05", 12, ORG.fontaine),
+      project("verity-audit", "Security Audit", "Annual third-party penetration test", "orange", "active", "2026-10-30", 30, ORG.verity),
     ]);
 
     await tx.insert(schema.projectMembers).values([
@@ -100,6 +105,11 @@ export async function seed(db: Db, password: string) {
       { projectId: "design-system-audit", userId: USER.jordan },
       { projectId: "holiday-campaign-2025", userId: USER.jamie },
       { projectId: "customer-portal", userId: USER.jamie },
+      { projectId: "northwind-checkout", userId: USER.alex },
+      { projectId: "northwind-checkout", userId: USER.elena },
+      { projectId: "northwind-loyalty", userId: USER.alex },
+      { projectId: "fontaine-rebrand", userId: USER.maya },
+      { projectId: "verity-audit", userId: USER.priya },
     ]);
 
     const task = (id: number, projectId: string, title: string, priority: "urgent" | "high" | "medium" | "low", status: "todo" | "inProgress" | "inReview" | "done", assigneeId: string | null, dueDate: string | null, description = "") => ({
@@ -124,6 +134,14 @@ export async function seed(db: Db, password: string) {
       task(112, "api-migration", "Migrate auth service", "high", "inProgress", USER.jordan, "2026-10-02"),
       task(130, "mobile-app-v2", "Draft mobile onboarding screens", "medium", "todo", USER.jordan, "2026-10-12"),
       task(131, "design-system-audit", "Audit button variants", "low", "todo", USER.jordan, "2026-11-01"),
+      task(201, "northwind-checkout", "Add Apple Pay", "high", "inProgress", USER.elena, "2026-10-20", "Wallet button on the payment step, behind a feature flag."),
+      task(202, "northwind-checkout", "Cut checkout to two steps", "medium", "todo", USER.alex, "2026-11-01"),
+      task(203, "northwind-checkout", "Fix coupon rounding", "urgent", "inReview", USER.elena, "2026-10-08"),
+      task(204, "northwind-loyalty", "Define point tiers", "low", "todo", USER.alex, null),
+      task(211, "fontaine-rebrand", "Shortlist logo directions", "medium", "inProgress", USER.maya, "2026-10-18"),
+      task(212, "fontaine-rebrand", "Brief the packaging printer", "low", "todo", USER.maya, "2026-11-10"),
+      task(221, "verity-audit", "Scope the penetration test", "high", "done", USER.priya, null),
+      task(222, "verity-audit", "Review the findings report", "high", "todo", USER.priya, "2026-10-30"),
     ]);
     // Explicit ids bypass the identity counter, so move it past them.
     await tx.execute(sql`select setval(pg_get_serial_sequence('tasks', 'id'), (select max(id) from tasks))`);
@@ -131,6 +149,7 @@ export async function seed(db: Db, password: string) {
     await tx.insert(schema.comments).values([
       { taskId: 104, authorId: USER.jordan, body: "Can repro on iOS 17.2. Looks like it's the SameSite=Strict cookie flag.", createdAt: hoursAgo(2) },
       { taskId: 104, authorId: USER.jamie, body: "Switching to SameSite=Lax for the auth cookie now, will push a fix shortly.", createdAt: hoursAgo(0.75) },
+      { taskId: 203, authorId: USER.alex, body: "Off by one cent on 3-for-2 offers. Test added, fix is in review.", createdAt: hoursAgo(5) },
     ]);
 
     const event = (org: string | null, actor: string, action: (typeof schema.auditAction.enumValues)[number], target: string, at: string) => ({

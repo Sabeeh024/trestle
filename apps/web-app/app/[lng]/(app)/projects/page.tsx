@@ -50,7 +50,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
       <Sidebar active="projects" />
 
       <main className="flex min-w-0 flex-1 flex-col">
-        <TopBar crumbs={[t("app:nav.workspace"), t("app:projects.title")]} />
+        <TopBar crumbs={[t("app:projects.title")]} />
 
         <div className="flex flex-1 flex-col gap-6 p-8">
           <div className="flex flex-wrap items-end justify-between gap-4">

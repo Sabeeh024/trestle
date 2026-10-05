@@ -16,6 +16,7 @@ describe("auth", async () => {
     assert.equal(res.body.data.user.email, EMAIL.jordan);
     assert.equal(res.body.data.user.role, "owner");
     assert.equal(res.body.data.user.initials, "JK");
+    assert.equal(res.body.data.user.orgName, "Trestle Labs");
     assert.ok(res.body.data.token.length > 20);
     assert.equal("passwordHash" in res.body.data.user, false);
   });
@@ -68,6 +69,7 @@ describe("auth", async () => {
     const { user, token } = res.body.data;
     assert.equal(user.email, "rita@example.com");
     assert.equal(user.role, "owner");
+    assert.equal(user.orgName, "Rita Okafor's workspace");
 
     const me = await t.request("GET", "/api/auth/me", { token });
     assert.equal(me.body.data.id, user.id);

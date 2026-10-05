@@ -1,4 +1,4 @@
-// API contract shared by the mock server and its consumers. Dates are ISO 8601 strings.
+// API contract shared by the API server and its consumers. Dates are ISO 8601 strings.
 
 export type CategoricalColor = "purple" | "cyan" | "green" | "orange" | "blue" | "pink";
 export type ProjectStatus = "active" | "planning" | "onHold" | "archived";
@@ -32,15 +32,15 @@ export interface User {
   initials: string;
   email: string;
   orgId: string;
+  /** The name of the organization the user belongs to. */
+  orgName: string;
   role: UserRole;
   status: UserStatus;
   joinedAt: string;
   lastActiveAt: string | null;
 }
 
-export interface AdminUser extends User {
-  orgName: string;
-}
+export type AdminUser = User;
 
 export interface UserSummary {
   id: string;

@@ -22,7 +22,7 @@ import type {
   UserRole,
 } from "./types";
 
-// Request schemas shared by the apps (client-side validation) and the mock server (so the two can
+// Request schemas shared by the apps (client-side validation) and the API server (so the two can
 // never disagree). Messages are keys into the `validation` namespace of @trestle/i18n, not prose,
 // so each app translates them in its own locale.
 

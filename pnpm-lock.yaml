@@ -291,12 +291,18 @@ importers:
       '@electric-sql/pglite':
         specifier: ^0.5.8
         version: 0.5.8
+      '@tanstack/react-query':
+        specifier: ^5.104.1
+        version: 5.104.1(react@19.2.8)
       '@trestle/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
       '@types/node':
         specifier: ^20
         version: 20.19.43
+      axios:
+        specifier: ^1.20.0
+        version: 1.20.0(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
       drizzle-kit:
         specifier: ^0.31.11
         version: 0.31.11
@@ -550,37 +556,6 @@ importers:
       i18next:
         specifier: ^26.4.2
         version: 26.4.2(typescript@5.9.3)
-      typescript:
-        specifier: ^5
-        version: 5.9.3
-
-  packages/mock-api:
-    dependencies:
-      '@hono/node-server':
-        specifier: ^2.1.3
-        version: 2.1.3(hono@4.13.12)
-      '@trestle/api-client':
-        specifier: workspace:*
-        version: link:../api-client
-      hono:
-        specifier: ^4.13.12
-        version: 4.13.12
-      zod:
-        specifier: ^4.6.5
-        version: 4.6.5
-    devDependencies:
-      '@tanstack/react-query':
-        specifier: ^5.104.1
-        version: 5.104.1(react@19.2.8)
-      '@trestle/typescript-config':
-        specifier: workspace:*
-        version: link:../typescript-config
-      '@types/node':
-        specifier: ^20
-        version: 20.19.43
-      tsx:
-        specifier: ^4.19.2
-        version: 4.23.15
       typescript:
         specifier: ^5
         version: 5.9.3

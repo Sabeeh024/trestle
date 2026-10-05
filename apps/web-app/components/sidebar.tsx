@@ -28,7 +28,7 @@ export async function Sidebar({ active }: { active: "home" | "myTasks" | "projec
     <aside className="flex w-60 shrink-0 flex-col gap-1 border-e border-border bg-background-subtle p-3">
       <div className="mb-2 flex items-center gap-2 p-2">
         <Logo wordmark={false} size="sm" />
-        <span className="truncate text-sm font-semibold">{t("app:nav.workspace")}</span>
+        <span className="truncate text-sm font-semibold">{me.orgName}</span>
       </div>
 
       <NavItem href={`/${locale}/dashboard`} active={active === "home"}>

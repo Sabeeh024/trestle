@@ -1,23 +1,37 @@
 # api
 
-The Trestle backend: Hono on Node, PostgreSQL through Drizzle ORM. It serves the same contract as
-`@trestle/mock-api` (see `@trestle/api-client`), so the apps switch over by running this on port 4000
-instead of the mock.
+The Trestle backend: Hono on Node, PostgreSQL through Drizzle ORM. It implements the contract in
+`@trestle/api-client` and listens on port 4000, which is where the apps look by default (`API_URL` for the
+Next apps, `VITE_API_URL` for the admin panel).
 
 ## Run it
 
+From the repository root:
+
 ```bash
-docker compose up -d db            # or: pnpm --filter api db:embedded   (no Docker needed)
-pnpm --filter api db:migrate
-pnpm --filter api db:seed          # demo data; every account's password is trestle-dev-1
-pnpm --filter api dev              # http://localhost:4000
+pnpm db:embedded      # a real PostgreSQL, no Docker needed (or: docker compose up -d db)
+pnpm db:setup         # create the tables, then load the demo data
+pnpm dev              # api :4000, web-app :3000, marketing-app :3001, admin-panel :5173
 ```
 
-`pnpm --filter api db:reset` wipes the database and reseeds it. Configuration is in `.env.example`.
+**Migrations vs. seed data.** A migration (`drizzle/*.sql`) changes the *structure* of the database: tables,
+indexes, extensions. It runs everywhere, including production, and each file runs once. Seed data
+(`src/db/seed.ts`) is the *demo content* that fills those tables so the apps have something to show. It is
+for development only and refuses to run in production. `db:migrate` applies migrations, `db:seed` loads the
+demo data into an empty database, and `db:reset` wipes everything and reloads it. Configuration is in `.env.example`.
 
-Sign in as `jordan.kim@trestle.io` (owner of the platform organization, sees everything in the admin panel)
-or `jamie.singh@trestle.io` (member of the same workspace). `alex.kim@northwind.io` is an admin of a
-different organization: he sees only Northwind in the admin panel and an empty workspace in the web app.
+Every seeded account's password is `trestle-dev-1`:
+
+| Account | Role | What they see |
+| --- | --- | --- |
+| `jordan.kim@trestle.io` | owner, platform organization | Trestle's workspace, and every organization in the admin panel |
+| `jamie.singh@trestle.io` | member | the same Trestle workspace, no admin access |
+| `alex.kim@northwind.io` | admin | Northwind's workspace; only Northwind in the admin panel |
+| `elena.cho@northwind.io` | member | Northwind's workspace |
+| `maya@fontaineco.com` | member | Fontaine Co.'s workspace |
+| `priya@verity.app` | admin | Verity's workspace; only Verity in the admin panel |
+| `tom.baker@haldane.co` | member | suspended, cannot sign in |
+| `sam.r@umbralabs.dev`, `noah@fontaineco.com` | invited | no password yet: use "forgot password" or an admin's reset |
 
 ## Design
 

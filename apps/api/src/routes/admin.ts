@@ -47,7 +47,7 @@ const toOrganization = (r: { id: string; name: string; plan: Organization["plan"
 });
 
 const adminUserColumns = { ...userColumns, orgName: organizations.name };
-const toAdminUser = (r: Parameters<typeof toUser>[0] & { orgName: string }): AdminUser => ({ ...toUser(r), orgName: r.orgName });
+const toAdminUser = (r: Parameters<typeof toUser>[0]): AdminUser => toUser(r);
 
 export function adminRoutes(deps: Deps) {
   const { db } = deps;

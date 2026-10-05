@@ -82,13 +82,14 @@ export async function audit(
 
 type UserRow = typeof users.$inferSelect;
 
-export function toUser(row: Pick<UserRow, "id" | "name" | "email" | "orgId" | "role" | "status" | "joinedAt" | "lastActiveAt">): User {
+export function toUser(row: Pick<UserRow, "id" | "name" | "email" | "orgId" | "role" | "status" | "joinedAt" | "lastActiveAt"> & { orgName: string }): User {
   return {
     id: row.id,
     name: row.name,
     initials: initials(row.name),
     email: row.email,
     orgId: row.orgId,
+    orgName: row.orgName,
     role: row.role,
     status: row.status,
     joinedAt: iso(row.joinedAt),
@@ -107,6 +108,8 @@ export const userColumns = {
   name: users.name,
   email: users.email,
   orgId: users.orgId,
+  // A scalar subquery, so any select, insert or update of a user can return it without a join.
+  orgName: sql<string>`(select o.name from organizations o where o.id = "users"."org_id")`,
   role: users.role,
   status: users.status,
   joinedAt: users.joinedAt,

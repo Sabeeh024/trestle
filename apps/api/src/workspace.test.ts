@@ -141,7 +141,8 @@ describe("projects, tasks and the dashboard", async () => {
       const jamieId = (await t.request("GET", "/api/tasks/TASK-104", { token })).body.data.assignee.id;
       const created = await t.request("POST", "/api/tasks", { token, body: { projectId: "mobile-app-v2", title: "Plan beta", priority: "high", assigneeId: jamieId, dueDate: "2026-10-30" } });
       assert.equal(created.status, 201);
-      assert.equal(created.body.data.id, "TASK-132");
+      // Numbering continues after the highest seeded task.
+      assert.equal(created.body.data.id, "TASK-223");
       assert.equal(created.body.data.status, "todo");
       assert.equal(created.body.data.assignee.name, "Jamie Singh");
       assert.deepEqual(created.body.data.comments, []);
@@ -203,12 +204,16 @@ describe("projects, tasks and the dashboard", async () => {
   describe("tenant isolation", () => {
     it("never shows or touches another organization's data", async () => {
       const outsider = await t.login(EMAIL.alex); // admin of a different organization
-      assert.equal((await t.request("GET", "/api/projects", { token: outsider })).body.meta.total, 0);
+      // Northwind has its own workspace, and none of Trestle's projects are in it.
+      const own = await t.request("GET", "/api/projects", { token: outsider });
+      assert.deepEqual(own.body.data.map((p: { id: string }) => p.id).sort(), ["northwind-checkout", "northwind-loyalty"]);
+      assert.equal((await t.request("GET", "/api/tasks?projectId=website-redesign", { token: outsider })).body.meta.total, 0);
       assert.equal((await t.request("GET", "/api/projects/website-redesign", { token: outsider })).status, 404);
       assert.equal((await t.request("PATCH", "/api/projects/website-redesign", { token: outsider, body: { name: "Hacked" } })).status, 404);
       assert.equal((await t.request("DELETE", "/api/projects/website-redesign", { token: outsider })).status, 404);
       assert.equal((await t.request("GET", "/api/tasks/TASK-104", { token: outsider })).status, 404);
-      assert.equal((await t.request("GET", "/api/tasks", { token: outsider })).body.meta.total, 0);
+      const ownTasks = await t.request("GET", "/api/tasks", { token: outsider });
+      assert.deepEqual(ownTasks.body.data.map((x: { id: string }) => x.id).sort(), ["TASK-201", "TASK-202", "TASK-203", "TASK-204"]);
       assert.equal((await t.request("POST", "/api/tasks/TASK-104/comments", { token: outsider, body: { body: "hi" } })).status, 404);
       assert.equal((await t.request("PATCH", "/api/tasks/TASK-104", { token: outsider, body: { status: "done" } })).status, 404);
       assert.equal((await t.request("POST", "/api/tasks", { token: outsider, body: { projectId: "website-redesign", title: "Sneaky" } })).status, 400);

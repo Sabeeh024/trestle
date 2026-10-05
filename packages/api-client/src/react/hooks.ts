@@ -12,8 +12,6 @@ import type {
   InviteUserInput,
   LoginInput,
   OrganizationListParams,
-  ProjectListParams,
-  TaskListParams,
   UpdateOrganizationInput,
   UpdateProfileInput,
   UpdateProjectInput,
@@ -30,25 +28,8 @@ export function useMe() {
   return useQuery(useApi().queries.me());
 }
 
-export function useDashboard() {
-  return useQuery(useApi().queries.dashboard());
-}
-
-// Lists keep the previous page on screen while the next one loads, so paging does not flash empty.
-export function useProjects(params?: ProjectListParams) {
-  return useQuery({ ...useApi().queries.projects.list(params), placeholderData: keepPreviousData });
-}
-
-export function useProject(id: string) {
-  return useQuery(useApi().queries.projects.detail(id));
-}
-
 export function useProjectTasks(id: string) {
   return useQuery(useApi().queries.projects.tasks(id));
-}
-
-export function useTasks(params?: TaskListParams) {
-  return useQuery({ ...useApi().queries.tasks.list(params), placeholderData: keepPreviousData });
 }
 
 export function useTask(id: string | null) {
@@ -56,6 +37,7 @@ export function useTask(id: string | null) {
   return useQuery({ ...queries.tasks.detail(id ?? ""), enabled: id !== null });
 }
 
+// Lists keep the previous page on screen while the next one loads, so paging does not flash empty.
 export function useAdminUsers(params?: UserListParams) {
   return useQuery({ ...useApi().queries.admin.users.list(params), placeholderData: keepPreviousData });
 }
@@ -112,15 +94,6 @@ export function useUpdateProject() {
   });
 }
 
-export function useDeleteProject() {
-  const { api } = useApi();
-  const invalidate = useInvalidate();
-  return useMutation({
-    mutationFn: (id: string) => api.projects.remove(id),
-    onSuccess: () => invalidate(queryKeys.projects.all, queryKeys.tasks.all, queryKeys.dashboard, queryKeys.admin.auditLog.all),
-  });
-}
-
 export function useCreateTask() {
   const { api } = useApi();
   const invalidate = useInvalidate();
@@ -135,15 +108,6 @@ export function useUpdateTask() {
   const invalidate = useInvalidate();
   return useMutation({
     mutationFn: ({ id, ...input }: UpdateTaskInput & { id: string }) => api.tasks.update(id, input),
-    onSuccess: () => invalidate(queryKeys.tasks.all, queryKeys.projects.all, queryKeys.dashboard),
-  });
-}
-
-export function useDeleteTask() {
-  const { api } = useApi();
-  const invalidate = useInvalidate();
-  return useMutation({
-    mutationFn: (id: string) => api.tasks.remove(id),
     onSuccess: () => invalidate(queryKeys.tasks.all, queryKeys.projects.all, queryKeys.dashboard),
   });
 }
