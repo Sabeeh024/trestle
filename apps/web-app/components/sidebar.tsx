@@ -25,7 +25,15 @@ export async function Sidebar({ active }: { active: "home" | "myTasks" | "projec
   const [me, projects] = await Promise.all([api.auth.me(), api.projects.list({ pageSize: 100 })]);
 
   return (
-    <aside className="flex w-60 shrink-0 flex-col gap-1 border-e border-border bg-background-subtle p-3">
+    <>
+      {/* The first Tab stop: lets keyboard users skip the navigation. Hidden until focused. */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:start-2 focus:top-2 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:shadow-lg focus:ring-3 focus:ring-ring/30 focus:outline-none"
+      >
+        {t("app:a11y.skipToContent")}
+      </a>
+      <nav aria-label={t("app:a11y.mainNavigation")} className="flex w-60 shrink-0 flex-col gap-1 border-e border-border bg-background-subtle p-3">
       <div className="mb-2 flex items-center gap-2 p-2">
         <Logo wordmark={false} size="sm" />
         <span className="truncate text-sm font-semibold">{me.orgName}</span>
@@ -69,7 +77,7 @@ export async function Sidebar({ active }: { active: "home" | "myTasks" | "projec
         </Avatar>
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="truncate text-sm font-medium">{me.name}</span>
-          <span className="truncate text-xs text-text-disabled">{t(`domain:role.${me.role}`)}</span>
+          <span className="truncate text-xs text-text-tertiary">{t(`domain:role.${me.role}`)}</span>
         </div>
         <form action={signOutAction.bind(null, locale)}>
           <Button type="submit" variant="ghost" size="icon-sm" aria-label={t("app:account.signOut")} title={t("app:account.signOut")}>
@@ -77,6 +85,7 @@ export async function Sidebar({ active }: { active: "home" | "myTasks" | "projec
           </Button>
         </form>
       </div>
-    </aside>
+      </nav>
+    </>
   );
 }

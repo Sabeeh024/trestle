@@ -28,7 +28,7 @@ export const Scale: Story = {
     <div className="flex flex-col gap-3">
       {steps.map((step) => (
         <div key={step.className} className="flex items-center gap-4">
-          <span className="w-24 shrink-0 font-mono text-xs text-text-disabled">{step.label}</span>
+          <span className="w-24 shrink-0 font-mono text-xs text-text-tertiary">{step.label}</span>
           <div className={`h-4 rounded-sm bg-action-primary ${step.className}`} />
         </div>
       ))}
@@ -51,7 +51,7 @@ export const Radius: Story = {
       {radii.map((radius) => (
         <div key={radius.className} className="flex flex-col items-center gap-2">
           <div className={`size-14 border border-border bg-background-muted ${radius.className}`} />
-          <span className="font-mono text-xs text-text-disabled">{radius.label}</span>
+          <span className="font-mono text-xs text-text-tertiary">{radius.label}</span>
         </div>
       ))}
     </div>

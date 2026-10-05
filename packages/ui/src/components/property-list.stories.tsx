@@ -18,7 +18,7 @@ export const Default: Story = {
       <PropertyItem label="Role">Admin</PropertyItem>
       <PropertyItem label="Joined">Jan 14, 2025</PropertyItem>
       <PropertyItem label="User ID">
-        <span className="font-mono text-xs text-text-disabled">usr_000001</span>
+        <span className="font-mono text-xs text-text-tertiary">usr_000001</span>
       </PropertyItem>
     </PropertyList>
   ),

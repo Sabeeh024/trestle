@@ -3,25 +3,26 @@
     "purple": {
       "300": { "$value": "#bfa0ff", "$type": "color", "$description": "Dark-mode action hover" },
       "400": { "$value": "#ae89ff", "$type": "color", "$description": "Dark-mode action primary" },
-      "600": { "$value": "#7d51d2", "$type": "color", "$description": "Light-mode action primary (brand)" },
+      "600": { "$value": "#7046c8", "$type": "color", "$description": "Light-mode action primary (brand)" },
       "700": { "$value": "#6833bc", "$type": "color", "$description": "Light-mode action hover" }
     },
     "green": {
       "100": { "$value": "#dff6de", "$type": "color" },
       "400": { "$value": "#61b565", "$type": "color" },
-      "600": { "$value": "#278733", "$type": "color" },
+      "600": { "$value": "#237a2e", "$type": "color" },
       "950": { "$value": "#182f19", "$type": "color" }
     },
     "amber": {
       "100": { "$value": "#ffe9cb", "$type": "color" },
       "400": { "$value": "#e69c3a", "$type": "color" },
       "600": { "$value": "#b76c00", "$type": "color" },
+      "700": { "$value": "#945700", "$type": "color" },
       "950": { "$value": "#412805", "$type": "color" }
     },
     "red": {
       "100": { "$value": "#ffe5e1", "$type": "color" },
       "400": { "$value": "#ef6661", "$type": "color" },
-      "600": { "$value": "#c53637", "$type": "color" },
+      "600": { "$value": "#b8302f", "$type": "color" },
       "950": { "$value": "#3e1e1c", "$type": "color" }
     },
     "categorical": {

@@ -47,7 +47,7 @@ export default async function ProjectViewPage({
     <>
       <Sidebar active="projects" />
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <main id="main-content" tabIndex={-1} className="flex min-w-0 flex-1 flex-col outline-none">
         <TopBar crumbs={[t("app:nav.projects"), project.name]} />
 
         <div className="flex shrink-0 flex-wrap items-end justify-between gap-4 px-6 pt-6">
@@ -77,7 +77,7 @@ export default async function ProjectViewPage({
           {/* Keyed by the opened task so choosing another task from search in the same project re-selects it. */}
           <ProjectViewClient key={openTask?.id} projectId={projectId} initialTaskId={openTask?.id ?? null} />
         </HydrationBoundary>
-      </div>
+      </main>
     </>
   );
 }

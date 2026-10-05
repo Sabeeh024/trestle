@@ -30,7 +30,7 @@ export default async function MyTasksPage({ searchParams }: { searchParams: Prom
     <>
       <Sidebar active="myTasks" />
 
-      <main className="flex min-w-0 flex-1 flex-col">
+      <main id="main-content" tabIndex={-1} className="flex min-w-0 flex-1 flex-col outline-none">
         <TopBar crumbs={[t("app:myTasks.title")]} />
 
         <div className="flex flex-1 flex-col gap-6 p-8">

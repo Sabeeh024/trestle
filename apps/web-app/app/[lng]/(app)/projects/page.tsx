@@ -49,7 +49,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
     <>
       <Sidebar active="projects" />
 
-      <main className="flex min-w-0 flex-1 flex-col">
+      <main id="main-content" tabIndex={-1} className="flex min-w-0 flex-1 flex-col outline-none">
         <TopBar crumbs={[t("app:projects.title")]} />
 
         <div className="flex flex-1 flex-col gap-6 p-8">
@@ -127,7 +127,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
                       </AvatarGroup>
                     </TableCell>
                     <TableCell className="text-text-secondary">{formatDate(project.dueDate, locale)}</TableCell>
-                    <TableCell className="text-text-disabled">
+                    <TableCell className="text-text-tertiary">
                       {formatRelative(project.updatedAt, locale)}
                     </TableCell>
                   </TableRow>

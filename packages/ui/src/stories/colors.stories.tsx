@@ -17,7 +17,7 @@ function Swatch({ name, varName }: { name: string; varName: string }) {
       />
       <div>
         <p className="text-sm font-semibold text-text-primary">{name}</p>
-        <p className="font-mono text-xs text-text-disabled">{varName}</p>
+        <p className="font-mono text-xs text-text-tertiary">{varName}</p>
       </div>
     </div>
   );
@@ -37,6 +37,7 @@ const semanticGroups: { title: string; tokens: { name: string; varName: string }
     tokens: [
       { name: "text-primary", varName: "--text-primary" },
       { name: "text-secondary", varName: "--text-secondary" },
+      { name: "text-tertiary", varName: "--text-tertiary" },
       { name: "text-disabled", varName: "--text-disabled" },
       { name: "text-inverse", varName: "--text-inverse" },
     ],

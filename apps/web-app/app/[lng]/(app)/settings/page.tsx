@@ -29,7 +29,7 @@ export default async function SettingsPage() {
     <>
       <Sidebar active="settings" />
 
-      <main className="flex min-w-0 flex-1 flex-col">
+      <main id="main-content" tabIndex={-1} className="flex min-w-0 flex-1 flex-col outline-none">
         <TopBar crumbs={[t("settings.title")]} />
 
         <div className="flex max-w-2xl flex-col gap-6 p-8">

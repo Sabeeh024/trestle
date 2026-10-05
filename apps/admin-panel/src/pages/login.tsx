@@ -41,7 +41,7 @@ export function LoginPage() {
   const formError = rootError(form, translate);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background-subtle px-4">
+    <main className="flex min-h-screen items-center justify-center bg-background-subtle px-4">
       <div className="flex w-full max-w-sm flex-col gap-5 rounded-lg border border-border bg-background p-8 shadow-sm">
         <div className="flex flex-col items-center gap-3">
           <Logo wordmark={false} size="lg" />
@@ -71,6 +71,6 @@ export function LoginPage() {
           </Button>
         </form>
       </div>
-    </div>
+    </main>
   );
 }

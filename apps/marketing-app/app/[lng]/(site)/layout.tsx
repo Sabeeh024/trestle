@@ -53,7 +53,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
 
           <div className="flex flex-wrap gap-16">
             <div className="flex flex-col gap-2.5">
-              <span className="text-xs font-semibold tracking-wide text-text-disabled uppercase">
+              <span className="text-xs font-semibold tracking-wide text-text-tertiary uppercase">
                 {t("footer.product.label")}
               </span>
               <a href={`/${locale}#features`} className="text-sm text-text-secondary hover:text-text-primary">
@@ -65,7 +65,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
             </div>
 
             <div className="flex flex-col gap-2.5">
-              <span className="text-xs font-semibold tracking-wide text-text-disabled uppercase">
+              <span className="text-xs font-semibold tracking-wide text-text-tertiary uppercase">
                 {t("footer.company.label")}
               </span>
               <a href={`/${locale}/about`} className="text-sm text-text-secondary hover:text-text-primary">
@@ -80,7 +80,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
             </div>
 
             <div className="flex flex-col gap-2.5">
-              <span className="text-xs font-semibold tracking-wide text-text-disabled uppercase">
+              <span className="text-xs font-semibold tracking-wide text-text-tertiary uppercase">
                 {t("footer.legal.label")}
               </span>
               <a href={`/${locale}/privacy`} className="text-sm text-text-secondary hover:text-text-primary">
@@ -93,7 +93,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           </div>
         </div>
 
-        <div className="mx-auto mt-12 max-w-6xl border-t border-border pt-6 text-sm text-text-disabled">
+        <div className="mx-auto mt-12 max-w-6xl border-t border-border pt-6 text-sm text-text-tertiary">
           {t("footer.copyright", { year })}
         </div>
       </footer>

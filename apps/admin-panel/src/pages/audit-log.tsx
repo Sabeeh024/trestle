@@ -37,6 +37,7 @@ export function AuditLogPage() {
 
       <div className="px-4 pb-3">
         <Input
+          aria-label="Search the audit log"
           placeholder="Search by actor or target"
           value={search}
           onChange={(e) => {
@@ -47,9 +48,14 @@ export function AuditLogPage() {
         />
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto px-4 pb-4">
+      <div
+        role="region"
+        aria-label="Audit log entries"
+        tabIndex={0}
+        className="min-h-0 flex-1 overflow-auto px-4 pb-4 focus-visible:ring-3 focus-visible:ring-ring/30 focus-visible:outline-none"
+      >
         <div className="overflow-hidden rounded-lg border border-border">
-          <Table>
+          <Table aria-label="Audit log" scrollLabel="Audit log table">
             <TableHeader>
               <TableRow>
                 <TableHead>Timestamp</TableHead>
@@ -69,7 +75,7 @@ export function AuditLogPage() {
               />
               {rows.map((entry) => (
                 <TableRow key={entry.id}>
-                  <TableCell className="font-mono text-xs whitespace-nowrap text-text-disabled">
+                  <TableCell className="font-mono text-xs whitespace-nowrap text-text-tertiary">
                     {formatTimestamp(entry.timestamp)}
                   </TableCell>
                   <TableCell className="font-semibold text-text-primary">{entry.actor}</TableCell>

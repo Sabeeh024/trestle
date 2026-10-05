@@ -98,7 +98,8 @@
     "archiveTitle": "Archive {{name}}?",
     "archiveBody": "It will leave your dashboard and sidebar. You can restore it any time from the Archived tab.",
     "archiveConfirm": "Archive",
-    "restoring": "Restoring…"
+    "restoring": "Restoring…",
+    "taskPanel": "Task details"
   },
   "forms": {
     "genericError": "Something went wrong. Please try again."
@@ -229,6 +230,13 @@
     "tasks": "Tasks",
     "empty": "No results for “{{query}}”",
     "searching": "Searching…",
-    "failed": "Search is unavailable right now."
+    "failed": "Search is unavailable right now.",
+    "resultsCount_one": "{{count}} result",
+    "resultsCount_other": "{{count}} results"
+  },
+  "a11y": {
+    "skipToContent": "Skip to main content",
+    "mainNavigation": "Main navigation",
+    "done": "Done"
   }
 }

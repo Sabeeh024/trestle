@@ -14,7 +14,7 @@ export function ContentPage({
     <article className="mx-auto max-w-3xl px-6 py-20">
       <h1 className="text-4xl leading-heading font-bold">{title}</h1>
       <p className="mt-4 text-lg text-text-secondary">{intro}</p>
-      {updated ? <p className="mt-2 text-sm text-text-disabled">{updated}</p> : null}
+      {updated ? <p className="mt-2 text-sm text-text-tertiary">{updated}</p> : null}
       <div className="mt-12 flex flex-col gap-10">{children}</div>
     </article>
   );

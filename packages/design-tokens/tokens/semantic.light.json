@@ -7,6 +7,7 @@
   "text": {
     "primary": { "$value": "#13161b", "$type": "color" },
     "secondary": { "$value": "#52555b", "$type": "color" },
+    "tertiary": { "$value": "#666970", "$type": "color" },
     "disabled": { "$value": "#8c8f95", "$type": "color" },
     "inverse": { "$value": "#f8f8fa", "$type": "color" }
   },
@@ -22,7 +23,7 @@
   "feedback": {
     "success": { "$value": "{color.green.600}", "$type": "color" },
     "successBg": { "$value": "{color.green.100}", "$type": "color" },
-    "warning": { "$value": "{color.amber.600}", "$type": "color" },
+    "warning": { "$value": "{color.amber.700}", "$type": "color" },
     "warningBg": { "$value": "{color.amber.100}", "$type": "color" },
     "danger": { "$value": "{color.red.600}", "$type": "color" },
     "dangerBg": { "$value": "{color.red.100}", "$type": "color" }
