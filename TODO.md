@@ -6,7 +6,7 @@ why it is open. Tick them off (or delete them) as they land.
 ## Before anything is shared or merged
 
 - [ ] **Merge the branches.** Nothing has been pushed. The work is a stack, so merge in this order:
-  `feat/backend-postgres` (3 commits ahead of `main`), then `feat/auth-hardening` (3 more on top of it).
+  `feat/backend-postgres`, then `feat/auth-hardening`, then `feat/deploy-stack` (each builds on the one before).
   `feat/complete-screens` is already in `main`. Push, open a pull request for each, and let CI run.
 - [ ] **Run CI for the first time.** `.github/workflows/ci.yml` has never run on GitHub. Check in particular that
   `pnpm/action-setup` reads `pnpm@12.5.1` from `package.json`, that the Postgres service job works, and that
@@ -43,18 +43,37 @@ why it is open. Tick them off (or delete them) as they land.
 - [ ] **SSO.** `/api/auth/sso` answers 501 for enterprise users until an identity provider (OIDC) is wired up.
   `DEV_SSO=1` is a local-only shortcut.
 
-## Deployment and operations (nothing is deployed yet)
+## Deployment and operations
 
-- [ ] **Pick hosting and put the headers there.** admin-panel's headers are emitted as a `_headers` file (Netlify /
-  Cloudflare format); translate them if the host differs. Confirm HSTS and the TLS setup, and that source maps are
-  not served (none are built today).
-- [ ] **The admin panel and API must share a site** (for example `admin.example.com` and `api.example.com`), or its
-  cookie session will not be sent. If that is not possible, put the API behind the same host.
-- [ ] **Production configuration.** Set `NODE_ENV=production`, `DATABASE_URL`, `CORS_ORIGINS` (the real admin origin),
-  `WEB_APP_URL`, `SESSION_TTL_DAYS`, `TRUST_PROXY` (the number of proxies in front of the API), and the same
-  `INTERNAL_API_KEY` in the API and in both Next apps. Keep staging and production secrets separate.
+Phase 1 (containers, a Compose stack behind HTTPS, a smoke test, CI publishing) is written; see `DEPLOYMENT.md`.
+
+- [ ] **Run the Docker pieces for the first time.** The `Dockerfile`, `docker-compose.stack.yml`, `deploy/Caddyfile` and the
+  `stack` and `publish` CI jobs were written without Docker available, so they have never run. The first CI run is their
+  first execution; expect to fix small things. Locally: install Docker Desktop, then follow `DEPLOYMENT.md`. What *was*
+  verified: the API bundle as plain `node` with `NODE_ENV=production`, both standalone Next servers, and the 26-check
+  smoke test through a stand-in HTTPS proxy.
+- [ ] **Confirm the `docker compose` details on a real engine:** that `depends_on: service_completed_successfully`
+  gates the API on `migrate`, that the `*.localhost` certificates work in your browser after trusting Caddy's root, and
+  that image sizes are reasonable (slim base, no dev dependencies).
+- [ ] **Phase 2: real cloud on free tiers.** API (with the admin panel) on Render or Fly, PostgreSQL on Neon, the Next
+  apps on Vercel. Staging and production copies promoted by SHA, with an approval step (a GitHub Environment) before
+  production, and the smoke test run against each. Free tiers sleep when idle.
+- [ ] **Phase 3 (optional): a domain.** Teaches DNS, public certificates and subdomain-level same-site behaviour.
+- [ ] **Add the deploy workflow.** Promote a published SHA to staging, run `scripts/smoke.sh` against it, then production
+  behind approval; document rollback (redeploy the previous SHA; fix forward in the database).
+- [ ] **Migration safety.** Add a CI test that upgrades a database created from the *previous* release's schema, not only
+  from empty, and a rule (in review) that a release only adds to the schema (expand/contract).
+- [ ] **Image hygiene.** Scan the images for vulnerabilities in CI, pin the base image by digest, and add layer caching
+  to the CI build.
+- [ ] **Production configuration.** Set `NODE_ENV=production`, `DATABASE_URL`, `WEB_APP_URL`, `SESSION_TTL_DAYS`,
+  `TRUST_PROXY` (the number of proxies in front of the API), and the same `INTERNAL_API_KEY` in the API and in both
+  Next apps. `CORS_ORIGINS` is empty while the admin panel is served by the API. Keep staging and production secrets
+  separate.
 - [ ] **Create the first production admin.** `db:seed` refuses to run in production, so the first owner and the
   platform organization (`organizations.is_platform`) need a one-off script or manual insert.
+- [ ] **Headers at the real edge.** Confirm HSTS and TLS where the traffic really terminates. No browser source maps are
+  published (the admin and Next builds make none). The API image does contain `dist/*.map`, which is server-side only and
+  never served; keep it that way, or drop them from the image.
 - [ ] **Backups, restore drill, secret rotation, incident contact.** None are documented yet.
 - [ ] **Error monitoring and alerting.** Failed sign-ins are audited but nothing alerts on them.
 - [ ] **`pg_trgm` in production.** Migration `0000` runs `CREATE EXTENSION pg_trgm`, which needs a role that may
@@ -116,7 +135,7 @@ five routes. Do these in order, and re-run the same Lighthouse routes after each
 
 ## Done (for reference)
 
-Real Postgres backend with tenancy and admin rules; mock API removed; richer seed; reset-password page; sessions
+Phase 1 deployment (admin served by the API, API bundled for production, Dockerfile, Compose stack, smoke test, CI rehearsal and publish jobs; also fixed the missing theme generation that broke fresh builds); real Postgres backend with tenancy and admin rules; mock API removed; richer seed; reset-password page; sessions
 revoked on sign-out; Next 16.3.6; per-endpoint rate limiting in Postgres; CSP (report-only), browser headers and
 BFF origin check; CI workflow; cookie sessions for the admin panel; change password and the device list;
 `@trestle/auth` shared package; shared `INTERNAL_API_KEY` for per-visitor limits.

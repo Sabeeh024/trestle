@@ -1,0 +1,18 @@
+# One host name per app. Caddy issues certificates for *.localhost from its own local certificate authority, so
+# there is real HTTPS (and so the Secure and __Host- cookies, HSTS and the CSP behave exactly as in production)
+# with no domain and no public certificate. With a real domain, set DOMAIN and Caddy obtains public certificates.
+{$DOMAIN:trestle.localhost} {
+	tls internal
+	reverse_proxy marketing:3001
+}
+
+app.{$DOMAIN:trestle.localhost} {
+	tls internal
+	reverse_proxy web:3000
+}
+
+# The admin panel's files and the API are the same service, so the panel and its cookie share one origin.
+admin.{$DOMAIN:trestle.localhost} {
+	tls internal
+	reverse_proxy api:4000
+}

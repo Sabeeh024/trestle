@@ -1,3 +1,8 @@
 node_modules
 
 .turbo
+# Secrets and local environment (only the .example files are committed)
+.env
+.env.*
+!.env.example
+!.env.stack.example

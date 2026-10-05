@@ -4,9 +4,12 @@ import { securityHeaders as sharedHeaders } from "@trestle/auth/headers";
 // emitted as a `_headers` file (the format Netlify and Cloudflare Pages read) and applied to `vite preview`;
 // for any other host, copy the same headers into its configuration.
 
-/** `apiUrl` is where the API lives: the only other origin the panel may talk to. */
+/**
+ * `apiUrl` is where the API lives: the only other origin the panel may talk to. Empty means the same origin, which
+ * is how the API serves the panel in production.
+ */
 export function securityHeaders(apiUrl: string) {
-  const apiOrigin = new URL(apiUrl).origin;
+  const apiOrigin = apiUrl ? new URL(apiUrl).origin : "";
   return {
     ...sharedHeaders({ referrerPolicy: "no-referrer", hsts: true }),
     // Report-only until a deployed build has run without reports. Scripts must come from this origin: there are
@@ -18,7 +21,7 @@ export function securityHeaders(apiUrl: string) {
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob:",
       "font-src 'self'",
-      `connect-src 'self' ${apiOrigin}`,
+      `connect-src 'self'${apiOrigin ? ` ${apiOrigin}` : ""}`,
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",

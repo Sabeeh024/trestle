@@ -8,6 +8,7 @@
     "./tailwind/theme.css": "./tailwind/theme.css"
   },
   "scripts": {
+    "build": "tsx scripts/generate-theme.ts",
     "gen:theme": "tsx scripts/generate-theme.ts",
     "check-types": "tsc --noEmit"
   },

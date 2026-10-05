@@ -1,0 +1,106 @@
+# The whole product as it would run in production: containers built from the Dockerfile, PostgreSQL, and a reverse
+# proxy that terminates HTTPS. It is the "staging" environment of Phase 1, and CI runs it on every push.
+#
+#   cp .env.stack.example .env        # then set the secrets
+#   docker compose -f docker-compose.stack.yml up -d --build --wait
+#   docker compose -f docker-compose.stack.yml run --rm seed      # demo data (never in a real production)
+#   scripts/smoke.sh
+#
+# Then open (after trusting the local certificate, see DEPLOYMENT.md):
+#   https://trestle.localhost         marketing site
+#   https://app.trestle.localhost     product app
+#   https://admin.trestle.localhost   admin panel and API (one origin)
+name: trestle
+
+x-api-env: &api-env
+  DATABASE_URL: postgres://trestle:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/trestle
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: trestle
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: trestle
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trestle -d trestle"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # One-shot release step: applies pending migrations, then exits. The API waits for it.
+  migrate:
+    image: trestle-api:${TAG:-local}
+    build: { context: ., target: api }
+    command: ["node", "dist/migrate.js"]
+    environment:
+      <<: *api-env
+    depends_on:
+      db: { condition: service_healthy }
+    restart: "no"
+
+  # Demo data, only when asked for. It refuses to run with NODE_ENV=production, so it is started as development.
+  seed:
+    image: trestle-api:${TAG:-local}
+    command: ["node", "dist/seed.js"]
+    environment:
+      <<: *api-env
+      NODE_ENV: development
+      SEED_PASSWORD: ${SEED_PASSWORD:-trestle-dev-1}
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    profiles: ["demo"]
+    restart: "no"
+
+  api:
+    image: trestle-api:${TAG:-local}
+    environment:
+      <<: *api-env
+      # The proxy in front of it is the one hop to trust for the client's address.
+      TRUST_PROXY: "1"
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:?set INTERNAL_API_KEY in .env}
+      WEB_APP_URL: https://app.${DOMAIN:-trestle.localhost}
+      # The admin panel is served by the API itself, so no other browser origin needs access.
+      CORS_ORIGINS: ""
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+  web:
+    image: trestle-web-app:${TAG:-local}
+    build: { context: ., target: web-app }
+    environment:
+      API_URL: http://api:4000
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:?set INTERNAL_API_KEY in .env}
+    depends_on:
+      api: { condition: service_healthy }
+
+  marketing:
+    image: trestle-marketing-app:${TAG:-local}
+    build: { context: ., target: marketing-app }
+    environment:
+      API_URL: http://api:4000
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:?set INTERNAL_API_KEY in .env}
+    depends_on:
+      api: { condition: service_healthy }
+
+  # The only thing published to the host. It speaks HTTPS and forwards by host name.
+  proxy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:-trestle.localhost}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+    depends_on:
+      web: { condition: service_healthy }
+      marketing: { condition: service_healthy }
+      api: { condition: service_healthy }
+
+volumes:
+  pgdata:
+  caddy-data:

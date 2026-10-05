@@ -21,6 +21,9 @@ const schema = z.object({
   // long random value and give the same one to the apps as INTERNAL_API_KEY. Unset, every caller is judged by
   // its own connection.
   INTERNAL_API_KEY: z.string().min(16).optional(),
+  // Where the admin panel's production build is (its `dist` folder). Set, the API serves the panel from its own
+  // origin, so the panel and its session cookie share a site without any domain or CORS.
+  ADMIN_DIST: z.string().optional(),
   DB_POOL_MAX: z.coerce.number().int().positive().default(10),
 });
 

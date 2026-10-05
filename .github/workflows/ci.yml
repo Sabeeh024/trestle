@@ -32,8 +32,8 @@ jobs:
       - run: pnpm check-types
       - run: pnpm lint
       - run: pnpm test
+      # Builds every app, and first generates the design-token theme the apps import.
       - run: pnpm build
-      - run: pnpm --filter admin-panel exec vite build
       - name: Scan the client bundles for secrets
         run: node scripts/scan-bundle.mjs apps/web-app/.next/static apps/marketing-app/.next/static apps/admin-panel/dist
 
@@ -90,3 +90,64 @@ jobs:
       - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # The whole product as containers behind an HTTPS proxy, exercised like a deployed environment. This is the
+  # staging rehearsal: it proves the images build, migrations apply to an empty database, and the apps work together.
+  stack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      COMPOSE: docker compose -f docker-compose.stack.yml
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Configure the stack with throwaway secrets
+        run: |
+          {
+            echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)"
+            echo "INTERNAL_API_KEY=$(openssl rand -hex 32)"
+            echo "TAG=${GITHUB_SHA::12}"
+          } > .env
+      - name: Build the images and start the stack
+        run: $COMPOSE up -d --build
+      - name: Wait until the API answers through the proxy
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sk --resolve admin.trestle.localhost:443:127.0.0.1 https://admin.trestle.localhost/health | grep -q '"ok":true'; then exit 0; fi
+            sleep 3
+          done
+          echo "The stack did not become healthy in time" >&2
+          exit 1
+      - name: Load the demo data
+        run: $COMPOSE run --rm seed
+      - name: Smoke test
+        run: bash scripts/smoke.sh
+      - name: Show the logs when something failed
+        if: failure()
+        run: $COMPOSE logs --no-color --tail=200
+      - name: Tear down
+        if: always()
+        run: $COMPOSE down -v
+
+  # Publishes the images that just passed, tagged with the commit, so what is deployed is what was tested.
+  # Only on main, and the only job with permission to write packages.
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [verify, api-on-postgres, audit, secrets, stack]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Sign in to the container registry
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+      - name: Build and push
+        run: |
+          repo="ghcr.io/${GITHUB_REPOSITORY,,}"
+          for target in api web-app marketing-app; do
+            docker build --target "$target" -t "$repo/$target:$GITHUB_SHA" -t "$repo/$target:main" .
+            docker push --all-tags "$repo/$target"
+          done

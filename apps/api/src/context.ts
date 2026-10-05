@@ -46,6 +46,16 @@ export interface Deps {
 const ACTIVITY_GRANULARITY_MS = 5 * 60_000;
 
 /**
+ * This API's own origin as the browser addressed it (behind a proxy, from the headers the proxy sets). A page served
+ * by the API itself, like the admin panel, writes from this origin, so it counts as ours without being configured.
+ */
+function ownOrigin(c: Context) {
+  const host = c.req.header("x-forwarded-host") ?? c.req.header("host");
+  const protocol = c.req.header("x-forwarded-proto")?.split(",")[0]?.trim() ?? new URL(c.req.url).protocol.replace(":", "");
+  return host ? `${protocol}://${host}` : "";
+}
+
+/**
  * Resolves the caller from `Authorization: Bearer <token>` (servers, which hold the token themselves) or from the
  * session cookie (browsers, where page scripts must not hold it). Cookies are sent automatically, so a write that
  * arrives by cookie must also come from one of our own origins.
@@ -58,7 +68,7 @@ export const requireAuth =
     const token = bearer ?? fromCookie;
     if (!token) return fail(c, 401, "unauthenticated", "Sign in to continue");
 
-    if (fromCookie && !isTrustedWrite({ method: c.req.method, origin: c.req.header("origin"), fetchSite: c.req.header("sec-fetch-site") }, corsOrigins)) {
+    if (fromCookie && !isTrustedWrite({ method: c.req.method, origin: c.req.header("origin"), fetchSite: c.req.header("sec-fetch-site") }, [...corsOrigins, ownOrigin(c)])) {
       return fail(c, 403, "forbidden", "Cross-site request refused");
     }
 

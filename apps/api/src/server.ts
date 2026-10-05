@@ -10,6 +10,7 @@ const { db, close } = connect(config.DATABASE_URL, { max: config.DB_POOL_MAX });
 const app = createApp({
   db,
   config,
+  ...(config.ADMIN_DIST ? { adminDist: config.ADMIN_DIST } : {}),
   secureCookies: config.NODE_ENV === "production",
   corsOrigins: config.CORS_ORIGINS.split(",").map((origin) => origin.trim()).filter(Boolean),
   log: config.NODE_ENV !== "production",

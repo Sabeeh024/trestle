@@ -15,6 +15,7 @@ import { schema, type Db } from "./db";
 import { fail, notFound, parseJson } from "./lib/http";
 import { consoleMailer, type Mailer } from "./lib/mailer";
 import { clientIp, enforce, limits, RateLimiter } from "./lib/rate-limit";
+import { isApiPath, serveAdmin } from "./admin-static";
 import { adminRoutes } from "./routes/admin";
 import { authRoutes } from "./routes/auth";
 import { hydrateProjects, projectRoutes } from "./routes/projects";
@@ -25,6 +26,8 @@ export interface AppOptions {
   mailer?: Mailer;
   config?: Partial<Deps["config"]>;
   corsOrigins?: string[];
+  /** The admin panel's production build to serve from this origin (see ADMIN_DIST). */
+  adminDist?: string;
   /** Mark the session cookie Secure and give it the __Host- prefix (production, over HTTPS). */
   secureCookies?: boolean;
   /** Pass false to turn rate limiting off (tests). */
@@ -32,7 +35,7 @@ export interface AppOptions {
   log?: boolean;
 }
 
-export function createApp({ db, mailer = consoleMailer, config = {}, corsOrigins = [], secureCookies = false, limiter, log = false }: AppOptions) {
+export function createApp({ db, mailer = consoleMailer, config = {}, corsOrigins = [], adminDist, secureCookies = false, limiter, log = false }: AppOptions) {
   const deps: Deps = {
     db,
     mailer,
@@ -48,14 +51,13 @@ export function createApp({ db, mailer = consoleMailer, config = {}, corsOrigins
 
   if (log) app.use(logger());
   // This API only returns JSON: nothing on it should be framed, sniffed, scripted or cached by a shared cache.
-  app.use(
-    "*",
-    secureHeaders({
-      contentSecurityPolicy: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] },
-      crossOriginResourcePolicy: "cross-origin",
-      referrerPolicy: "no-referrer",
-    }),
-  );
+  const apiHeaders = secureHeaders({
+    contentSecurityPolicy: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] },
+    crossOriginResourcePolicy: "cross-origin",
+    referrerPolicy: "no-referrer",
+  });
+  // Not for the admin panel's pages: it brings its own policy, and a deny-all CSP would stop it from running.
+  app.use("*", (c, next) => (isApiPath(c.req.path) ? apiHeaders(c, next) : next()));
   app.use("/api/*", async (c, next) => {
     await next();
     c.header("Cache-Control", "private, no-store");
@@ -118,6 +120,9 @@ export function createApp({ db, mailer = consoleMailer, config = {}, corsOrigins
     const data: DashboardData = { me: toUser(self!), recentProjects: await hydrateProjects(db, recent), myTasks: mine.data };
     return c.json({ data });
   });
+
+  // Last of the routes, so it only sees what the API does not own.
+  if (adminDist) serveAdmin(app, adminDist);
 
   app.notFound((c) => notFound(c, `Route ${c.req.method} ${c.req.path}`));
   app.onError((error, c) => {
