@@ -62,6 +62,40 @@ why it is open. Tick them off (or delete them) as they land.
 - [ ] **Rate-limit store.** Counters live in Postgres; if traffic grows, consider Redis. Expired rows are swept
   randomly, so check the table does not grow.
 
+## Performance (from the 2026-10-05 audit)
+
+Lab numbers only (Lighthouse, production builds, localhost): desktop scores 100; mobile LCP is 2.5-3.6 s on four of
+five routes. Do these in order, and re-run the same Lighthouse routes after each to confirm the numbers moved.
+
+- [ ] **1. Admin CORS preflight on every call.** `X-Auth-Mode` is sent on all requests and the API sets no
+  `Access-Control-Max-Age`, so each call costs an extra round trip. Send the header only on login and set `maxAge`
+  (for example 600) in `apps/api/src/app.ts`. Small.
+- [ ] **2. Load form code only where it is used (web-app).** The 102 KB gz chunk (zod + react-hook-form) loads on every
+  page; 83 of 97 KB are unused on the dashboard. Load the new-project, new-task and password dialogs with
+  `next/dynamic`. Afterwards measure whether `zod/mini` is worth it.
+- [ ] **3. Split the admin panel's routes.** One 221 KB gz chunk, 127 KB unused on `/users`. Use `React.lazy` per
+  route and `manualChunks` for vendor libraries (so they keep a stable hash).
+- [ ] **4. Stop the admin's "who am I?" waterfall.** `RequireAuth` waits for `/auth/me` before the page's own
+  requests start. Start them in parallel, or render the shell while `/me` loads.
+- [ ] **5. Limit the sidebar fetch.** Every web-app page calls `GET /api/projects?pageSize=100` (3 SQL queries) to
+  show 3 projects (`apps/web-app/components/sidebar.tsx`). Ask for the 3 most recent, or cache per user.
+- [ ] **6. RUM and error tracking.** None today, so field p75 LCP/INP/CLS are unknown. Add `web-vitals` (attribution
+  build) via `sendBeacon`, an error tracker (boundaries, global handlers), per-route and connection dimensions,
+  release markers, alerts and an owner.
+- [ ] **7. Performance budgets in CI.** A per-chunk size budget and Lighthouse CI, each checked to actually fail
+  when exceeded.
+- [ ] **Measure INP and long tasks.** Not measured in the audit. Take a CPU-throttled trace of the command palette,
+  the project board and the admin tables once there is realistic data.
+- [ ] **Test with realistic data.** The seed has a handful of rows. Check the 100-item lists, pagination, and the
+  sidebar fetch with hundreds of projects.
+- [ ] **Confirm compression and caching on the real host.** `vite preview` does not compress and Next only gzips.
+  Brotli, HTTP/2 and CDN caching are decided by hosting.
+- [ ] **Login and app pages are not CDN-cacheable.** The per-request CSP nonce makes them dynamic
+  (`Cache-Control: private, no-store`). A known trade-off; revisit only if field TTFB is a problem.
+- [ ] **Minor.** Render-blocking CSS (~11 KB gz, 60-300 ms estimated); 14 KiB of legacy JavaScript (check the
+  browserslist target); i18n resources embedded in each page (~27 KB raw on login); delete the unused template SVGs
+  in `apps/web-app/public` and `apps/marketing-app/public`; add hover prefetch for common navigations.
+
 ## Product gaps
 
 - [ ] **Privacy and Terms pages are placeholder text** and need legal review.
