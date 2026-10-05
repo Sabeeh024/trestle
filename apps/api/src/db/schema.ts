@@ -100,13 +100,21 @@ export const sessions = pgTable(
   {
     // SHA-256 of the bearer token: a leaked table cannot be replayed.
     tokenHash: text("token_hash").primaryKey(),
+    // What the API exposes to identify a session (to list or revoke it) without revealing the token's hash.
+    id: uuid("id").notNull().defaultRandom(),
+    userAgent: text("user_agent"),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }).notNull().defaultNow(),
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     createdAt: createdAt(),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   },
-  (t) => [index("sessions_user_idx").on(t.userId), index("sessions_expires_idx").on(t.expiresAt)],
+  (t) => [
+    uniqueIndex("sessions_id_key").on(t.id),
+    index("sessions_user_idx").on(t.userId),
+    index("sessions_expires_idx").on(t.expiresAt),
+  ],
 );
 
 export const passwordResets = pgTable(

@@ -1,0 +1,22 @@
+{
+  "name": "@trestle/auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./client": "./src/client.ts",
+    "./cookie": "./src/cookie.ts",
+    "./request": "./src/request.ts",
+    "./headers": "./src/headers.ts"
+  },
+  "scripts": {
+    "test": "tsx --test src/*.test.ts",
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@trestle/typescript-config": "workspace:*",
+    "@types/node": "^20",
+    "tsx": "^4.19.2",
+    "typescript": "^5"
+  }
+}

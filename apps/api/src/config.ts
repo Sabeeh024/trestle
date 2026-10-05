@@ -16,6 +16,11 @@ const schema = z.object({
   // How many reverse proxies sit in front of the API. 0 trusts nothing: the client address is the socket's, and
   // X-Forwarded-For is ignored. With N, the address N entries from the right of X-Forwarded-For is used.
   TRUST_PROXY: z.coerce.number().int().min(0).default(0),
+  // A secret shared with the web apps' servers. A request that presents it may say which client address it is
+  // acting for (X-Client-IP), so per-address rate limits count the real visitor and not the web server. Generate a
+  // long random value and give the same one to the apps as INTERNAL_API_KEY. Unset, every caller is judged by
+  // its own connection.
+  INTERNAL_API_KEY: z.string().min(16).optional(),
   DB_POOL_MAX: z.coerce.number().int().positive().default(10),
 });
 

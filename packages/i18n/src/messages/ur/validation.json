@@ -5,5 +5,6 @@
   "dateInvalid": "درست تاریخ درج کریں",
   "invalidChoice": "ایک آپشن منتخب کریں",
   "passwordTooShort": "کم از کم 8 حروف استعمال کریں",
+  "passwordIncorrect": "یہ پاس ورڈ درست نہیں ہے",
   "emailTaken": "اس ای میل کے ساتھ اکاؤنٹ پہلے سے موجود ہے"
 }

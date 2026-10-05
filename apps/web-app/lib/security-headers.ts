@@ -1,15 +1,10 @@
+import { nextHeaders } from "@trestle/auth/headers";
+
 // Response headers for every page and asset. They do not depend on the request, so next.config applies them
 // statically; the Content-Security-Policy, which needs a fresh nonce per request, is built in proxy.ts.
 const isProduction = process.env.NODE_ENV === "production";
 
-export const securityHeaders = [
-  { key: "X-Content-Type-Options", value: "nosniff" },
-  { key: "X-Frame-Options", value: "DENY" },
-  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()" },
-  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
-  ...(isProduction ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" }] : []),
-];
+export const securityHeaders = nextHeaders({ hsts: isProduction });
 
 // The reset link carries a one-time token in its URL, so the page must never send it on as a Referer.
 export const resetPasswordHeaders = [{ key: "Referrer-Policy", value: "no-referrer" }];

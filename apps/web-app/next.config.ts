@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
       { source: "/:lng/reset-password", headers: resetPasswordHeaders },
     ];
   },
-  transpilePackages: ["@trestle/ui", "@trestle/design-tokens", "@trestle/api-client", "@trestle/forms"],
+  transpilePackages: ["@trestle/auth", "@trestle/ui", "@trestle/design-tokens", "@trestle/api-client", "@trestle/forms"],
 };
 
 export default nextConfig;

@@ -5,5 +5,6 @@
   "dateInvalid": "Enter a valid date",
   "invalidChoice": "Choose an option",
   "passwordTooShort": "Use at least 8 characters",
-  "emailTaken": "An account with this email already exists"
+  "emailTaken": "An account with this email already exists",
+  "passwordIncorrect": "That password is not correct"
 }

@@ -6,6 +6,7 @@ import { queryKeys } from "../query/keys";
 import type {
   AuditLogParams,
   BulkUserActionInput,
+  ChangePasswordInput,
   CreateOrganizationInput,
   CreateProjectInput,
   CreateTaskInput,
@@ -26,6 +27,10 @@ import { useApi } from "./provider";
 
 export function useMe() {
   return useQuery(useApi().queries.me());
+}
+
+export function useSessions() {
+  return useQuery(useApi().queries.sessions());
 }
 
 export function useProjectTasks(id: string) {
@@ -60,6 +65,33 @@ export function useAuditLog(params?: AuditLogParams) {
 export function useLogin() {
   const { api } = useApi();
   return useMutation({ mutationFn: (input: LoginInput) => api.auth.login(input) });
+}
+
+export function useChangePassword() {
+  const { api } = useApi();
+  const invalidate = useInvalidate();
+  // Other devices are signed out by a password change, so the session list is stale afterwards.
+  return useMutation({
+    mutationFn: (input: ChangePasswordInput) => api.auth.changePassword(input),
+    onSuccess: () => invalidate(queryKeys.sessions),
+  });
+}
+
+export function useRevokeSession() {
+  const { api } = useApi();
+  const invalidate = useInvalidate();
+  return useMutation({ mutationFn: (id: string) => api.auth.sessions.revoke(id), onSuccess: () => invalidate(queryKeys.sessions) });
+}
+
+export function useRevokeOtherSessions() {
+  const { api } = useApi();
+  const invalidate = useInvalidate();
+  return useMutation({ mutationFn: () => api.auth.sessions.revokeOthers(), onSuccess: () => invalidate(queryKeys.sessions) });
+}
+
+export function useLogout() {
+  const { api } = useApi();
+  return useMutation({ mutationFn: () => api.auth.logout() });
 }
 
 export function useUpdateProfile() {

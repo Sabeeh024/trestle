@@ -1,7 +1,7 @@
-import { LogOutIcon } from "lucide-react";
+import { KeyRoundIcon, LogOutIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import { useMe } from "@trestle/api-client/react";
-import { getQueryClient } from "@trestle/api-client/query";
 import { Avatar, AvatarFallback } from "@trestle/ui/components/ui/avatar";
 import {
   DropdownMenu,
@@ -13,22 +13,23 @@ import {
 } from "@trestle/ui/components/ui/dropdown-menu";
 
 import { api } from "@/lib/api";
-import { clearToken } from "@/lib/session";
+import { markSignedOut } from "@/lib/session";
 
 export function UserMenu() {
   const me = useMe();
+  const navigate = useNavigate();
 
   async function signOut() {
-    // Revoke the session on the server first, so a copied token stops working. If the API is unreachable the
+    // Revoke the session on the server first, so a copied cookie stops working. If the API is unreachable the
     // person is still signed out here.
     try {
       await api.auth.logout();
     } catch {
       // Ignored on purpose: sign-out must work offline too.
     }
-    clearToken();
     // Nothing from this session should be shown to whoever signs in next on this browser.
-    getQueryClient().clear();
+    markSignedOut();
+    navigate("/login", { replace: true });
   }
 
   return (
@@ -51,6 +52,10 @@ export function UserMenu() {
             <DropdownMenuSeparator />
           </>
         ) : null}
+        <DropdownMenuItem onSelect={() => navigate("/account")}>
+          <KeyRoundIcon />
+          Account and security
+        </DropdownMenuItem>
         <DropdownMenuItem onSelect={signOut}>
           <LogOutIcon />
           Sign out

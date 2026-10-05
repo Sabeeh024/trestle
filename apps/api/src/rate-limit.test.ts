@@ -38,9 +38,32 @@ describe("rate limiting", async () => {
   it("reads the client address from the right end of X-Forwarded-For only as far as proxies are trusted", () => {
     const ctx = (xff: string) => ({ req: { header: (name: string) => (name === "x-forwarded-for" ? xff : undefined) } }) as never;
     // The left entries are whatever the client claimed; the right ones were added by our proxies.
-    assert.equal(clientIp(ctx("6.6.6.6, 10.0.0.9, 203.0.113.5"), 1), "203.0.113.5");
-    assert.equal(clientIp(ctx("6.6.6.6, 10.0.0.9, 203.0.113.5"), 2), "10.0.0.9");
-    assert.equal(clientIp(ctx("6.6.6.6, 203.0.113.5"), 0), "unknown");
+    assert.equal(clientIp(ctx("6.6.6.6, 10.0.0.9, 203.0.113.5"), { TRUST_PROXY: 1 }), "203.0.113.5");
+    assert.equal(clientIp(ctx("6.6.6.6, 10.0.0.9, 203.0.113.5"), { TRUST_PROXY: 2 }), "10.0.0.9");
+    assert.equal(clientIp(ctx("6.6.6.6, 203.0.113.5"), { TRUST_PROXY: 0 }), "unknown");
+  });
+
+  it("counts the visitor, not the web server, when a server presents the shared key", async () => {
+    const key = "a-shared-secret-for-tests";
+    const viaServer = await setup({ limiter: undefined, config: { INTERNAL_API_KEY: key } });
+    const attempt = (ip: string, internalKey = key) =>
+      viaServer.request("POST", "/api/auth/login", { body: { email: EMAIL.jordan, password: "nope-nope-nope" }, headers: { "x-internal-key": internalKey, "x-client-ip": ip } });
+
+    // Twelve visitors each get their own budget, though every request comes from the same connection (the server).
+    for (let visitor = 0; visitor < 12; visitor++) assert.equal((await attempt(`198.51.100.${visitor}`)).status, 401);
+    // One visitor still runs out.
+    for (let i = 0; i < 10; i++) await attempt("203.0.113.1");
+    assert.equal((await attempt("203.0.113.1")).status, 429);
+    await viaServer.close();
+  });
+
+  it("ignores a claimed client address without the right key", async () => {
+    const guarded = await setup({ limiter: undefined, config: { INTERNAL_API_KEY: "a-shared-secret-for-tests" } });
+    const attempt = (i: number, key?: string) =>
+      guarded.request("POST", "/api/auth/login", { body: { email: EMAIL.jordan, password: "nope-nope-nope" }, headers: { "x-client-ip": `192.0.2.${i}`, ...(key ? { "x-internal-key": key } : {}) } });
+    for (let i = 0; i < 10; i++) await attempt(i, i % 2 ? "wrong-key-wrong-key" : undefined);
+    assert.equal((await attempt(99, "wrong-key-wrong-key")).status, 429);
+    await guarded.close();
   });
 
   it("shares counters between API instances on the same database", async () => {

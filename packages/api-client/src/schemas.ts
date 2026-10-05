@@ -5,6 +5,7 @@ import type {
   CreateOrganizationInput,
   CreateProjectInput,
   CreateTaskInput,
+  ChangePasswordInput,
   ForgotPasswordInput,
   ResetPasswordInput,
   InviteUserInput,
@@ -40,6 +41,7 @@ export const msg = {
   invalidChoice: "invalidChoice",
   passwordTooShort: "passwordTooShort",
   emailTaken: "emailTaken",
+  passwordIncorrect: "passwordIncorrect",
 } as const;
 
 export type ValidationKey = (typeof msg)[keyof typeof msg];
@@ -75,6 +77,11 @@ export const signupSchema = z.object({
 });
 
 export const forgotPasswordSchema = z.object({ email });
+
+export const changePasswordSchema = z.object({
+  currentPassword: text().min(1, msg.required),
+  newPassword: text().min(8, msg.passwordTooShort).max(128, msg.tooLong),
+});
 
 export const resetPasswordSchema = z.object({
   token: text().min(1, msg.required),
@@ -183,6 +190,7 @@ export type SchemaMatchesEndpointTypes = [
   Assert<z.infer<typeof updateProjectSchema> extends UpdateProjectInput ? true : false>,
   Assert<z.infer<typeof updateTaskSchema> extends UpdateTaskInput ? true : false>,
   Assert<z.infer<typeof resetPasswordSchema> extends ResetPasswordInput ? true : false>,
+  Assert<z.infer<typeof changePasswordSchema> extends ChangePasswordInput ? true : false>,
 ];
 
 /** Flattens a failed parse into `{ field: messageKey }`, keeping the first message per field. */

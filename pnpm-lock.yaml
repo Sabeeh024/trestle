@@ -184,6 +184,9 @@ importers:
       '@trestle/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@trestle/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@trestle/design-tokens':
         specifier: workspace:*
         version: link:../../packages/design-tokens
@@ -275,6 +278,9 @@ importers:
       '@trestle/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@trestle/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       drizzle-orm:
         specifier: ^0.45.3
         version: 0.45.3(@electric-sql/pglite@0.5.8)(pg@8.23.1)(postgres@3.4.9)
@@ -321,6 +327,9 @@ importers:
       '@trestle/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@trestle/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@trestle/design-tokens':
         specifier: workspace:*
         version: link:../../packages/design-tokens
@@ -394,6 +403,9 @@ importers:
       '@trestle/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@trestle/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@trestle/design-tokens':
         specifier: workspace:*
         version: link:../../packages/design-tokens
@@ -486,6 +498,21 @@ importers:
       react:
         specifier: 19.2.8
         version: 19.2.8
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.15
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+
+  packages/auth:
+    devDependencies:
+      '@trestle/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/node':
+        specifier: ^20
+        version: 20.19.43
       tsx:
         specifier: ^4.19.2
         version: 4.23.15

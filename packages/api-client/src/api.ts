@@ -3,6 +3,7 @@ import type {
   AuditLogEntry,
   AuditLogParams,
   BulkUserActionInput,
+  ChangePasswordInput,
   Comment,
   ContactInput,
   CreateOrganizationInput,
@@ -18,6 +19,7 @@ import type {
   OrganizationListParams,
   Paginated,
   Project,
+  SessionInfo,
   ProjectListParams,
   Task,
   TaskDetail,
@@ -63,6 +65,15 @@ export function createApi(transport: Transport) {
       sso: (input: SsoInput) => send<LoginResult>("POST", "/api/auth/sso", input),
       forgotPassword: async (input: ForgotPasswordInput) => {
         await transport.request<void>({ method: "POST", url: "/api/auth/forgot-password", body: input });
+      },
+      changePassword: async (input: ChangePasswordInput) => {
+        await transport.request<void>({ method: "POST", url: "/api/auth/change-password", body: input });
+      },
+      sessions: {
+        list: (options?: RequestOptions) => get<SessionInfo[]>("/api/auth/sessions", undefined, options),
+        revoke: (id: string) => remove(`/api/auth/sessions/${id}`),
+        /** Signs out every other device; this one stays signed in. */
+        revokeOthers: () => remove("/api/auth/sessions"),
       },
       resetPassword: async (input: ResetPasswordInput) => {
         await transport.request<void>({ method: "POST", url: "/api/auth/reset-password", body: input });

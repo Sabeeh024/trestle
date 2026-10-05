@@ -1,5 +1,7 @@
 import { cookies } from "next/headers";
 
+import { clientHeadersForApi, isTrustedWrite } from "@trestle/auth/request";
+
 import { SESSION_COOKIE } from "@/lib/session";
 
 // A thin proxy between the browser and the API. The session token lives in an httpOnly cookie that
@@ -10,20 +12,14 @@ const API_URL = process.env.API_URL ?? "http://localhost:4000";
 
 // Writes must come from this site. The session cookie is SameSite=Lax, which already keeps other sites from
 // sending it on a POST; this additionally rejects a write whose Origin is another host (a sibling subdomain, say)
-// or that the browser marks as cross-site. Requests with neither header come from non-browser clients, which
-// have no ambient cookie to abuse.
+// or that the browser marks as cross-site. The site's own origin is derived from the Host the browser asked for.
 function isSameSiteWrite(request: Request) {
-  if (request.method === "GET" || request.method === "HEAD") return true;
-  const fetchSite = request.headers.get("sec-fetch-site");
-  if (fetchSite && fetchSite !== "same-origin" && fetchSite !== "none") return false;
-  const origin = request.headers.get("origin");
-  if (!origin) return true;
   const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-  try {
-    return new URL(origin).host === host;
-  } catch {
-    return false;
-  }
+  const protocol = request.headers.get("x-forwarded-proto") ?? new URL(request.url).protocol.replace(":", "");
+  return isTrustedWrite(
+    { method: request.method, origin: request.headers.get("origin"), fetchSite: request.headers.get("sec-fetch-site") },
+    host ? [`${protocol}://${host}`] : [],
+  );
 }
 
 async function forward(request: Request, { params }: { params: Promise<{ path: string[] }> }) {
@@ -40,7 +36,7 @@ async function forward(request: Request, { params }: { params: Promise<{ path: s
   const target = new URL(`${API_URL}/${path.map(encodeURIComponent).join("/")}`);
   target.search = new URL(request.url).search;
 
-  const headers = new Headers({ Accept: "application/json" });
+  const headers = new Headers({ Accept: "application/json", ...clientHeadersForApi(request.headers, process.env.INTERNAL_API_KEY) });
   const contentType = request.headers.get("content-type");
   if (contentType) headers.set("Content-Type", contentType);
   const token = (await cookies()).get(SESSION_COOKIE)?.value;

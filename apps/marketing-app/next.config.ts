@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
-  transpilePackages: ["@trestle/ui", "@trestle/design-tokens", "@trestle/api-client", "@trestle/forms"],
+  transpilePackages: ["@trestle/auth", "@trestle/ui", "@trestle/design-tokens", "@trestle/api-client", "@trestle/forms"],
 };
 
 export default nextConfig;

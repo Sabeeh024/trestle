@@ -46,11 +46,20 @@ Every seeded account's password is `trestle-dev-1`:
   (`sessions`), so logout, suspension and password resets revoke access immediately. Login is throttled per
   client and address, and unknown emails cost the same time as wrong passwords. Invitations and resets are
   single-use emailed links (`password_resets`); the mailer is pluggable (`lib/mailer.ts`, console by default).
+- **Sessions.** Two ways to hold one. A server that keeps the token itself (the Next apps) gets it in the login
+  response and sends `Authorization: Bearer`. A browser app with no server of its own (the admin panel) sends
+  `X-Auth-Mode: cookie` and gets an `HttpOnly`, `SameSite=Lax` cookie (`__Host-` prefixed and `Secure` in
+  production) instead, so page scripts never see the token. A cookie is sent automatically, so a write that
+  arrives by cookie must come from one of `CORS_ORIGINS`; the admin panel and API therefore need to be on the same
+  site (for example `admin.example.com` and `api.example.com`). People can change their password (which signs out
+  every other device), list where they are signed in, and sign devices out.
 - **Rate limiting.** Counters live in Postgres (`rate_limits`), so every instance shares them and a restart keeps
   them. Sign-in is limited per client+account, per client and per account; sign-up, forgot-password (counted for
   unknown addresses too), reset-password, contact, invitations and CSP reports have limits of their own
   (`src/lib/rate-limit.ts`). The client address is the socket's unless `TRUST_PROXY` says how many proxies sit in
-  front, because `X-Forwarded-For` is otherwise whatever the caller wrote.
+  front, because `X-Forwarded-For` is otherwise whatever the caller wrote. The web apps' servers call the API on
+behalf of every visitor, so they present the shared `INTERNAL_API_KEY` and say which visitor a request is for
+(`X-Client-IP`); without it the API would see one address for everyone.
 - **Headers.** Every response carries `nosniff`, a deny-all CSP, `no-referrer` and HSTS, and everything under
   `/api` is `Cache-Control: private, no-store`.
 - **SSO** needs an identity provider and is not wired up: the endpoint answers 501 for enterprise users

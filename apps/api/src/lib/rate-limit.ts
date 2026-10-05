@@ -1,4 +1,7 @@
+import { createHash, timingSafeEqual } from "node:crypto";
+
 import { getConnInfo } from "@hono/node-server/conninfo";
+import { CLIENT_IP_HEADER, INTERNAL_KEY_HEADER } from "@trestle/auth/request";
 import { lt, sql } from "drizzle-orm";
 import type { Context } from "hono";
 
@@ -40,14 +43,21 @@ export class RateLimiter {
 }
 
 /**
- * The client's address. X-Forwarded-For is attacker-controlled unless a proxy we run appended to it, so it is
- * only read when `trustProxy` says how many such proxies there are; the entry that many places from the right
- * is the one the outermost trusted proxy saw. Otherwise it is the connection's own address.
+ * The client's address, from the most trustworthy source available:
+ * 1. a web server of ours that proves itself with the shared key and says which visitor it is acting for;
+ * 2. X-Forwarded-For, but only as far as `TRUST_PROXY` says how many proxies of ours appended to it, because the
+ *    entry that many places from the right is the one the outermost trusted proxy saw and the rest is whatever
+ *    the client wrote;
+ * 3. the connection's own address.
  */
-export function clientIp(c: Context, trustProxy: number): string {
-  if (trustProxy > 0) {
+export function clientIp(c: Context, { TRUST_PROXY, INTERNAL_API_KEY }: { TRUST_PROXY: number; INTERNAL_API_KEY?: string | undefined }): string {
+  const claimed = c.req.header(CLIENT_IP_HEADER);
+  const presented = c.req.header(INTERNAL_KEY_HEADER);
+  if (INTERNAL_API_KEY && presented && claimed && sameSecret(presented, INTERNAL_API_KEY)) return claimed.slice(0, 64);
+
+  if (TRUST_PROXY > 0) {
     const parts = (c.req.header("x-forwarded-for") ?? "").split(",").map((p) => p.trim()).filter(Boolean);
-    const ip = parts[parts.length - trustProxy];
+    const ip = parts[parts.length - TRUST_PROXY];
     if (ip) return ip;
   }
   try {
@@ -55,6 +65,12 @@ export function clientIp(c: Context, trustProxy: number): string {
   } catch {
     return "unknown";
   }
+}
+
+function sameSecret(a: string, b: string) {
+  const left = createHash("sha256").update(a).digest();
+  const right = createHash("sha256").update(b).digest();
+  return timingSafeEqual(left, right);
 }
 
 export type Limit = readonly [key: string, max: number, windowMs: number];
@@ -79,6 +95,7 @@ export const limits = {
   resetPassword: (ip: string): Limit[] => [[`reset:ip:${ip}`, 20, 15 * MINUTE]],
   contact: (ip: string): Limit[] => [[`contact:ip:${ip}`, 10, HOUR]],
   invite: (userId: string): Limit[] => [[`invite:user:${userId}`, 50, HOUR]],
+  changePassword: (userId: string): Limit[] => [[`change-password:user:${userId}`, 10, 15 * MINUTE]],
   cspReport: (ip: string): Limit[] => [[`csp:ip:${ip}`, 60, MINUTE]],
 };
 

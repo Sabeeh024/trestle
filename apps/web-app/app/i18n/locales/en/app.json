@@ -178,6 +178,22 @@
       "saving": "Saving…",
       "saved": "Changes saved"
     },
+    "security": {
+      "title": "Password",
+      "description": "Changing it signs you out everywhere else.",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "change": "Change password",
+      "saving": "Saving…",
+      "changed": "Password changed",
+      "sessionsTitle": "Where you're signed in",
+      "sessionsDescription": "Sign out any device you don't recognise.",
+      "thisDevice": "This device",
+      "unknownDevice": "Unknown device",
+      "lastActive": "Last active {{when}}",
+      "signOutDevice": "Sign out",
+      "signOutOthers": "Sign out all other devices"
+    },
     "appearance": {
       "title": "Appearance",
       "description": "Choose how Trestle looks on this device.",

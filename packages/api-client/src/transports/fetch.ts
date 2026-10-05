@@ -2,6 +2,8 @@ import { apiErrorFromResponse, networkError, timeoutError } from "../errors";
 import type { RequestConfig, Transport, TransportOptions } from "../transport";
 
 export interface FetchTransportOptions extends TransportOptions {
+  /** Extra headers for every request, resolved per call (so they can come from the current request context). */
+  getHeaders?: () => Record<string, string> | Promise<Record<string, string>>;
   /** Defaults to the global fetch. In Next.js that is the patched version with caching and revalidation. */
   fetch?: typeof fetch;
 }
@@ -22,6 +24,7 @@ function buildUrl(baseURL: string, url: string, params: object | undefined) {
 export function createFetchTransport({
   baseURL,
   getToken,
+  getHeaders,
   onUnauthorized,
   timeoutMs = 0,
   fetch: fetchImpl = globalThis.fetch,
@@ -30,6 +33,7 @@ export function createFetchTransport({
     async request<T>({ method, url, params, body, signal, next, cache }: RequestConfig) {
       const headers = new Headers({ Accept: "application/json" });
       if (body !== undefined) headers.set("Content-Type", "application/json");
+      for (const [name, value] of Object.entries((await getHeaders?.()) ?? {})) headers.set(name, value);
       const token = await getToken?.();
       if (token) headers.set("Authorization", `Bearer ${token}`);
 

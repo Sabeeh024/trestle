@@ -180,6 +180,21 @@ export interface ForgotPasswordInput {
   email: string;
 }
 
+export interface ChangePasswordInput {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface SessionInfo {
+  id: string;
+  createdAt: string;
+  lastUsedAt: string;
+  /** The browser or client that signed in, as it identified itself. */
+  userAgent: string | null;
+  /** The session making this request. */
+  current: boolean;
+}
+
 export interface ResetPasswordInput {
   token: string;
   password: string;
@@ -213,7 +228,8 @@ export interface ContactInput {
 }
 
 export interface LoginResult {
-  token: string;
+  /** Null when the client asked for a cookie session: the token is then never exposed to the page. */
+  token: string | null;
   user: User;
 }
 

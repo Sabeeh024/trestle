@@ -7,6 +7,8 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
 
+import { sessionCookieName, sessionCookieOptions } from "@trestle/auth/cookie";
+
 import type { Config } from "./config";
 import { requireAuth, toUser, userColumns, type Deps, type Env } from "./context";
 import { schema, type Db } from "./db";
@@ -23,17 +25,24 @@ export interface AppOptions {
   mailer?: Mailer;
   config?: Partial<Deps["config"]>;
   corsOrigins?: string[];
+  /** Mark the session cookie Secure and give it the __Host- prefix (production, over HTTPS). */
+  secureCookies?: boolean;
   /** Pass false to turn rate limiting off (tests). */
   limiter?: Deps["limiter"];
   log?: boolean;
 }
 
-export function createApp({ db, mailer = consoleMailer, config = {}, corsOrigins = [], limiter, log = false }: AppOptions) {
+export function createApp({ db, mailer = consoleMailer, config = {}, corsOrigins = [], secureCookies = false, limiter, log = false }: AppOptions) {
   const deps: Deps = {
     db,
     mailer,
     config: { SESSION_TTL_DAYS: 30, WEB_APP_URL: "http://localhost:3000", DEV_SSO: "0", TRUST_PROXY: 0, ...config } satisfies Pick<Config, "SESSION_TTL_DAYS" | "WEB_APP_URL" | "DEV_SSO" | "TRUST_PROXY">,
     limiter: limiter ?? new RateLimiter(db),
+    corsOrigins,
+    cookie: {
+      name: sessionCookieName(secureCookies),
+      options: sessionCookieOptions({ secure: secureCookies, ttlDays: config.SESSION_TTL_DAYS ?? 30 }),
+    },
   };
   const app = new Hono<Env>();
 
@@ -51,7 +60,13 @@ export function createApp({ db, mailer = consoleMailer, config = {}, corsOrigins
     await next();
     c.header("Cache-Control", "private, no-store");
   });
-  app.use("*", cors({ origin: corsOrigins, allowHeaders: ["authorization", "content-type"], allowMethods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"] }));
+  app.use("*", cors({
+      origin: corsOrigins,
+      // The admin panel is a browser app with no server of its own, so its session cookie is sent cross-origin.
+      credentials: true,
+      allowHeaders: ["authorization", "content-type", "x-auth-mode"],
+      allowMethods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    }));
   app.use("/api/*", bodyLimit({ maxSize: 1024 * 1024, onError: (c) => fail(c, 400, "bad_request", "Request body is too large") }));
 
   app.get("/health", async (c) => {
@@ -70,7 +85,7 @@ export function createApp({ db, mailer = consoleMailer, config = {}, corsOrigins
 
   // The marketing site's contact form: public, stored for the team to read.
   app.post("/api/contact", async (c) => {
-    const limited = await enforce(c, deps.limiter, limits.contact(clientIp(c, deps.config.TRUST_PROXY)));
+    const limited = await enforce(c, deps.limiter, limits.contact(clientIp(c, deps.config)));
     if (limited) return limited;
     const parsed = await parseJson(c, contactSchema);
     if (!parsed.ok) return parsed.response;
@@ -81,7 +96,7 @@ export function createApp({ db, mailer = consoleMailer, config = {}, corsOrigins
 
   // Browsers report Content-Security-Policy violations here (see the apps' report-uri). They are only logged.
   app.post("/api/csp-report", async (c) => {
-    const limited = await enforce(c, deps.limiter, limits.cspReport(clientIp(c, deps.config.TRUST_PROXY)));
+    const limited = await enforce(c, deps.limiter, limits.cspReport(clientIp(c, deps.config)));
     if (limited) return limited;
     const text = (await c.req.text().catch(() => "")).slice(0, 2000);
     console.warn(`[csp-report] ${text.replace(/\s+/g, " ")}`);
