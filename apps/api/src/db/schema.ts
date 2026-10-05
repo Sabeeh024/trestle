@@ -224,6 +224,17 @@ export const auditLog = pgTable(
   ],
 );
 
+// Attempt counters for rate limiting, in the database so every API instance shares them and a restart keeps them.
+export const rateLimits = pgTable(
+  "rate_limits",
+  {
+    key: text("key").primaryKey(),
+    count: integer("count").notNull(),
+    resetAt: timestamp("reset_at", { withTimezone: true }).notNull(),
+  },
+  (t) => [index("rate_limits_reset_idx").on(t.resetAt)],
+);
+
 export const contactMessages = pgTable("contact_messages", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),

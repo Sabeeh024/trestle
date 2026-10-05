@@ -22,6 +22,12 @@ import type {
   UserRole,
 } from "./types";
 
+// Zod compiles each schema into a function with `new Function` when the environment allows it, and probes for
+// that by calling `Function("")` as each schema is built. A strict Content-Security-Policy forbids both (and
+// reports the probe), so in the browser, before any schema below exists, validation is set to the interpreted
+// path, which is plenty fast for form-sized input. The server keeps the compiled one.
+if ("document" in globalThis) z.config({ jitless: true });
+
 // Request schemas shared by the apps (client-side validation) and the API server (so the two can
 // never disagree). Messages are keys into the `validation` namespace of @trestle/i18n, not prose,
 // so each app translates them in its own locale.

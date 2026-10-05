@@ -23,7 +23,9 @@ export function UserMenu() {
     // person is still signed out here.
     try {
       await api.auth.logout();
-    } catch {}
+    } catch {
+      // Ignored on purpose: sign-out must work offline too.
+    }
     clearToken();
     // Nothing from this session should be shown to whoever signs in next on this browser.
     getQueryClient().clear();

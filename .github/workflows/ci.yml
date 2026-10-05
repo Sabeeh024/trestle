@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Least privilege: the workflow can read the repository and nothing else. No secrets are used, so a pull
+# request from a fork cannot reach any.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      # Actions are pinned to commit SHAs (the comment is the release the SHA was taken from); Dependabot or
+      # Renovate can keep them current.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          cache: pnpm
+      # Fails if pnpm-lock.yaml does not match package.json, so CI installs exactly what was reviewed.
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check-types
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm --filter admin-panel exec vite build
+      - name: Scan the client bundles for secrets
+        run: node scripts/scan-bundle.mjs apps/web-app/.next/static apps/marketing-app/.next/static apps/admin-panel/dist
+
+  api-on-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: trestle
+          POSTGRES_PASSWORD: trestle
+          POSTGRES_DB: trestle
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U trestle -d trestle"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # The same suite as above, on a real PostgreSQL server instead of the in-process one.
+      - run: pnpm --filter api test
+        env:
+          TEST_DATABASE_URL: postgres://trestle:trestle@localhost:5432/trestle
+
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      # Production dependencies with a known high or critical advisory fail the build.
+      - run: pnpm audit --prod --audit-level high
+
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

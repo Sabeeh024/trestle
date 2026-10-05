@@ -26,7 +26,7 @@ const hoursAgo = (h: number) => new Date(Date.now() - h * 3_600_000);
 /** Removes every row and restarts the task numbering. */
 export async function truncateAll(db: Db) {
   await db.execute(
-    sql`truncate table contact_messages, audit_log, comments, tasks, project_members, projects, password_resets, sessions, users, organizations restart identity cascade`,
+    sql`truncate table rate_limits, contact_messages, audit_log, comments, tasks, project_members, projects, password_resets, sessions, users, organizations restart identity cascade`,
   );
 }
 

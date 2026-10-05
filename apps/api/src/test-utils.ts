@@ -26,7 +26,7 @@ export async function setup(options: Partial<AppOptions> = {}) {
   const app = createApp({
     db,
     mailer: { send: async (mail) => void mails.push(mail) },
-    loginLimiter: false,
+    limiter: false,
     config: { WEB_APP_URL: "http://web.test" },
     ...options,
   });

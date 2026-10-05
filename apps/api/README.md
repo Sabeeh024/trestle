@@ -46,6 +46,13 @@ Every seeded account's password is `trestle-dev-1`:
   (`sessions`), so logout, suspension and password resets revoke access immediately. Login is throttled per
   client and address, and unknown emails cost the same time as wrong passwords. Invitations and resets are
   single-use emailed links (`password_resets`); the mailer is pluggable (`lib/mailer.ts`, console by default).
+- **Rate limiting.** Counters live in Postgres (`rate_limits`), so every instance shares them and a restart keeps
+  them. Sign-in is limited per client+account, per client and per account; sign-up, forgot-password (counted for
+  unknown addresses too), reset-password, contact, invitations and CSP reports have limits of their own
+  (`src/lib/rate-limit.ts`). The client address is the socket's unless `TRUST_PROXY` says how many proxies sit in
+  front, because `X-Forwarded-For` is otherwise whatever the caller wrote.
+- **Headers.** Every response carries `nosniff`, a deny-all CSP, `no-referrer` and HSTS, and everything under
+  `/api` is `Cache-Control: private, no-store`.
 - **SSO** needs an identity provider and is not wired up: the endpoint answers 501 for enterprise users
   (`DEV_SSO=1` re-enables the old "any enterprise user" shortcut for local work and is refused in production).
 - **Queries.** Lists are one query for the page (with `count(*) over()` for the total), one for the members

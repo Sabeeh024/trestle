@@ -1,31 +1,92 @@
-/** A fixed-window attempt counter, kept in memory (per process). */
+import { getConnInfo } from "@hono/node-server/conninfo";
+import { lt, sql } from "drizzle-orm";
+import type { Context } from "hono";
+
+import { schema, type Db } from "../db";
+import { fail } from "./http";
+
+const { rateLimits } = schema;
+
+/**
+ * Fixed-window attempt counters kept in Postgres, so every API instance shares them and a restart does not
+ * reset them. One atomic upsert per check.
+ */
 export class RateLimiter {
-  private hits = new Map<string, { count: number; resetAt: number }>();
+  constructor(private db: Db) {}
 
-  constructor(
-    private max: number,
-    private windowMs: number,
-    private now: () => number = Date.now,
-  ) {}
+  /** Records an attempt; false once `key` is over `max` for the current window. */
+  async hit(key: string, max: number, windowMs: number) {
+    const resetAt = new Date(Date.now() + windowMs);
+    const [row] = await this.db
+      .insert(rateLimits)
+      .values({ key, count: 1, resetAt })
+      .onConflictDoUpdate({
+        target: rateLimits.key,
+        set: {
+          count: sql`case when ${rateLimits.resetAt} <= now() then 1 else ${rateLimits.count} + 1 end`,
+          resetAt: sql`case when ${rateLimits.resetAt} <= now() then excluded.reset_at else ${rateLimits.resetAt} end`,
+        },
+      })
+      .returning({ count: rateLimits.count });
 
-  /** Records an attempt; returns false once the key is over its limit for this window. */
-  hit(key: string) {
-    const now = this.now();
-    if (this.hits.size > 10_000) this.sweep(now);
-    const entry = this.hits.get(key);
-    if (!entry || entry.resetAt <= now) {
-      this.hits.set(key, { count: 1, resetAt: now + this.windowMs });
-      return true;
-    }
-    entry.count += 1;
-    return entry.count <= this.max;
+    // Expired counters are swept now and then, so the table stays small without a separate job.
+    if (Math.random() < 0.01) await this.db.delete(rateLimits).where(lt(rateLimits.resetAt, sql`now()`));
+    return (row?.count ?? 1) <= max;
   }
 
-  clear(key: string) {
-    this.hits.delete(key);
+  async clear(key: string) {
+    await this.db.delete(rateLimits).where(sql`${rateLimits.key} = ${key}`);
   }
+}
 
-  private sweep(now: number) {
-    for (const [key, entry] of this.hits) if (entry.resetAt <= now) this.hits.delete(key);
+/**
+ * The client's address. X-Forwarded-For is attacker-controlled unless a proxy we run appended to it, so it is
+ * only read when `trustProxy` says how many such proxies there are; the entry that many places from the right
+ * is the one the outermost trusted proxy saw. Otherwise it is the connection's own address.
+ */
+export function clientIp(c: Context, trustProxy: number): string {
+  if (trustProxy > 0) {
+    const parts = (c.req.header("x-forwarded-for") ?? "").split(",").map((p) => p.trim()).filter(Boolean);
+    const ip = parts[parts.length - trustProxy];
+    if (ip) return ip;
   }
+  try {
+    return getConnInfo(c).remote.address ?? "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
+export type Limit = readonly [key: string, max: number, windowMs: number];
+
+const MINUTE = 60_000;
+export const HOUR = 60 * MINUTE;
+
+/** The policy for each public or abusable endpoint, in one place. */
+export const limits = {
+  login: (ip: string, email: string): Limit[] => [
+    [`login:ip+email:${ip}:${email}`, 10, 15 * MINUTE],
+    // Per address alone, so one client cannot spray many accounts; per account alone, so many clients cannot
+    // all guess one account's password.
+    [`login:ip:${ip}`, 50, 15 * MINUTE],
+    [`login:email:${email}`, 30, 15 * MINUTE],
+  ],
+  signup: (ip: string): Limit[] => [[`signup:ip:${ip}`, 10, HOUR]],
+  forgotPassword: (ip: string, email: string): Limit[] => [
+    [`forgot:email:${email}`, 3, HOUR],
+    [`forgot:ip:${ip}`, 20, HOUR],
+  ],
+  resetPassword: (ip: string): Limit[] => [[`reset:ip:${ip}`, 20, 15 * MINUTE]],
+  contact: (ip: string): Limit[] => [[`contact:ip:${ip}`, 10, HOUR]],
+  invite: (userId: string): Limit[] => [[`invite:user:${userId}`, 50, HOUR]],
+  cspReport: (ip: string): Limit[] => [[`csp:ip:${ip}`, 60, MINUTE]],
+};
+
+/** Counts the attempt against every limit; a 429 response if any is exceeded, otherwise undefined. */
+export async function enforce(c: Context, limiter: RateLimiter | false, list: Limit[]) {
+  if (!limiter) return undefined;
+  let allowed = true;
+  // All of them are counted even after one fails, so a blocked client keeps burning its own budget.
+  for (const [key, max, windowMs] of list) if (!(await limiter.hit(key, max, windowMs))) allowed = false;
+  return allowed ? undefined : fail(c, 429, "rate_limited", "Too many attempts. Try again later.");
 }

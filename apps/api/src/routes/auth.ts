@@ -12,6 +12,7 @@ import { Hono } from "hono";
 import { audit, createSession, requireAuth, toUser, userColumns, type Deps, type Env } from "../context";
 import { schema } from "../db";
 import { emailTaken, fail, isUniqueViolation, parseJson } from "../lib/http";
+import { clientIp, enforce, limits } from "../lib/rate-limit";
 import { burnPasswordCheck, hashPassword, hashToken, verifyPassword } from "../lib/password";
 import { sendPasswordLink } from "../lib/password-links";
 
@@ -20,7 +21,7 @@ const { users, organizations, sessions, passwordResets } = schema;
 const byEmail = (email: string) => sql`lower(${users.email}) = ${email.toLowerCase()}`;
 
 export function authRoutes(deps: Deps) {
-  const { db, config, loginLimiter } = deps;
+  const { db, config, limiter } = deps;
   const app = new Hono<Env>();
 
   app.post("/login", async (c) => {
@@ -28,11 +29,11 @@ export function authRoutes(deps: Deps) {
     if (!parsed.ok) return parsed.response;
     const { email, password } = parsed.data;
 
-    const client = c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ?? "direct";
-    const limitKey = `${client}:${email.toLowerCase()}`;
-    if (loginLimiter && !loginLimiter.hit(limitKey)) {
-      return fail(c, 429, "rate_limited", "Too many attempts. Try again later.");
-    }
+    const ip = clientIp(c, config.TRUST_PROXY);
+    const normalized = email.toLowerCase().slice(0, 200);
+    const loginLimits = limits.login(ip, normalized);
+    const limited = await enforce(c, limiter, loginLimits);
+    if (limited) return limited;
 
     const [user] = await db
       .select({ ...userColumns, passwordHash: users.passwordHash })
@@ -46,7 +47,8 @@ export function authRoutes(deps: Deps) {
     }
     if (user.status === "suspended") return fail(c, 403, "account_suspended", "This account is suspended");
 
-    loginLimiter && loginLimiter.clear(limitKey);
+    // A correct password wipes this client's own failure count for the account (the shared limits keep counting).
+    if (limiter) await limiter.clear(loginLimits[0]![0]);
     const token = await createSession(db, user.id, config.SESSION_TTL_DAYS);
     await db.update(users).set({ lastActiveAt: new Date() }).where(eq(users.id, user.id));
     return c.json({ data: { token, user: toUser({ ...user, lastActiveAt: new Date() }) } });
@@ -54,6 +56,8 @@ export function authRoutes(deps: Deps) {
 
   // Every new account starts in its own trial workspace and owns it.
   app.post("/signup", async (c) => {
+    const limited = await enforce(c, limiter, limits.signup(clientIp(c, config.TRUST_PROXY)));
+    if (limited) return limited;
     const parsed = await parseJson(c, signupSchema);
     if (!parsed.ok) return parsed.response;
     const { name, password } = parsed.data;
@@ -117,6 +121,9 @@ export function authRoutes(deps: Deps) {
   app.post("/forgot-password", async (c) => {
     const parsed = await parseJson(c, forgotPasswordSchema);
     if (!parsed.ok) return parsed.response;
+    // Counted for unknown addresses too, so hitting the limit reveals nothing about which ones have accounts.
+    const limited = await enforce(c, limiter, limits.forgotPassword(clientIp(c, config.TRUST_PROXY), parsed.data.email.toLowerCase().slice(0, 200)));
+    if (limited) return limited;
 
     const [user] = await db
       .select({ id: users.id, name: users.name, email: users.email, status: users.status })
@@ -128,6 +135,8 @@ export function authRoutes(deps: Deps) {
 
   // Completes a reset or an invitation: sets the password, activates an invited account, and signs out every device.
   app.post("/reset-password", async (c) => {
+    const limited = await enforce(c, limiter, limits.resetPassword(clientIp(c, config.TRUST_PROXY)));
+    if (limited) return limited;
     const parsed = await parseJson(c, resetPasswordSchema);
     if (!parsed.ok) return parsed.response;
     const tokenHash = hashToken(parsed.data.token);

@@ -27,9 +27,9 @@ export type Env = { Variables: { me: Principal } };
 export interface Deps {
   db: Db;
   mailer: Mailer;
-  config: Pick<Config, "SESSION_TTL_DAYS" | "WEB_APP_URL" | "DEV_SSO">;
-  /** Throttles login attempts per client and address; false turns it off. */
-  loginLimiter: RateLimiter | false;
+  config: Pick<Config, "SESSION_TTL_DAYS" | "WEB_APP_URL" | "DEV_SSO" | "TRUST_PROXY">;
+  /** Throttles sign-in, sign-up, reset, invite and contact requests; false turns it off (tests). */
+  limiter: RateLimiter | false;
 }
 
 // last_active_at is only rewritten when it is older than this, so a busy client is not a write per request.

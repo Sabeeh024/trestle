@@ -1,8 +1,9 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createProxy } from "next-i18next/proxy";
 import { isLocale } from "@trestle/i18n";
 
 import i18nConfig from "./i18n.config";
+import { contentSecurityPolicy } from "./lib/security-headers";
 import { PUBLIC_SECTIONS, SESSION_COOKIE } from "./lib/session";
 
 const i18nProxy = createProxy(i18nConfig);
@@ -20,7 +21,17 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(login);
   }
 
-  return i18nProxy(request);
+  // A fresh nonce per request. It goes on the request too, so Next puts it on its own scripts and the layout
+  // can put it on the theme script. The policy is report-only until the console has stayed free of reports.
+  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+  const policy = contentSecurityPolicy(nonce);
+  const headers = new Headers(request.headers);
+  headers.set("x-nonce", nonce);
+  headers.set("Content-Security-Policy-Report-Only", policy);
+
+  const response = i18nProxy(new NextRequest(request, { headers }));
+  response.headers.set("Content-Security-Policy-Report-Only", policy);
+  return response;
 }
 
 export const config = {

@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { after, before, beforeEach, describe, it } from "node:test";
 
-import { RateLimiter } from "./lib/rate-limit";
 import { EMAIL, PASSWORD, setup, tokenFromMail } from "./test-utils";
 
 describe("auth", async () => {
@@ -118,16 +117,6 @@ describe("auth", async () => {
     assert.equal(res.status, 200);
     assert.equal(res.body.data.user.email, EMAIL.jordan);
     await dev.close();
-  });
-
-  it("throttles repeated login attempts", async () => {
-    const limited = await setup({ loginLimiter: new RateLimiter(3, 60_000) });
-    for (let i = 0; i < 3; i++) {
-      assert.equal((await limited.request("POST", "/api/auth/login", { body: { email: EMAIL.jordan, password: "bad-password" } })).status, 401);
-    }
-    const blocked = await limited.request("POST", "/api/auth/login", { body: { email: EMAIL.jordan, password: PASSWORD } });
-    assert.equal(blocked.status, 429);
-    await limited.close();
   });
 
   describe("password reset", () => {

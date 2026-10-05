@@ -12,6 +12,7 @@ import { z } from "zod";
 import { isAdmin, requireAuth, toUser, userColumns, type Deps, type Env, type Principal } from "../context";
 import { schema } from "../db";
 import { badRequest, fail, forbidden, ilike, iso, isUniqueViolation, emailTaken, notFound, oneOf, pageParams, parseJson, readBody } from "../lib/http";
+import { enforce, limits } from "../lib/rate-limit";
 import { sendPasswordLink } from "../lib/password-links";
 import { isUuid } from "./tasks";
 
@@ -124,6 +125,8 @@ export function adminRoutes(deps: Deps) {
 
   app.post("/users/invite", async (c) => {
     const me = c.get("me");
+    const limited = await enforce(c, deps.limiter, limits.invite(me.id));
+    if (limited) return limited;
     const parsed = await parseJson(c, inviteUserSchema);
     if (!parsed.ok) return parsed.response;
     const { orgId, name: givenName, role = "member" } = parsed.data;

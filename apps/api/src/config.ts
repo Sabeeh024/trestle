@@ -13,6 +13,9 @@ const schema = z.object({
   DEV_SSO: z.enum(["0", "1"]).default("0"),
   // Password given to every seeded account by `db:seed`.
   SEED_PASSWORD: z.string().min(8).default("trestle-dev-1"),
+  // How many reverse proxies sit in front of the API. 0 trusts nothing: the client address is the socket's, and
+  // X-Forwarded-For is ignored. With N, the address N entries from the right of X-Forwarded-For is used.
+  TRUST_PROXY: z.coerce.number().int().min(0).default(0),
   DB_POOL_MAX: z.coerce.number().int().positive().default(10),
 });
 

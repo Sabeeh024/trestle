@@ -12,7 +12,7 @@ import { requireAuth, toUser, userColumns, type Deps, type Env } from "./context
 import { schema, type Db } from "./db";
 import { fail, notFound, parseJson } from "./lib/http";
 import { consoleMailer, type Mailer } from "./lib/mailer";
-import { RateLimiter } from "./lib/rate-limit";
+import { clientIp, enforce, limits, RateLimiter } from "./lib/rate-limit";
 import { adminRoutes } from "./routes/admin";
 import { authRoutes } from "./routes/auth";
 import { hydrateProjects, projectRoutes } from "./routes/projects";
@@ -23,17 +23,17 @@ export interface AppOptions {
   mailer?: Mailer;
   config?: Partial<Deps["config"]>;
   corsOrigins?: string[];
-  /** Pass false to turn login throttling off (tests). */
-  loginLimiter?: Deps["loginLimiter"];
+  /** Pass false to turn rate limiting off (tests). */
+  limiter?: Deps["limiter"];
   log?: boolean;
 }
 
-export function createApp({ db, mailer = consoleMailer, config = {}, corsOrigins = [], loginLimiter, log = false }: AppOptions) {
+export function createApp({ db, mailer = consoleMailer, config = {}, corsOrigins = [], limiter, log = false }: AppOptions) {
   const deps: Deps = {
     db,
     mailer,
-    config: { SESSION_TTL_DAYS: 30, WEB_APP_URL: "http://localhost:3000", DEV_SSO: "0", ...config } satisfies Pick<Config, "SESSION_TTL_DAYS" | "WEB_APP_URL" | "DEV_SSO">,
-    loginLimiter: loginLimiter ?? new RateLimiter(10, 15 * 60_000),
+    config: { SESSION_TTL_DAYS: 30, WEB_APP_URL: "http://localhost:3000", DEV_SSO: "0", TRUST_PROXY: 0, ...config } satisfies Pick<Config, "SESSION_TTL_DAYS" | "WEB_APP_URL" | "DEV_SSO" | "TRUST_PROXY">,
+    limiter: limiter ?? new RateLimiter(db),
   };
   const app = new Hono<Env>();
 
@@ -70,11 +70,22 @@ export function createApp({ db, mailer = consoleMailer, config = {}, corsOrigins
 
   // The marketing site's contact form: public, stored for the team to read.
   app.post("/api/contact", async (c) => {
+    const limited = await enforce(c, deps.limiter, limits.contact(clientIp(c, deps.config.TRUST_PROXY)));
+    if (limited) return limited;
     const parsed = await parseJson(c, contactSchema);
     if (!parsed.ok) return parsed.response;
     const { name, email, company, message } = parsed.data;
     await db.insert(schema.contactMessages).values({ name, email: email.toLowerCase(), company: company ?? "", message });
     return c.body(null, 201);
+  });
+
+  // Browsers report Content-Security-Policy violations here (see the apps' report-uri). They are only logged.
+  app.post("/api/csp-report", async (c) => {
+    const limited = await enforce(c, deps.limiter, limits.cspReport(clientIp(c, deps.config.TRUST_PROXY)));
+    if (limited) return limited;
+    const text = (await c.req.text().catch(() => "")).slice(0, 2000);
+    console.warn(`[csp-report] ${text.replace(/\s+/g, " ")}`);
+    return c.body(null, 204);
   });
 
   app.get("/api/dashboard", requireAuth(deps), async (c) => {
