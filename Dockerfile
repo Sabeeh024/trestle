@@ -56,6 +56,9 @@ RUN pnpm --filter api build
 
 # ---- api
 FROM node:${NODE_VERSION}-slim AS api
+# The git commit this image was built from; /health reports it.
+ARG GIT_SHA=unknown
+ENV APP_VERSION=${GIT_SHA}
 ENV NODE_ENV=production PORT=4000 ADMIN_DIST=/app/admin MIGRATIONS_DIR=/app/apps/api/drizzle
 WORKDIR /app/apps/api
 COPY --from=api-deps /repo/node_modules /app/node_modules
@@ -77,12 +80,14 @@ FROM manifests AS web-build
 RUN pnpm install --frozen-lockfile --filter "web-app..."
 COPY packages ./packages
 COPY apps/web-app ./apps/web-app
+ENV STANDALONE=1
 RUN pnpm --filter @trestle/design-tokens build && pnpm --filter web-app build
 
 FROM manifests AS marketing-build
 RUN pnpm install --frozen-lockfile --filter "marketing-app..."
 COPY packages ./packages
 COPY apps/marketing-app ./apps/marketing-app
+ENV STANDALONE=1
 RUN pnpm --filter @trestle/design-tokens build && pnpm --filter marketing-app build
 
 # ---- web-app

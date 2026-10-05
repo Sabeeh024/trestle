@@ -2,22 +2,30 @@
 # Smoke test for a running stack: does the product work end to end, and are the production protections in place?
 # It talks to the stack the way a browser does, over HTTPS, using --resolve so *.localhost names need no DNS.
 #
-#   scripts/smoke.sh                       # the local stack at trestle.localhost
-#   DOMAIN=staging.example.com RESOLVE=0 scripts/smoke.sh    # a deployed one (real DNS, real certificate)
+#   scripts/smoke.sh                                  # the local stack at trestle.localhost
+#   MARKETING_URL=https://m.vercel.app APP_URL=https://a.vercel.app ADMIN_URL=https://api.onrender.com scripts/smoke.sh
+#                                                     # a deployed environment (real DNS, real certificates)
 #
-# It needs demo data (the `seed` service), signs in as the seeded owner, and cleans up what it creates.
+# SMOKE_LEVEL=full (default) signs in as the seeded owner and creates and deletes a project, so it needs demo data
+# (staging). SMOKE_LEVEL=basic only reads: pages, headers and health, with no sign-in, which is safe in production.
+# EXPECT_VERSION=<git sha> also requires /health to report that build, proving the new version is the one answering.
+# WAIT_SECONDS=<n> waits for the API first (a free-tier service takes about a minute to wake up).
 set -u
 
 DOMAIN="${DOMAIN:-trestle.localhost}"
 PASSWORD="${SEED_PASSWORD:-trestle-dev-1}"
 EMAIL="${SMOKE_EMAIL:-jordan.kim@trestle.io}"
-MARKETING="https://$DOMAIN"
-APP="https://app.$DOMAIN"
-ADMIN="https://admin.$DOMAIN"
+MARKETING="${MARKETING_URL:-https://$DOMAIN}"
+APP="${APP_URL:-https://app.$DOMAIN}"
+ADMIN="${ADMIN_URL:-https://admin.$DOMAIN}"
+MARKETING="${MARKETING%/}"; APP="${APP%/}"; ADMIN="${ADMIN%/}"
+LEVEL="${SMOKE_LEVEL:-full}"
+# Local names need a local resolver and a locally-trusted certificate; real deployments need neither.
+if [ -n "${ADMIN_URL:-}" ]; then RESOLVE="${RESOLVE:-0}"; else RESOLVE="${RESOLVE:-1}"; fi
 
 # A local certificate authority is not trusted by this machine, and local names resolve to this machine.
 CURL=(curl -s --max-time 20)
-if [ "${RESOLVE:-1}" = "1" ]; then
+if [ "$RESOLVE" = "1" ]; then
   CURL+=(-k --resolve "$DOMAIN:443:127.0.0.1" --resolve "app.$DOMAIN:443:127.0.0.1" --resolve "admin.$DOMAIN:443:127.0.0.1")
 fi
 
@@ -31,6 +39,16 @@ contains() { printf '%s' "$1" | grep -qi -- "$2"; }
 
 status() { "${CURL[@]}" -o /dev/null -w '%{http_code}' "$@"; }
 headers() { "${CURL[@]}" -sI "$@" | tr -d '\r'; }
+
+if [ -n "${WAIT_SECONDS:-}" ]; then
+  echo "Waiting up to ${WAIT_SECONDS}s for the API at $ADMIN"
+  waited=0
+  until "${CURL[@]}" "$ADMIN/health" | grep -q '"ok":true'; do
+    waited=$((waited + 5))
+    if [ "$waited" -ge "$WAIT_SECONDS" ]; then echo "The API did not answer in time" >&2; exit 1; fi
+    sleep 5
+  done
+fi
 
 echo "Marketing site ($MARKETING)"
 [ "$(status "$MARKETING/en")" = "200" ]; check "home page responds" $?
@@ -47,7 +65,11 @@ loc=$(headers "$APP/en/dashboard" | grep -i '^location:' || true)
 contains "$loc" "/en/login"; check "signed-out visitors are sent to sign in" $?
 
 echo "Admin panel and API ($ADMIN)"
-[ "$("${CURL[@]}" "$ADMIN/health")" = '{"ok":true}' ]; check "API health (database reachable)" $?
+health=$("${CURL[@]}" "$ADMIN/health")
+contains "$health" '"ok":true'; check "API health (database reachable)" $?
+if [ -n "${EXPECT_VERSION:-}" ]; then
+  contains "$health" "\"version\":\"$EXPECT_VERSION\""; check "the API is running build $EXPECT_VERSION" $?
+fi
 body=$("${CURL[@]}" "$ADMIN/users")
 contains "$body" "Trestle Admin"; check "admin panel served from the API's origin (client-side route)" $?
 h=$(headers "$ADMIN/")
@@ -55,6 +77,8 @@ contains "$h" "content-security-policy-report-only"; check "admin panel has its 
 h=$(headers "$ADMIN/api/projects")
 contains "$h" "cache-control: private, no-store"; check "API responses are not cacheable" $?
 contains "$h" "default-src 'none'"; check "API has a deny-all CSP" $?
+
+if [ "$LEVEL" = "full" ]; then
 
 echo "Admin sign-in with a cookie session"
 jar=$(mktemp)
@@ -87,6 +111,8 @@ id=$(printf '%s' "$created" | sed -n 's/.*"data":{"id":"\([^"]*\)".*/\1/p')
 [ "$(status -H "Authorization: Bearer $token" "$ADMIN/api/projects/$id")" = "200" ]; check "read it back" $?
 [ "$(status -X DELETE -H "Authorization: Bearer $token" "$ADMIN/api/projects/$id")" = "204" ]; check "delete it" $?
 "${CURL[@]}" -X POST "$ADMIN/api/auth/logout" -H "Authorization: Bearer $token" -o /dev/null
+
+fi
 
 echo
 if [ "$failures" -eq 0 ]; then echo "Smoke test passed."; else echo "Smoke test FAILED: $failures check(s)."; fi

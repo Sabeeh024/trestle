@@ -1,0 +1,42 @@
+name: Seed staging
+
+# Loads the demo data into the STAGING database, so the smoke test has accounts to sign in with. Run it once after the
+# first staging deploy, and again whenever you want fresh demo data. It never touches production: the environment is
+# fixed to staging, and the seed program itself refuses to run when NODE_ENV=production.
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit whose image to use. Empty means the latest commit on main.
+        required: false
+        type: string
+      reset:
+        description: "Wipe staging first (recommended, since the seed only fills an empty database)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: staging
+    steps:
+      - name: Load the demo data
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL_DIRECT }}
+          SEED_PASSWORD: ${{ secrets.SEED_PASSWORD }}
+          SHA: ${{ inputs.sha || github.sha }}
+          RESET: ${{ inputs.reset }}
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY,,}/api:$SHA"
+          echo "$TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          args=()
+          [ "$RESET" = "true" ] && args+=(--reset)
+          # The seed refuses NODE_ENV=production, which the image sets, so it is run as development here.
+          docker run --rm -e DATABASE_URL -e NODE_ENV=development ${SEED_PASSWORD:+-e SEED_PASSWORD} "$image" node dist/seed.js "${args[@]}"

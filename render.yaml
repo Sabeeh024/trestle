@@ -1,0 +1,54 @@
+# Render Blueprint: the API (which also serves the admin panel) in two environments, from the container image CI
+# publishes. Create both with "New > Blueprint" in the Render dashboard and point it at this repository.
+#
+# Render only starts the image; it never builds one. The deploy workflow (.github/workflows/deploy.yml) tells Render
+# which tag to run (a git commit) through the service's deploy hook, so what runs is exactly what CI tested, and
+# auto-deploy is off. The image URL below must match the image CI publishes, apart from the tag.
+#
+# Values marked `sync: false` are secrets: Render asks for them when the Blueprint is created and they never live in git.
+# The same INTERNAL_API_KEY must also be set in the matching Vercel projects (see DEPLOYMENT.md).
+
+services:
+  - type: web
+    name: trestle-api-staging
+    runtime: image
+    plan: free
+    # Use the region closest to your Neon database. Options: oregon, ohio, virginia, frankfurt, singapore.
+    region: oregon
+    image:
+      url: ghcr.io/sabeeh024/trestle/api:main
+    healthCheckPath: /health
+    # Quoted on purpose: an unquoted `off` is a YAML boolean, not the string Render expects.
+    autoDeployTrigger: "off"
+    envVars:
+      - key: DATABASE_URL # Neon's pooled connection string (host contains "-pooler")
+        sync: false
+      - key: INTERNAL_API_KEY
+        sync: false
+      - key: WEB_APP_URL # the staging web app's public URL; reset and invitation emails link to it
+        sync: false
+      - key: TRUST_PROXY # how many proxies sit in front; calibrate after the first deploy (see DEPLOYMENT.md)
+        value: "1"
+      - key: DB_POOL_MAX
+        value: "5"
+
+  - type: web
+    name: trestle-api-production
+    runtime: image
+    plan: free
+    region: oregon
+    image:
+      url: ghcr.io/sabeeh024/trestle/api:main
+    healthCheckPath: /health
+    autoDeployTrigger: "off"
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: INTERNAL_API_KEY
+        sync: false
+      - key: WEB_APP_URL
+        sync: false
+      - key: TRUST_PROXY
+        value: "1"
+      - key: DB_POOL_MAX
+        value: "5"

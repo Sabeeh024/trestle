@@ -60,8 +60,9 @@ machine in current browsers, so no DNS or hosts-file change is needed.
 |---|---|---|---|
 | Local | Development | Seed (`pnpm db:reset`) | You, with `pnpm dev` |
 | CI | Verification | Throwaway database per test | Every pull request and push |
-| Rehearsal / staging | Does it work as deployed? | Seed | The `stack` job in CI, and `docker compose` locally |
-| Production | Real users | Real | Not yet (Phase 2) |
+| Rehearsal | Do the images work together? | Seed | The `stack` job in CI, and `docker compose` locally |
+| Staging | Does it work on the real services? | Seed (`Seed staging` workflow) | Automatically when CI passes on `main` (Phase 2) |
+| Production | Real users | Real | The same commit, after a person approves it (Phase 2) |
 
 Production is the same images with real secrets, a real database, and a real domain. Nothing in the images knows
 which environment it is in; configuration arrives as environment variables.
@@ -75,8 +76,8 @@ which environment it is in; configuration arrives as environment variables.
 3. **Publish** (`main` only, after everything above passes): push the images to GitHub's container registry tagged with
    the commit SHA (and `main`). It is the only job allowed to write packages. What gets deployed later is exactly
    what passed.
-4. **Deploy** (Phase 2): promote a SHA to staging automatically, run the smoke test against it, then to production
-   behind a manual approval (a GitHub Environment).
+4. **Deploy** (Phase 2, `deploy.yml`): promote that SHA to staging automatically, smoke-test it there, then to production
+   behind a manual approval (a GitHub Environment). See Phase 2 below.
 
 ## Configuration
 
@@ -88,7 +89,9 @@ which environment it is in; configuration arrives as environment variables.
 | `ADMIN_DIST` | api | Where the admin panel's build is (set in the image) |
 | `MIGRATIONS_DIR` | migrate | Where the SQL migrations are (set in the image) |
 | `WEB_APP_URL` | api | Where emailed reset and invitation links point |
-| `CORS_ORIGINS` | api | Other browser origins allowed to call the API (none needed when the panel is served by it) |
+| `CORS_ORIGINS` | api | Other browser origins allowed to call the API. Defaults to none in production, because the panel is served by the API |
+| `APP_VERSION` | api | The git commit running; baked into the image, reported by `/health` so a deploy can prove it is live |
+| `DB_PREPARE` | api | `0` if the database connection goes through a pooler without prepared-statement support (Neon's does support them) |
 | `API_URL` | web-app, marketing-app | Where the Next servers reach the API (`http://api:4000` inside the stack) |
 | `DOMAIN` | proxy, api | Base host name (`trestle.localhost` locally) |
 
@@ -100,14 +103,138 @@ which environment it is in; configuration arrives as environment variables.
   `NODE_ENV=production`, migrating, seeding and serving the admin panel on one origin; both Next apps as standalone
   servers; and `scripts/smoke.sh` (26 checks) against those behind a local HTTPS proxy that routes by host name like
   Caddy does. The smoke test was also confirmed to fail, with a non-zero exit code, when something is wrong.
+- **Phase 2 (cloud), checked without the providers:** every workflow and `render.yaml` parse as valid YAML; the deploy
+  planning logic was run for five scenarios (CI success on a push, CI failure, a pull request, a manual run with and
+  without a SHA); the smoke test was run with `EXPECT_VERSION`, `WAIT_SECONDS`, `SMOKE_LEVEL=basic` and explicit URLs,
+  and fails on a wrong version; and the deploy flow, hook parameters and Blueprint fields were checked against the
+  Render, Vercel and Neon documentation. **Nothing has run on Render, Vercel, Neon or GitHub Actions.**
 - **Written but not run:** the `Dockerfile`, `docker-compose.stack.yml`, `deploy/Caddyfile` and the new CI jobs. Docker was
   not available on the machine they were written on, so **the first CI run is their first execution**. Expect to fix
   small things (a missing file in a `COPY`, a wait that is too short) on that run.
 
-## Later phases
+## Phase 2: real cloud on free tiers
 
-- **Phase 2, real cloud on free tiers:** the API (with the panel) on Render or Fly, PostgreSQL on Neon, the Next apps
-  on Vercel. Two copies (staging and production), promoted by SHA. Free tiers sleep when idle, so the first request
-  is slow.
-- **Phase 3, a domain (optional):** teaches DNS, public certificates and subdomain-level same-site behaviour. Set
-  `DOMAIN` and Caddy obtains public certificates; nothing else changes.
+The same images, running on real services. Nothing here needs a domain, and each service has a free plan that is
+enough for learning (check each provider's current sign-up terms, since I could not confirm whether a card is asked for).
+
+```
+                       GitHub Actions
+   push to main ──► CI ──► publish images (SHA-tagged) ──► Deploy workflow
+                                                              │
+                  ┌───────────────── staging ────────────────┤ (automatic, smoke-tested)
+                  │                                           │
+                  │            approval by a person           ▼
+                  │                                      production  (smoke-tested, read-only)
+                  ▼
+   Vercel (web-app, marketing-app)  ──server-to-server──►  Render (API + admin panel)  ──►  Neon (PostgreSQL)
+```
+
+| Piece | Service | Free-tier behaviour to know |
+|---|---|---|
+| Product app, marketing site | Vercel (Hobby plan, for non-commercial use) | Each app is its own project, so four projects in total (each app in each environment) |
+| API and admin panel | Render web service, from our container image | Sleeps after 15 minutes without traffic and takes about a minute to wake; 750 free instance hours a month per workspace |
+| Database | Neon | 1 GB per project; idle compute suspends after 5 minutes and wakes on the next query |
+| Images | GitHub container registry | Free for public packages |
+
+Every environment has **its own** database, API, web projects, keys and secrets. Staging and production share only code.
+
+### How a release flows
+
+1. A commit lands on `main`. **CI** verifies it, rehearses the stack, and **publishes** images tagged with the commit SHA.
+2. When CI succeeds, the **Deploy** workflow takes that same SHA to **staging**: it applies migrations to the staging
+   database, tells Render to run that image tag, waits until `/health` reports that exact SHA, builds and uploads both
+   web apps to Vercel, and runs the smoke test against the public URLs.
+3. If staging passes, the run **waits for approval**. Approving it repeats the same steps for **production**, with a
+   read-only smoke test (production has no demo account to sign in with).
+4. To redeploy or **roll back**, run **Deploy** manually and choose the environment and the SHA you want.
+
+Migrations run *before* the new API starts, while the old one is still serving. Every migration must therefore only
+add to the schema (a new table, a new nullable column), never drop or rename: the previous version has to keep
+working against the migrated database, which is what makes a rollback safe.
+
+### One-time setup
+
+Do these in order. The names matter, because the workflows read them.
+
+**1. GitHub**
+- Push the repository and let CI run on `main` once. Then open each published package (your profile, Packages,
+  `trestle/api`, `trestle/web-app`, `trestle/marketing-app`, Package settings) and set its visibility to **Public**,
+  so Render can pull the API image without credentials. (Or keep them private and add a registry credential in
+  Render, using a token that can read packages.)
+- Settings, Environments: create **`staging`** and **`production`**. On `production`, add yourself under **Required
+  reviewers**. This is what makes production wait for you. **Without it, production deploys as soon as staging
+  passes.** (Required reviewers on private repositories needs a paid GitHub plan; public repositories can use it for free.)
+
+**2. Neon** (one project per environment)
+- Create `trestle-staging` and `trestle-production`. For each, copy two connection strings from the Connect dialog:
+  the **pooled** one (the host contains `-pooler`) and the **direct** one. Both need `sslmode=require`.
+- The `pg_trgm` extension that migration `0000` creates is available on Neon.
+
+**3. Render**
+- New, Blueprint, choose this repository. It reads `render.yaml` and creates `trestle-api-staging` and
+  `trestle-api-production`. When prompted, enter for each service:
+  - `DATABASE_URL`: that environment's **pooled** Neon string
+  - `INTERNAL_API_KEY`: a new random value (`openssl rand -hex 32`). Use a **different** one per environment, and keep
+    it: the matching Vercel projects need the same value
+  - `WEB_APP_URL`: that environment's web app URL (you can set it after step 4)
+- In each service, Settings, Deploy Hook: copy the URL. Note each service's public URL (`https://<name>.onrender.com`).
+- The image URL in `render.yaml` must match what CI publishes (`ghcr.io/<owner>/trestle/api`, lower case). Edit the
+  owner there if yours is not `sabeeh024`.
+
+**4. Vercel** (four projects: `trestle-web-staging`, `trestle-web-production`, `trestle-marketing-staging`,
+`trestle-marketing-production`)
+- For each: import the repository, set **Root Directory** to `apps/web-app` or `apps/marketing-app`, and keep the
+  settings from that app's `vercel.json`. Disconnect the Git integration (Settings, Git), so a push does not also
+  deploy: the workflow deploys.
+- Environment variables, **Production** scope. Web-app projects: `API_URL` (that environment's Render URL),
+  `INTERNAL_API_KEY` (the same value as that environment's API), `SESSION_TTL_DAYS=30`. Marketing projects: `API_URL`
+  and `INTERNAL_API_KEY`.
+- In Settings, Deployment Protection, make sure the production domain stays public.
+- Note the **Org ID** and each **Project ID** (Settings), and create an access token (Account Settings, Tokens).
+
+**5. GitHub secrets and variables**
+
+| Where | Name | Value |
+|---|---|---|
+| Repository secret | `VERCEL_TOKEN`, `VERCEL_ORG_ID` | from Vercel |
+| Environment secret (each) | `DATABASE_URL_DIRECT` | that environment's **direct** Neon string (migrations need it) |
+| Environment secret (each) | `RENDER_DEPLOY_HOOK_URL` | that service's deploy hook |
+| Environment secret (each) | `VERCEL_WEB_PROJECT_ID`, `VERCEL_MARKETING_PROJECT_ID` | that environment's Vercel project IDs |
+| Environment secret (`staging`) | `SEED_PASSWORD` | optional: password for the demo accounts |
+| Environment variable (each) | `API_PUBLIC_URL`, `WEB_PUBLIC_URL`, `MARKETING_PUBLIC_URL` | the public URLs, without a trailing slash |
+
+**6. First deploy**
+- Merge to `main`. Staging deploys. Its smoke test signs in as a demo user and the staging database is empty, so
+  **that first smoke test fails**. Run **Seed staging** (Actions tab), then re-run the failed Deploy job.
+- Approve production when it asks. Production's read-only smoke test needs no data.
+- Production has no accounts yet. Creating the first administrator is an open item (see `TODO.md`).
+
+**7. Calibrate `TRUST_PROXY`** (the API needs to know how many proxies sit in front of it)
+- Render's proxies add to `X-Forwarded-For`, and I could not confirm from its documentation how many entries come
+  before the client address, so measure it. Send a failed sign-in with a forged header:
+  `curl -s -X POST https://<api>/api/auth/login -H 'content-type: application/json' -H 'X-Forwarded-For: 203.0.113.9' -d '{"email":"x@y.zz","password":"nope"}'`
+  then, in Neon's SQL editor, run `select key from rate_limits where key like 'login:ip:%';`.
+  If a key contains `203.0.113.9`, the setting is too low (the API is trusting what you wrote), so raise `TRUST_PROXY`
+  by one. If it contains your real address, it is right. The web apps are unaffected, because they report the visitor
+  through `INTERNAL_API_KEY`; this matters for the admin panel and any direct caller.
+
+### Rollback
+
+Actions, Deploy, Run workflow: choose the environment and the SHA of the last good version (any commit on `main` that CI
+published). The API and web apps go back, and the database stays migrated, which is safe because migrations only add.
+If a release needs a schema change undone, fix forward with a new migration.
+
+### Known limits and gotchas
+
+- **Cold starts.** The first request after idle waits about a minute for Render, and a few seconds more if Neon has
+  suspended. The deploy workflow and the smoke test allow for this.
+- **No real email.** The mailer still prints to the console, so reset and invitation links appear in the Render service
+  logs, not in an inbox.
+- **Vercel Hobby is for non-commercial use.** Fine for learning.
+- **Each web app is its own site.** That is fine here because they keep their session token on their own server. Only
+  the admin panel needs the same-site arrangement, and it gets it by being served by the API.
+
+## Phase 3 (optional): a domain
+
+Teaches DNS, public certificates and subdomain-level same-site behaviour. Set `DOMAIN` (and the Vercel and Render
+custom domains) and nothing else changes.

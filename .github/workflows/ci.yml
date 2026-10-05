@@ -148,6 +148,6 @@ jobs:
         run: |
           repo="ghcr.io/${GITHUB_REPOSITORY,,}"
           for target in api web-app marketing-app; do
-            docker build --target "$target" -t "$repo/$target:$GITHUB_SHA" -t "$repo/$target:main" .
+            docker build --target "$target" --build-arg "GIT_SHA=$GITHUB_SHA" -t "$repo/$target:$GITHUB_SHA" -t "$repo/$target:main" .
             docker push --all-tags "$repo/$target"
           done

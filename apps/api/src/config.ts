@@ -4,8 +4,9 @@ const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(4000),
   DATABASE_URL: z.string().min(1).default("postgres://trestle:trestle@localhost:5432/trestle"),
-  // Comma-separated origins allowed to call the API from a browser (the admin panel is a SPA).
-  CORS_ORIGINS: z.string().default("http://localhost:3000,http://localhost:3001,http://localhost:5173"),
+  // Comma-separated origins allowed to call the API from a browser. In development it defaults to the local apps; in
+  // production it defaults to none, because the admin panel is served by the API itself and needs no CORS.
+  CORS_ORIGINS: z.string().optional(),
   SESSION_TTL_DAYS: z.coerce.number().positive().default(30),
   // Where the emailed set-password and reset links point.
   WEB_APP_URL: z.string().default("http://localhost:3000"),
@@ -24,15 +25,21 @@ const schema = z.object({
   // Where the admin panel's production build is (its `dist` folder). Set, the API serves the panel from its own
   // origin, so the panel and its session cookie share a site without any domain or CORS.
   ADMIN_DIST: z.string().optional(),
+  // Prepared statements: "1" (default) or "0" if the connection string goes through a pooler that does not support them.
+  DB_PREPARE: z.enum(["0", "1"]).default("1"),
+  // Which build is running (the git commit), reported by /health so a deploy can prove the new version is live.
+  APP_VERSION: z.string().optional(),
   DB_POOL_MAX: z.coerce.number().int().positive().default(10),
 });
 
-export type Config = z.infer<typeof schema>;
+const LOCAL_ORIGINS = "http://localhost:3000,http://localhost:3001,http://localhost:5173";
+
+export type Config = Omit<z.infer<typeof schema>, "CORS_ORIGINS"> & { CORS_ORIGINS: string };
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
-  const config = schema.parse(env);
-  if (config.NODE_ENV === "production" && config.DEV_SSO === "1") {
+  const parsed = schema.parse(env);
+  if (parsed.NODE_ENV === "production" && parsed.DEV_SSO === "1") {
     throw new Error("DEV_SSO must not be enabled in production");
   }
-  return config;
+  return { ...parsed, CORS_ORIGINS: parsed.CORS_ORIGINS ?? (parsed.NODE_ENV === "production" ? "" : LOCAL_ORIGINS) };
 }

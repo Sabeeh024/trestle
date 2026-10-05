@@ -26,6 +26,8 @@ export interface AppOptions {
   mailer?: Mailer;
   config?: Partial<Deps["config"]>;
   corsOrigins?: string[];
+  /** The running build (the git commit), reported by /health. */
+  version?: string;
   /** The admin panel's production build to serve from this origin (see ADMIN_DIST). */
   adminDist?: string;
   /** Mark the session cookie Secure and give it the __Host- prefix (production, over HTTPS). */
@@ -35,7 +37,7 @@ export interface AppOptions {
   log?: boolean;
 }
 
-export function createApp({ db, mailer = consoleMailer, config = {}, corsOrigins = [], adminDist, secureCookies = false, limiter, log = false }: AppOptions) {
+export function createApp({ db, mailer = consoleMailer, config = {}, corsOrigins = [], adminDist, version, secureCookies = false, limiter, log = false }: AppOptions) {
   const deps: Deps = {
     db,
     mailer,
@@ -74,7 +76,7 @@ export function createApp({ db, mailer = consoleMailer, config = {}, corsOrigins
   app.get("/health", async (c) => {
     try {
       await db.execute(sql`select 1`);
-      return c.json({ ok: true });
+      return c.json({ ok: true, ...(version ? { version } : {}) });
     } catch {
       return c.json({ ok: false }, 503);
     }

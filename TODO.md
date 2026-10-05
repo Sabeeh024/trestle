@@ -6,7 +6,7 @@ why it is open. Tick them off (or delete them) as they land.
 ## Before anything is shared or merged
 
 - [ ] **Merge the branches.** Nothing has been pushed. The work is a stack, so merge in this order:
-  `feat/backend-postgres`, then `feat/auth-hardening`, then `feat/deploy-stack` (each builds on the one before).
+  `feat/backend-postgres`, then `feat/auth-hardening`, then `feat/deploy-stack`, then `feat/deploy-cloud` (each builds on the one before).
   `feat/complete-screens` is already in `main`. Push, open a pull request for each, and let CI run.
 - [ ] **Run CI for the first time.** `.github/workflows/ci.yml` has never run on GitHub. Check in particular that
   `pnpm/action-setup` reads `pnpm@12.5.1` from `package.json`, that the Postgres service job works, and that
@@ -55,9 +55,22 @@ Phase 1 (containers, a Compose stack behind HTTPS, a smoke test, CI publishing) 
 - [ ] **Confirm the `docker compose` details on a real engine:** that `depends_on: service_completed_successfully`
   gates the API on `migrate`, that the `*.localhost` certificates work in your browser after trusting Caddy's root, and
   that image sizes are reasonable (slim base, no dev dependencies).
-- [ ] **Phase 2: real cloud on free tiers.** API (with the admin panel) on Render or Fly, PostgreSQL on Neon, the Next
-  apps on Vercel. Staging and production copies promoted by SHA, with an approval step (a GitHub Environment) before
-  production, and the smoke test run against each. Free tiers sleep when idle.
+- [ ] **Phase 2: do the one-time setup and the first cloud deploy.** The configuration is written (`render.yaml`,
+  `apps/*/vercel.json`, `.github/workflows/deploy.yml`, `_deploy.yml`, `seed-staging.yml`, and a step-by-step guide in
+  `DEPLOYMENT.md`), but it needs accounts and secrets only you can create: Neon (2 projects), Render (Blueprint), Vercel
+  (4 projects), GitHub environments `staging` and `production` with their secrets, and **required reviewers on
+  production** (without it production deploys automatically). Nothing has run on any of them yet, so expect fixes on the
+  first real run.
+- [ ] **After the first staging deploy:** run **Seed staging** and re-run the deploy (the first smoke test fails on an
+  empty database), then **calibrate `TRUST_PROXY`** on Render with the check in `DEPLOYMENT.md` (I could not confirm how
+  many proxy entries Render adds).
+- [ ] **Confirm provider details I could only read about:** that Render accepts the image tag in the deploy hook as sent
+  (URL-encoded), that Vercel's pnpm 12 support works for `vercel build` on the runner, and that Vercel's Hobby terms
+  suit your use. Pin the Vercel CLI version in `_deploy.yml` once you know a good one.
+- [ ] **No real email in the cloud.** Reset and invitation links appear only in the Render service logs until the mailer
+  is replaced.
+- [ ] **Free-tier cold starts.** The first request after idle takes about a minute (Render) plus a few seconds (Neon).
+  Fine for learning; a paid plan or a keep-alive ping avoids it.
 - [ ] **Phase 3 (optional): a domain.** Teaches DNS, public certificates and subdomain-level same-site behaviour.
 - [ ] **Add the deploy workflow.** Promote a published SHA to staging, run `scripts/smoke.sh` against it, then production
   behind approval; document rollback (redeploy the previous SHA; fix forward in the database).
@@ -135,7 +148,7 @@ five routes. Do these in order, and re-run the same Lighthouse routes after each
 
 ## Done (for reference)
 
-Phase 1 deployment (admin served by the API, API bundled for production, Dockerfile, Compose stack, smoke test, CI rehearsal and publish jobs; also fixed the missing theme generation that broke fresh builds); real Postgres backend with tenancy and admin rules; mock API removed; richer seed; reset-password page; sessions
+Phase 2 deployment configuration (Render blueprint, Vercel projects, staging-then-approved-production workflow with rollback, health reporting the running version); Phase 1 deployment (admin served by the API, API bundled for production, Dockerfile, Compose stack, smoke test, CI rehearsal and publish jobs; also fixed the missing theme generation that broke fresh builds); real Postgres backend with tenancy and admin rules; mock API removed; richer seed; reset-password page; sessions
 revoked on sign-out; Next 16.3.6; per-endpoint rate limiting in Postgres; CSP (report-only), browser headers and
 BFF origin check; CI workflow; cookie sessions for the admin panel; change password and the device list;
 `@trestle/auth` shared package; shared `INTERNAL_API_KEY` for per-visitor limits.

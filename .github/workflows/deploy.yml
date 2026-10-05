@@ -1,0 +1,88 @@
+name: Deploy
+
+# Promotion by commit. When CI passes on main (and has published that commit's images), the same commit goes to
+# staging automatically, is smoke-tested there, and then waits for a person to approve production. What reaches
+# production is exactly what was tested in staging.
+#
+# Run it by hand to redeploy any commit whose images exist, which is also how to roll back: choose the environment
+# and the SHA of the version you want.
+#
+# Production approval is a GitHub Environment setting (Settings > Environments > production > Required reviewers).
+# WITHOUT IT, THE PRODUCTION JOB RUNS AS SOON AS STAGING PASSES. Set it before the first run.
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Where to deploy
+        type: choice
+        options: [staging, production]
+        default: staging
+      sha:
+        description: Commit to deploy (its images must be published). Empty means the latest commit on main.
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  # Decides what to deploy, and whether this run should deploy at all.
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.pick.outputs.sha }}
+      go: ${{ steps.pick.outputs.go }}
+    steps:
+      - id: pick
+        env:
+          EVENT: ${{ github.event_name }}
+          RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          RUN_EVENT: ${{ github.event.workflow_run.event }}
+          RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+          INPUT_SHA: ${{ inputs.sha }}
+          MAIN_SHA: ${{ github.sha }}
+        run: |
+          if [ "$EVENT" = "workflow_run" ]; then
+            # Only a successful CI run that was a push to main (not a pull request, which could come from a fork).
+            if [ "$RUN_CONCLUSION" = "success" ] && [ "$RUN_EVENT" = "push" ]; then
+              echo "go=true" >> "$GITHUB_OUTPUT"
+              echo "sha=$RUN_SHA" >> "$GITHUB_OUTPUT"
+            else
+              echo "go=false" >> "$GITHUB_OUTPUT"
+              echo "sha=" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "go=true" >> "$GITHUB_OUTPUT"
+            echo "sha=${INPUT_SHA:-$MAIN_SHA}" >> "$GITHUB_OUTPUT"
+          fi
+
+  staging:
+    needs: plan
+    if: needs.plan.outputs.go == 'true' && (github.event_name == 'workflow_run' || inputs.environment == 'staging')
+    uses: ./.github/workflows/_deploy.yml
+    with:
+      environment: staging
+      sha: ${{ needs.plan.outputs.sha }}
+      smoke-level: full
+    secrets: inherit
+
+  production:
+    needs: [plan, staging]
+    # After a passing staging deploy in the same run, or straight away when production was asked for by hand
+    # (staging is skipped then). Either way the environment's required reviewers must approve first.
+    if: >-
+      always() && needs.plan.outputs.go == 'true' &&
+      (needs.staging.result == 'success' ||
+       (github.event_name == 'workflow_dispatch' && inputs.environment == 'production'))
+    uses: ./.github/workflows/_deploy.yml
+    with:
+      environment: production
+      sha: ${{ needs.plan.outputs.sha }}
+      # Production has no demo account to sign in with, so it only reads.
+      smoke-level: basic
+    secrets: inherit
