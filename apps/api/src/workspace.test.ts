@@ -248,6 +248,20 @@ describe("projects, tasks and the dashboard", async () => {
       assert.equal(huge.status, 400);
     });
 
+    it("marks every API response as uncacheable and sets the browser security headers", async () => {
+      const token = await jordan();
+      for (const path of ["/api/projects", "/api/auth/me"]) {
+        const res = await t.app.request(path, { headers: { authorization: `Bearer ${token}` } });
+        assert.equal(res.headers.get("cache-control"), "private, no-store");
+        assert.equal(res.headers.get("x-content-type-options"), "nosniff");
+        assert.equal(res.headers.get("referrer-policy"), "no-referrer");
+        assert.match(res.headers.get("content-security-policy") ?? "", /frame-ancestors 'none'/);
+        assert.equal(res.headers.get("x-powered-by"), null);
+      }
+      // Errors too, not just successes.
+      assert.equal((await t.app.request("/api/projects")).headers.get("cache-control"), "private, no-store");
+    });
+
     it("answers CORS preflight only for allowed origins", async () => {
       const cors = await setup({ corsOrigins: ["http://localhost:5173"] });
       const allowed = await cors.app.request("/api/projects", { method: "OPTIONS", headers: { origin: "http://localhost:5173", "access-control-request-method": "GET" } });

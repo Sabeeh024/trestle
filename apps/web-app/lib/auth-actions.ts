@@ -98,6 +98,11 @@ export async function resetPasswordAction(input: unknown): Promise<ActionResult>
 }
 
 export async function signOutAction(locale: string) {
+  // Revoke the session on the server first: deleting the cookie alone would leave the token valid until it
+  // expires. If the API is unreachable the cookie is still removed, so the person is signed out here.
+  try {
+    await api.auth.logout();
+  } catch {}
   (await cookies()).delete(SESSION_COOKIE);
   redirect(`/${isLocale(locale) ? locale : defaultLocale}/login`);
 }

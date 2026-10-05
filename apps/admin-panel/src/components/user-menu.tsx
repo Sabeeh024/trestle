@@ -12,12 +12,18 @@ import {
   DropdownMenuTrigger,
 } from "@trestle/ui/components/ui/dropdown-menu";
 
+import { api } from "@/lib/api";
 import { clearToken } from "@/lib/session";
 
 export function UserMenu() {
   const me = useMe();
 
-  function signOut() {
+  async function signOut() {
+    // Revoke the session on the server first, so a copied token stops working. If the API is unreachable the
+    // person is still signed out here.
+    try {
+      await api.auth.logout();
+    } catch {}
     clearToken();
     // Nothing from this session should be shown to whoever signs in next on this browser.
     getQueryClient().clear();

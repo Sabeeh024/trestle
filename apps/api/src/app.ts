@@ -5,6 +5,7 @@ import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { secureHeaders } from "hono/secure-headers";
 
 import type { Config } from "./config";
 import { requireAuth, toUser, userColumns, type Deps, type Env } from "./context";
@@ -37,6 +38,19 @@ export function createApp({ db, mailer = consoleMailer, config = {}, corsOrigins
   const app = new Hono<Env>();
 
   if (log) app.use(logger());
+  // This API only returns JSON: nothing on it should be framed, sniffed, scripted or cached by a shared cache.
+  app.use(
+    "*",
+    secureHeaders({
+      contentSecurityPolicy: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] },
+      crossOriginResourcePolicy: "cross-origin",
+      referrerPolicy: "no-referrer",
+    }),
+  );
+  app.use("/api/*", async (c, next) => {
+    await next();
+    c.header("Cache-Control", "private, no-store");
+  });
   app.use("*", cors({ origin: corsOrigins, allowHeaders: ["authorization", "content-type"], allowMethods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"] }));
   app.use("/api/*", bodyLimit({ maxSize: 1024 * 1024, onError: (c) => fail(c, 400, "bad_request", "Request body is too large") }));
 
