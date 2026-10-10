@@ -1,14 +1,18 @@
 import { commentSchema, createTaskSchema, updateTaskSchema } from "@trestle/api-client/schemas";
 import type { Comment, Task, TaskDetail, TaskListParams } from "@trestle/api-client/types";
 import { and, asc, eq, sql } from "drizzle-orm";
-import { Hono } from "hono";
 
-import { canWrite, requireAuth, toSummary, type Deps, type Env, type Principal } from "../context";
-import { schema, type Db } from "../db";
-import { badRequest, forbidden, ilike, iso, notFound, oneOf, pageParams, parseJson, parseTaskId, taskKey, type Page } from "../lib/http";
+import { canWrite, toSummary, type Principal } from "../../context";
+import { schema, type Db } from "../../db";
+import { ilike, isUuid, iso, pageFrom, parseTaskId, taskKey, type Page } from "../../lib/http";
+import type { GqlContext } from "../context";
+import { badRequest, forbidden, notFound } from "../errors";
+import { parseInput } from "../input";
 import { findProject } from "./projects";
 
 const { tasks, projects, users, comments } = schema;
+
+type Input = { input: unknown };
 
 const taskColumns = {
   id: tasks.id,
@@ -93,9 +97,6 @@ export async function listTasks(
   return { data: rows.map(toTask), meta: { page, pageSize, total } };
 }
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-export const isUuid = (value: string) => UUID.test(value);
-
 async function loadComments(db: Db, taskId: number): Promise<Comment[]> {
   const rows = await db
     .select({ id: comments.id, body: comments.body, createdAt: comments.createdAt, authorId: users.id, authorName: users.name })
@@ -125,6 +126,15 @@ async function detail(db: Db, row: TaskRow): Promise<TaskDetail> {
   return { ...toTask(row), comments: await loadComments(db, row.id) };
 }
 
+/** The caller's task, or a not-found: a malformed key and a task in another organization look the same. */
+async function ownTask(ctx: GqlContext, key: string) {
+  const me = await ctx.me();
+  const id = parseTaskId(key);
+  const row = id === undefined ? undefined : await loadTask(ctx.deps.db, me.orgId, id);
+  if (!row) throw notFound("Task");
+  return { me, row };
+}
+
 const touchProject = (db: Db, projectId: string) =>
   db.update(projects).set({ updatedAt: new Date() }).where(eq(projects.id, projectId));
 
@@ -137,28 +147,37 @@ async function assigneeInOrg(db: Db, orgId: string, userId: string) {
   return Boolean(row);
 }
 
-export function taskRoutes(deps: Deps) {
-  const { db } = deps;
-  const app = new Hono<Env>();
-  app.use("*", requireAuth(deps));
+export const taskQueries = {
+  tasks: async (
+    args: { page?: number | null; pageSize?: number | null; projectId?: string | null; assignee?: string | null; status?: Task["status"] | null; priority?: Task["priority"] | null; q?: string | null },
+    ctx: GqlContext,
+  ) => {
+    const { page, pageSize, projectId, assignee, status, priority, q } = args;
+    return listTasks(
+      ctx.deps.db,
+      await ctx.me(),
+      { projectId: projectId ?? undefined, assignee: assignee ?? undefined, status: status ?? undefined, priority: priority ?? undefined, q: q ?? undefined },
+      pageFrom({ page, pageSize }),
+    );
+  },
 
-  app.get("/", async (c) => {
-    const { projectId, assignee, q } = c.req.query();
-    const status = oneOf(c.req.query("status"), schema.taskStatus.enumValues);
-    const priority = oneOf(c.req.query("priority"), schema.taskPriority.enumValues);
-    return c.json(await listTasks(db, c.get("me"), { projectId, assignee, status, priority, q }, pageParams(c)));
-  });
+  task: async ({ id }: { id: string }, ctx: GqlContext) => {
+    const { row } = await ownTask(ctx, id);
+    return detail(ctx.deps.db, row);
+  },
+};
 
-  app.post("/", async (c) => {
-    const me = c.get("me");
-    if (!canWrite(me)) return forbidden(c);
-    const parsed = await parseJson(c, createTaskSchema);
-    if (!parsed.ok) return parsed.response;
-    const { title, projectId, description, priority, status, dueDate } = parsed.data;
-    const assigneeId = parsed.data.assigneeId ?? null;
+export const taskMutations = {
+  createTask: async ({ input }: Input, ctx: GqlContext) => {
+    const { db } = ctx.deps;
+    const me = await ctx.me();
+    if (!canWrite(me)) throw forbidden();
+    const parsed = parseInput(createTaskSchema, input);
+    const { title, projectId, description, priority, status, dueDate } = parsed;
+    const assigneeId = parsed.assigneeId ?? null;
 
-    if (!(await findProject(db, me.orgId, projectId))) return badRequest(c, "projectId does not match a project");
-    if (assigneeId && !(await assigneeInOrg(db, me.orgId, assigneeId))) return badRequest(c, "assigneeId does not match a user");
+    if (!(await findProject(db, me.orgId, projectId))) throw badRequest("projectId does not match a project");
+    if (assigneeId && !(await assigneeInOrg(db, me.orgId, assigneeId))) throw badRequest("assigneeId does not match a user");
 
     const id = await db.transaction(async (tx) => {
       const [row] = await tx
@@ -168,26 +187,17 @@ export function taskRoutes(deps: Deps) {
       await touchProject(tx, projectId);
       return row!.id;
     });
-    return c.json({ data: await detail(db, (await loadTask(db, me.orgId, id))!) }, 201);
-  });
+    return detail(db, (await loadTask(db, me.orgId, id))!);
+  },
 
-  app.get("/:id", async (c) => {
-    const id = parseTaskId(c.req.param("id"));
-    const row = id === undefined ? undefined : await loadTask(db, c.get("me").orgId, id);
-    return row ? c.json({ data: await detail(db, row) }) : notFound(c, "Task");
-  });
+  updateTask: async ({ id: key, input }: { id: string } & Input, ctx: GqlContext) => {
+    const { db } = ctx.deps;
+    const me = await ctx.me();
+    if (!canWrite(me)) throw forbidden();
+    const { row: existing } = await ownTask(ctx, key);
 
-  app.patch("/:id", async (c) => {
-    const me = c.get("me");
-    if (!canWrite(me)) return forbidden(c);
-    const id = parseTaskId(c.req.param("id"));
-    const existing = id === undefined ? undefined : await loadTask(db, me.orgId, id);
-    if (!existing) return notFound(c, "Task");
-
-    const parsed = await parseJson(c, updateTaskSchema);
-    if (!parsed.ok) return parsed.response;
-    const { title, description, status, priority, assigneeId, dueDate } = parsed.data;
-    if (assigneeId && !(await assigneeInOrg(db, me.orgId, assigneeId))) return badRequest(c, "assigneeId does not match a user");
+    const { title, description, status, priority, assigneeId, dueDate } = parseInput(updateTaskSchema, input);
+    if (assigneeId && !(await assigneeInOrg(db, me.orgId, assigneeId))) throw badRequest("assigneeId does not match a user");
 
     const patch: Partial<typeof tasks.$inferInsert> = {};
     if (title !== undefined) patch.title = title;
@@ -201,42 +211,36 @@ export function taskRoutes(deps: Deps) {
       await tx.update(tasks).set(patch).where(eq(tasks.id, existing.id));
       await touchProject(tx, existing.projectId);
     });
-    return c.json({ data: await detail(db, (await loadTask(db, me.orgId, existing.id))!) });
-  });
+    return detail(db, (await loadTask(db, me.orgId, existing.id))!);
+  },
 
-  app.delete("/:id", async (c) => {
-    const me = c.get("me");
-    if (!canWrite(me)) return forbidden(c);
-    const id = parseTaskId(c.req.param("id"));
-    const existing = id === undefined ? undefined : await loadTask(db, me.orgId, id);
-    if (!existing) return notFound(c, "Task");
+  deleteTask: async ({ id: key }: { id: string }, ctx: GqlContext) => {
+    const { db } = ctx.deps;
+    const me = await ctx.me();
+    if (!canWrite(me)) throw forbidden();
+    const { row: existing } = await ownTask(ctx, key);
 
     await db.transaction(async (tx) => {
       await tx.delete(tasks).where(eq(tasks.id, existing.id));
       await touchProject(tx, existing.projectId);
     });
-    return c.body(null, 204);
-  });
+    return true;
+  },
 
-  app.post("/:id/comments", async (c) => {
-    const me = c.get("me");
-    if (!canWrite(me)) return forbidden(c);
-    const id = parseTaskId(c.req.param("id"));
-    const existing = id === undefined ? undefined : await loadTask(db, me.orgId, id);
-    if (!existing) return notFound(c, "Task");
+  addComment: async ({ taskId, body }: { taskId: string; body?: string | null }, ctx: GqlContext) => {
+    const { db } = ctx.deps;
+    const me = await ctx.me();
+    if (!canWrite(me)) throw forbidden();
+    const { row: existing } = await ownTask(ctx, taskId);
+    const parsed = parseInput(commentSchema, { body: body ?? undefined });
 
-    const parsed = await parseJson(c, commentSchema);
-    if (!parsed.ok) return parsed.response;
-
-    const [row] = await db.insert(comments).values({ taskId: existing.id, authorId: me.id, body: parsed.data.body }).returning();
+    const [row] = await db.insert(comments).values({ taskId: existing.id, authorId: me.id, body: parsed.body }).returning();
     const comment: Comment = {
       id: row!.id,
       author: toSummary({ id: me.id, name: me.name }),
       body: row!.body,
       createdAt: iso(row!.createdAt),
     };
-    return c.json({ data: comment }, 201);
-  });
-
-  return app;
-}
+    return comment;
+  },
+};

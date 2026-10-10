@@ -37,11 +37,11 @@ describe("configuration", () => {
 describe("health", async () => {
   it("reports the running version, so a deploy can prove the new build is live", async () => {
     const versioned = await setup({ version: "3f2a9c1" });
-    assert.deepEqual((await versioned.request("GET", "/health")).body, { ok: true, version: "3f2a9c1" });
+    assert.deepEqual(await (await versioned.app.request("/health")).json(), { ok: true, version: "3f2a9c1" });
     await versioned.close();
 
     const plain = await setup();
-    assert.deepEqual((await plain.request("GET", "/health")).body, { ok: true });
+    assert.deepEqual(await (await plain.app.request("/health")).json(), { ok: true });
     await plain.close();
   });
 });

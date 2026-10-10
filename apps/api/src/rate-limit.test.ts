@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { after, beforeEach, describe, it } from "node:test";
 
+import { operations } from "@trestle/api-client/operations";
+import { sql } from "drizzle-orm";
+
 import { createApp } from "./app";
 import { clientIp } from "./lib/rate-limit";
 import { EMAIL, PASSWORD, setup } from "./test-utils";
@@ -11,14 +14,16 @@ describe("rate limiting", async () => {
   beforeEach(() => t.reset());
   after(() => t.close());
 
-  const post = (path: string, body: unknown, headers: Record<string, string> = {}) => t.request("POST", path, { body, headers });
-  const login = (password: string, headers?: Record<string, string>) => post("/api/auth/login", { email: EMAIL.jordan, password }, headers);
+  type Name = Parameters<typeof t.call>[0];
+  const send = (name: Name, input: unknown, headers: Record<string, string> = {}) => t.call(name, { input }, { headers });
+  const login = (password: string, headers?: Record<string, string>) => send("login", { email: EMAIL.jordan, password }, headers);
 
   it("blocks a client after ten failed sign-ins, even with the right password", async () => {
     for (let i = 0; i < 10; i++) assert.equal((await login("not-the-password")).status, 401);
     const blocked = await login(PASSWORD);
     assert.equal(blocked.status, 429);
-    assert.equal(blocked.body.error.code, "rate_limited");
+    assert.equal(blocked.error?.code, "rate_limited");
+    assert.equal(blocked.http, 429);
   });
 
   it("cannot be bypassed by changing X-Forwarded-For when no proxy is trusted", async () => {
@@ -30,7 +35,7 @@ describe("rate limiting", async () => {
     // 30 per account regardless of address; each request here comes from a different "proxy-reported" address.
     const behindProxy = await setup({ limiter: undefined, config: { TRUST_PROXY: 1 } });
     let last = 0;
-    for (let i = 0; i < 31; i++) last = (await behindProxy.request("POST", "/api/auth/login", { body: { email: EMAIL.jordan, password: "nope-nope" }, headers: { "x-forwarded-for": `192.0.2.${i}` } })).status;
+    for (let i = 0; i < 31; i++) last = (await behindProxy.call("login", { input: { email: EMAIL.jordan, password: "nope-nope" } }, { headers: { "x-forwarded-for": `192.0.2.${i}` } })).status;
     assert.equal(last, 429);
     await behindProxy.close();
   });
@@ -47,7 +52,7 @@ describe("rate limiting", async () => {
     const key = "a-shared-secret-for-tests";
     const viaServer = await setup({ limiter: undefined, config: { INTERNAL_API_KEY: key } });
     const attempt = (ip: string, internalKey = key) =>
-      viaServer.request("POST", "/api/auth/login", { body: { email: EMAIL.jordan, password: "nope-nope-nope" }, headers: { "x-internal-key": internalKey, "x-client-ip": ip } });
+      viaServer.call("login", { input: { email: EMAIL.jordan, password: "nope-nope-nope" } }, { headers: { "x-internal-key": internalKey, "x-client-ip": ip } });
 
     // Twelve visitors each get their own budget, though every request comes from the same connection (the server).
     for (let visitor = 0; visitor < 12; visitor++) assert.equal((await attempt(`198.51.100.${visitor}`)).status, 401);
@@ -60,7 +65,7 @@ describe("rate limiting", async () => {
   it("ignores a claimed client address without the right key", async () => {
     const guarded = await setup({ limiter: undefined, config: { INTERNAL_API_KEY: "a-shared-secret-for-tests" } });
     const attempt = (i: number, key?: string) =>
-      guarded.request("POST", "/api/auth/login", { body: { email: EMAIL.jordan, password: "nope-nope-nope" }, headers: { "x-client-ip": `192.0.2.${i}`, ...(key ? { "x-internal-key": key } : {}) } });
+      guarded.call("login", { input: { email: EMAIL.jordan, password: "nope-nope-nope" } }, { headers: { "x-client-ip": `192.0.2.${i}`, ...(key ? { "x-internal-key": key } : {}) } });
     for (let i = 0; i < 10; i++) await attempt(i, i % 2 ? "wrong-key-wrong-key" : undefined);
     assert.equal((await attempt(99, "wrong-key-wrong-key")).status, 429);
     await guarded.close();
@@ -69,36 +74,55 @@ describe("rate limiting", async () => {
   it("shares counters between API instances on the same database", async () => {
     const second = createApp({ db: t.db, mailer: { send: async () => {} } });
     for (let i = 0; i < 10; i++) await login("not-the-password");
-    const res = await second.request("/api/auth/login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: EMAIL.jordan, password: PASSWORD }) });
+    const res = await second.request("/api/graphql", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ query: operations.login.query, variables: { input: { email: EMAIL.jordan, password: PASSWORD } } }) });
     assert.equal(res.status, 429);
   });
 
   it("limits password-reset emails per address, and answers the same for unknown addresses", async () => {
-    for (let i = 0; i < 3; i++) assert.equal((await post("/api/auth/forgot-password", { email: EMAIL.jamie })).status, 204);
+    for (let i = 0; i < 3; i++) assert.equal((await send("forgotPassword", { email: EMAIL.jamie })).data, true);
     assert.equal(t.mails.length, 3);
-    assert.equal((await post("/api/auth/forgot-password", { email: EMAIL.jamie })).status, 429);
+    assert.equal((await send("forgotPassword", { email: EMAIL.jamie })).status, 429);
     assert.equal(t.mails.length, 3);
 
-    for (let i = 0; i < 3; i++) assert.equal((await post("/api/auth/forgot-password", { email: "ghost@nowhere.dev" })).status, 204);
-    assert.equal((await post("/api/auth/forgot-password", { email: "ghost@nowhere.dev" })).status, 429);
+    for (let i = 0; i < 3; i++) assert.equal((await send("forgotPassword", { email: "ghost@nowhere.dev" })).data, true);
+    assert.equal((await send("forgotPassword", { email: "ghost@nowhere.dev" })).status, 429);
   });
 
   it("limits sign-ups, contact messages and reset attempts per client", async () => {
-    for (let i = 0; i < 10; i++) assert.equal((await post("/api/auth/signup", { name: `P${i}`, email: `p${i}@example.com`, password: "longenough1" })).status, 201);
-    assert.equal((await post("/api/auth/signup", { name: "P", email: "extra@example.com", password: "longenough1" })).status, 429);
+    for (let i = 0; i < 10; i++) assert.equal((await send("signup", { name: `P${i}`, email: `p${i}@example.com`, password: "longenough1" })).status, 200);
+    assert.equal((await send("signup", { name: "P", email: "extra@example.com", password: "longenough1" })).status, 429);
 
-    for (let i = 0; i < 10; i++) assert.equal((await post("/api/contact", { name: "A", email: "a@b.co", message: "hi" })).status, 201);
-    assert.equal((await post("/api/contact", { name: "A", email: "a@b.co", message: "hi" })).status, 429);
+    for (let i = 0; i < 10; i++) assert.equal((await send("sendContactMessage", { name: "A", email: "a@b.co", message: "hi" })).data, true);
+    assert.equal((await send("sendContactMessage", { name: "A", email: "a@b.co", message: "hi" })).status, 429);
 
-    for (let i = 0; i < 20; i++) assert.equal((await post("/api/auth/reset-password", { token: "x", password: "longenough1" })).status, 400);
-    assert.equal((await post("/api/auth/reset-password", { token: "x", password: "longenough1" })).status, 429);
+    for (let i = 0; i < 20; i++) assert.equal((await send("resetPassword", { token: "x", password: "longenough1" })).status, 400);
+    assert.equal((await send("resetPassword", { token: "x", password: "longenough1" })).status, 429);
   });
 
   it("starts a new window once the old one has expired", async () => {
     for (let i = 0; i < 10; i++) await login("not-the-password");
     assert.equal((await login(PASSWORD)).status, 429);
-    await t.db.execute((await import("drizzle-orm")).sql`update rate_limits set reset_at = now() - interval '1 second'`);
+    await t.db.execute(sql`update rate_limits set reset_at = now() - interval '1 second'`);
     assert.equal((await login(PASSWORD)).status, 200);
+  });
+
+  it("does not let aliases pack many attempts into one request", async () => {
+    // A failed sign-in stops the rest of a mutation, so twelve guesses in one request make only one.
+    const failedLogins = async () => {
+      const rows = (await t.db.execute(sql`select count(*)::int as n from audit_log where action = 'login_failed'`)) as unknown as { rows?: { n: number }[] } | { n: number }[];
+      return (Array.isArray(rows) ? rows : rows.rows)![0]!.n;
+    };
+    const before = await failedLogins();
+    const guesses = Array.from({ length: 12 }, (_, i) => `a${i}: login(input: { email: "${EMAIL.jordan}", password: "wrong-${i}-wrong" }) { token }`).join(" ");
+    const res = await t.post(JSON.stringify({ query: `mutation { ${guesses} }` }));
+    assert.equal(res.body.errors.length, 1);
+    assert.equal((await failedLogins()) - before, 1);
+
+    // Operations that succeed are each counted, so aliasing a reset email is stopped by the same per-address limit.
+    const resets = Array.from({ length: 5 }, (_, i) => `r${i}: forgotPassword(input: { email: "${EMAIL.jamie}" })`).join(" ");
+    const many = await t.post(JSON.stringify({ query: `mutation { ${resets} }` }));
+    assert.equal(many.http, 429);
+    assert.equal(t.mails.length, 3);
   });
 
   it("accepts CSP reports without signing in", async () => {

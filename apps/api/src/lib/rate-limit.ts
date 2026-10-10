@@ -6,6 +6,7 @@ import { lt, sql } from "drizzle-orm";
 import type { Context } from "hono";
 
 import { schema, type Db } from "../db";
+import { rateLimited } from "../graphql/errors";
 import { fail } from "./http";
 
 const { rateLimits } = schema;
@@ -99,11 +100,21 @@ export const limits = {
   cspReport: (ip: string): Limit[] => [[`csp:ip:${ip}`, 60, MINUTE]],
 };
 
-/** Counts the attempt against every limit; a 429 response if any is exceeded, otherwise undefined. */
-export async function enforce(c: Context, limiter: RateLimiter | false, list: Limit[]) {
-  if (!limiter) return undefined;
+/** Counts the attempt against every limit; true if any is exceeded. */
+export async function exceeded(limiter: RateLimiter | false, list: Limit[]) {
+  if (!limiter) return false;
   let allowed = true;
   // All of them are counted even after one fails, so a blocked client keeps burning its own budget.
   for (const [key, max, windowMs] of list) if (!(await limiter.hit(key, max, windowMs))) allowed = false;
-  return allowed ? undefined : fail(c, 429, "rate_limited", "Too many attempts. Try again later.");
+  return !allowed;
+}
+
+/** For a REST-style endpoint: a 429 response if any limit is exceeded, otherwise undefined. */
+export async function enforce(c: Context, limiter: RateLimiter | false, list: Limit[]) {
+  return (await exceeded(limiter, list)) ? fail(c, 429, "rate_limited", "Too many attempts. Try again later.") : undefined;
+}
+
+/** For a GraphQL resolver: throws `rate_limited` if any limit is exceeded. */
+export async function enforceOrThrow(limiter: RateLimiter | false, list: Limit[]) {
+  if (await exceeded(limiter, list)) throw rateLimited();
 }

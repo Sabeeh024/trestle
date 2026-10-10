@@ -1,12 +1,13 @@
 import type { AuditAction, User, UserRole, UserSummary } from "@trestle/api-client/types";
 import { eq, sql } from "drizzle-orm";
-import type { Context, MiddlewareHandler } from "hono";
+import type { Context } from "hono";
 import { readCookie, serializeSessionCookie, type SessionCookieOptions } from "@trestle/auth/cookie";
 import { bearerToken, isTrustedWrite } from "@trestle/auth/request";
 
 import type { Config } from "./config";
 import { schema, type Db } from "./db";
-import { fail, initials, iso, isoOrNull } from "./lib/http";
+import { crossSite, unauthenticated } from "./graphql/errors";
+import { initials, iso, isoOrNull } from "./lib/http";
 import type { Mailer } from "./lib/mailer";
 import { hashToken, newToken } from "./lib/password";
 import type { RateLimiter } from "./lib/rate-limit";
@@ -27,8 +28,6 @@ export interface Principal {
   /** How the session arrived: a bearer token, or the browser's cookie. */
   via: "bearer" | "cookie";
 }
-
-export type Env = { Variables: { me: Principal } };
 
 export interface Deps {
   db: Db;
@@ -57,58 +56,56 @@ function ownOrigin(c: Context) {
 
 /**
  * Resolves the caller from `Authorization: Bearer <token>` (servers, which hold the token themselves) or from the
- * session cookie (browsers, where page scripts must not hold it). Cookies are sent automatically, so a write that
- * arrives by cookie must also come from one of our own origins.
+ * session cookie (browsers, where page scripts must not hold it). Cookies are sent automatically, so a request that
+ * arrives by cookie must also come from one of our own origins. Every GraphQL request is a POST, so this applies to
+ * reads as well as writes.
  */
-export const requireAuth =
-  ({ db, cookie, corsOrigins }: Deps): MiddlewareHandler<Env> =>
-  async (c, next) => {
-    const bearer = bearerToken(c.req.header("authorization"));
-    const fromCookie = bearer ? undefined : readCookie(c.req.header("cookie"), cookie.name);
-    const token = bearer ?? fromCookie;
-    if (!token) return fail(c, 401, "unauthenticated", "Sign in to continue");
+export async function authenticate(c: Context, { db, cookie, corsOrigins }: Deps): Promise<Principal> {
+  const bearer = bearerToken(c.req.header("authorization"));
+  const fromCookie = bearer ? undefined : readCookie(c.req.header("cookie"), cookie.name);
+  const token = bearer ?? fromCookie;
+  if (!token) throw unauthenticated();
 
-    if (fromCookie && !isTrustedWrite({ method: c.req.method, origin: c.req.header("origin"), fetchSite: c.req.header("sec-fetch-site") }, [...corsOrigins, ownOrigin(c)])) {
-      return fail(c, 403, "forbidden", "Cross-site request refused");
-    }
+  if (fromCookie && !isTrustedWrite({ method: c.req.method, origin: c.req.header("origin"), fetchSite: c.req.header("sec-fetch-site") }, [...corsOrigins, ownOrigin(c)])) {
+    throw crossSite();
+  }
 
-    // One indexed lookup resolves the session, the user and whether their organization is the platform's.
-    const [row] = await db
-      .select({
-        id: users.id,
-        orgId: users.orgId,
-        name: users.name,
-        email: users.email,
-        role: users.role,
-        status: users.status,
-        lastActiveAt: users.lastActiveAt,
-        isPlatform: organizations.isPlatform,
-        sessionId: sessions.id,
-        sessionLastUsedAt: sessions.lastUsedAt,
-      })
-      .from(sessions)
-      .innerJoin(users, eq(users.id, sessions.userId))
-      .innerJoin(organizations, eq(organizations.id, users.orgId))
-      .where(sql`${sessions.tokenHash} = ${hashToken(token)} and ${sessions.expiresAt} > now()`);
+  // One indexed lookup resolves the session, the user and whether their organization is the platform's.
+  const [row] = await db
+    .select({
+      id: users.id,
+      orgId: users.orgId,
+      name: users.name,
+      email: users.email,
+      role: users.role,
+      status: users.status,
+      lastActiveAt: users.lastActiveAt,
+      isPlatform: organizations.isPlatform,
+      sessionId: sessions.id,
+      sessionLastUsedAt: sessions.lastUsedAt,
+    })
+    .from(sessions)
+    .innerJoin(users, eq(users.id, sessions.userId))
+    .innerJoin(organizations, eq(organizations.id, users.orgId))
+    .where(sql`${sessions.tokenHash} = ${hashToken(token)} and ${sessions.expiresAt} > now()`);
 
-    if (!row || row.status === "suspended") return fail(c, 401, "unauthenticated", "Sign in to continue");
+  if (!row || row.status === "suspended") throw unauthenticated();
 
-    const stale = (at: Date | null) => !at || Date.now() - at.getTime() > ACTIVITY_GRANULARITY_MS;
-    if (stale(row.lastActiveAt)) await db.update(users).set({ lastActiveAt: new Date() }).where(eq(users.id, row.id));
-    if (stale(row.sessionLastUsedAt)) await db.update(sessions).set({ lastUsedAt: new Date() }).where(eq(sessions.id, row.sessionId));
+  const stale = (at: Date | null) => !at || Date.now() - at.getTime() > ACTIVITY_GRANULARITY_MS;
+  if (stale(row.lastActiveAt)) await db.update(users).set({ lastActiveAt: new Date() }).where(eq(users.id, row.id));
+  if (stale(row.sessionLastUsedAt)) await db.update(sessions).set({ lastUsedAt: new Date() }).where(eq(sessions.id, row.sessionId));
 
-    c.set("me", {
-      id: row.id,
-      orgId: row.orgId,
-      name: row.name,
-      email: row.email,
-      role: row.role,
-      isPlatform: row.isPlatform,
-      sessionId: row.sessionId,
-      via: bearer ? "bearer" : "cookie",
-    });
-    await next();
+  return {
+    id: row.id,
+    orgId: row.orgId,
+    name: row.name,
+    email: row.email,
+    role: row.role,
+    isPlatform: row.isPlatform,
+    sessionId: row.sessionId,
+    via: bearer ? "bearer" : "cookie",
   };
+}
 
 /** Viewers are read-only. */
 export const canWrite = (me: Principal) => me.role !== "viewer";
@@ -173,11 +170,11 @@ export async function createSession(db: Db, userId: string, ttlDays: number, use
  * instead gets an HttpOnly cookie and never sees the token; the custom header cannot be sent cross-site without
  * the CORS allowlist's permission, which is what keeps another site from signing a visitor in as someone else.
  */
-export async function startSession(c: Context, { db, config, cookie }: Deps, user: User, status: 200 | 201 = 200) {
+export async function startSession(c: Context, { db, config, cookie }: Deps, user: User) {
   const token = await createSession(db, user.id, config.SESSION_TTL_DAYS, c.req.header("user-agent"));
   if (c.req.header("x-auth-mode") === "cookie") {
     c.header("Set-Cookie", serializeSessionCookie(cookie.name, token, cookie.options));
-    return c.json({ data: { token: null, user } }, status);
+    return { token: null, user };
   }
-  return c.json({ data: { token, user } }, status);
+  return { token, user };
 }

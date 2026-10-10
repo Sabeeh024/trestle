@@ -86,17 +86,17 @@ describe("query plans", async () => {
   it("runs a constant number of queries per request, however many rows come back", async () => {
     await t.reset();
     const token = await t.login("jordan.kim@trestle.io");
-    const count = async (path: string) => {
+    const count = async (name: Parameters<typeof t.call>[0], variables: Record<string, unknown> = {}) => {
       t.queries.length = 0;
-      const res = await t.request("GET", path, { token });
+      const res = await t.call(name, variables, { token });
       assert.equal(res.status, 200);
       return t.queries.length;
     };
 
-    assert.equal(await count("/api/projects?pageSize=1"), await count("/api/projects?pageSize=7"));
-    assert.equal(await count("/api/tasks?pageSize=1"), await count("/api/tasks?pageSize=9"));
-    assert.equal(await count("/api/admin/users?pageSize=1"), await count("/api/admin/users?pageSize=9"));
-    assert.ok((await count("/api/projects")) <= 6);
-    assert.ok((await count("/api/dashboard")) <= 8);
+    assert.equal(await count("projects", { pageSize: 1 }), await count("projects", { pageSize: 7 }));
+    assert.equal(await count("tasks", { pageSize: 1 }), await count("tasks", { pageSize: 9 }));
+    assert.equal(await count("adminUsers", { pageSize: 1 }), await count("adminUsers", { pageSize: 9 }));
+    assert.ok((await count("projects")) <= 6);
+    assert.ok((await count("dashboard")) <= 8);
   });
 });

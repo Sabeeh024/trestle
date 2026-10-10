@@ -1,18 +1,20 @@
 import { createProjectSchema, updateProjectSchema } from "@trestle/api-client/schemas";
 import type { Project } from "@trestle/api-client/types";
 import { and, asc, count, desc, eq, inArray, sql } from "drizzle-orm";
-import { Hono } from "hono";
 
-import { audit, canWrite, isAdmin, requireAuth, toSummary, type Deps, type Env } from "../context";
-import { schema, type Db } from "../db";
-import { fail, forbidden, ilike, isUniqueViolation, iso, notFound, oneOf, pageParams, parseJson, slugify } from "../lib/http";
+import { audit, canWrite, isAdmin, toSummary } from "../../context";
+import { schema, type Db } from "../../db";
+import { ilike, isUniqueViolation, iso, pageFrom, slugify } from "../../lib/http";
+import type { GqlContext } from "../context";
+import { conflict, forbidden, notFound } from "../errors";
+import { parseInput } from "../input";
 import { listTasks } from "./tasks";
 
 const { projects, projectMembers, tasks, users } = schema;
 
-export const PROJECT_STATUSES = schema.projectStatus.enumValues;
-
 type ProjectRow = typeof projects.$inferSelect;
+type Input = { input: unknown };
+type PageArgs = { page?: number | null; pageSize?: number | null };
 
 /**
  * Turns project rows into API projects with two queries however many rows there are: one for the
@@ -65,20 +67,16 @@ export async function findProject(db: Db, orgId: string, id: string) {
   return row;
 }
 
-export function projectRoutes(deps: Deps) {
-  const { db } = deps;
-  const app = new Hono<Env>();
-  app.use("*", requireAuth(deps));
-
-  app.get("/", async (c) => {
-    const me = c.get("me");
-    const { limit, offset, page, pageSize } = pageParams(c);
-    const q = c.req.query("q")?.trim();
-    const status = oneOf(c.req.query("status"), PROJECT_STATUSES);
+export const projectQueries = {
+  projects: async (args: PageArgs & { q?: string | null; status?: Project["status"] | null }, ctx: GqlContext) => {
+    const { db } = ctx.deps;
+    const me = await ctx.me();
+    const { limit, offset, page, pageSize } = pageFrom(args);
+    const q = args.q?.trim();
 
     const where = and(
       eq(projects.orgId, me.orgId),
-      status ? eq(projects.status, status) : undefined,
+      args.status ? eq(projects.status, args.status) : undefined,
       q ? sql`(${ilike(projects.name, q)} or ${ilike(projects.description, q)})` : undefined,
     );
 
@@ -86,15 +84,29 @@ export function projectRoutes(deps: Deps) {
       db.select().from(projects).where(where).orderBy(desc(projects.updatedAt), asc(projects.id)).limit(limit).offset(offset),
       db.select({ total: count() }).from(projects).where(where),
     ]);
-    return c.json({ data: await hydrateProjects(db, rows), meta: { page, pageSize, total: counted?.total ?? 0 } });
-  });
+    return { data: await hydrateProjects(db, rows), meta: { page, pageSize, total: counted?.total ?? 0 } };
+  },
 
-  app.post("/", async (c) => {
-    const me = c.get("me");
-    if (!canWrite(me)) return forbidden(c);
-    const parsed = await parseJson(c, createProjectSchema);
-    if (!parsed.ok) return parsed.response;
-    const { name, description, dueDate, color, status } = parsed.data;
+  project: async ({ id }: { id: string }, ctx: GqlContext) => {
+    const { db } = ctx.deps;
+    const row = await findProject(db, (await ctx.me()).orgId, id);
+    if (!row) throw notFound("Project");
+    return (await hydrateProjects(db, [row]))[0]!;
+  },
+
+  projectTasks: async ({ id, ...paging }: { id: string } & PageArgs, ctx: GqlContext) => {
+    const me = await ctx.me();
+    if (!(await findProject(ctx.deps.db, me.orgId, id))) throw notFound("Project");
+    return listTasks(ctx.deps.db, me, { projectId: id }, pageFrom(paging));
+  },
+};
+
+export const projectMutations = {
+  createProject: async ({ input }: Input, ctx: GqlContext) => {
+    const { db } = ctx.deps;
+    const me = await ctx.me();
+    if (!canWrite(me)) throw forbidden();
+    const { name, description, dueDate, color, status } = parseInput(createProjectSchema, input);
 
     const base = slugify(name) || "project";
     for (let attempt = 0; attempt < 5; attempt++) {
@@ -117,28 +129,19 @@ export function projectRoutes(deps: Deps) {
           await tx.insert(schema.auditLog).values({ orgId: me.orgId, actor: me.email, action: "create_project", target: name });
           return project!;
         });
-        const [created] = await hydrateProjects(db, [row]);
-        return c.json({ data: created }, 201);
+        return (await hydrateProjects(db, [row]))[0]!;
       } catch (error) {
         if (!isUniqueViolation(error)) throw error;
       }
     }
-    return fail(c, 409, "slug_taken", "Could not pick a unique id for this project, try a different name");
-  });
+    throw conflict("slug_taken", "Could not pick a unique id for this project, try a different name");
+  },
 
-  app.get("/:id", async (c) => {
-    const row = await findProject(db, c.get("me").orgId, c.req.param("id"));
-    if (!row) return notFound(c, "Project");
-    const [project] = await hydrateProjects(db, [row]);
-    return c.json({ data: project });
-  });
-
-  app.patch("/:id", async (c) => {
-    const me = c.get("me");
-    if (!canWrite(me)) return forbidden(c);
-    const parsed = await parseJson(c, updateProjectSchema);
-    if (!parsed.ok) return parsed.response;
-    const { name, description, color, status, dueDate } = parsed.data;
+  updateProject: async ({ id, input }: { id: string } & Input, ctx: GqlContext) => {
+    const { db } = ctx.deps;
+    const me = await ctx.me();
+    if (!canWrite(me)) throw forbidden();
+    const { name, description, color, status, dueDate } = parseInput(updateProjectSchema, input);
 
     const patch: Partial<typeof projects.$inferInsert> = {};
     if (name !== undefined) patch.name = name;
@@ -151,32 +154,24 @@ export function projectRoutes(deps: Deps) {
     const [row] = await db
       .update(projects)
       .set(patch)
-      .where(and(eq(projects.id, c.req.param("id")), eq(projects.orgId, me.orgId)))
+      .where(and(eq(projects.id, id), eq(projects.orgId, me.orgId)))
       .returning();
-    if (!row) return notFound(c, "Project");
-    const [project] = await hydrateProjects(db, [row]);
-    return c.json({ data: project });
-  });
+    if (!row) throw notFound("Project");
+    return (await hydrateProjects(db, [row]))[0]!;
+  },
 
   // Tasks and membership go with the project (ON DELETE CASCADE).
-  app.delete("/:id", async (c) => {
-    const me = c.get("me");
-    if (!isAdmin(me)) return forbidden(c, "Only owners and admins can delete a project");
+  deleteProject: async ({ id }: { id: string }, ctx: GqlContext) => {
+    const { db } = ctx.deps;
+    const me = await ctx.me();
+    if (!isAdmin(me)) throw forbidden("Only owners and admins can delete a project");
 
     const [row] = await db
       .delete(projects)
-      .where(and(eq(projects.id, c.req.param("id")), eq(projects.orgId, me.orgId)))
+      .where(and(eq(projects.id, id), eq(projects.orgId, me.orgId)))
       .returning({ name: projects.name });
-    if (!row) return notFound(c, "Project");
+    if (!row) throw notFound("Project");
     await audit(db, { orgId: me.orgId, actor: me.email, action: "delete_project", target: row.name });
-    return c.body(null, 204);
-  });
-
-  app.get("/:id/tasks", async (c) => {
-    const me = c.get("me");
-    if (!(await findProject(db, me.orgId, c.req.param("id")))) return notFound(c, "Project");
-    return c.json(await listTasks(db, me, { projectId: c.req.param("id") }, pageParams(c)));
-  });
-
-  return app;
-}
+    return true;
+  },
+};

@@ -1,5 +1,5 @@
 // Exercises @trestle/api-client against the real server over HTTP, once per transport, so the client's
-// URLs, query strings and response unwrapping are checked against what this API returns, and the fetch
+// operations and response unwrapping are checked against what this API returns, and the fetch
 // and axios transports are held to identical behaviour.
 import assert from "node:assert/strict";
 import type { AddressInfo } from "node:net";
@@ -54,7 +54,7 @@ describe("api client over HTTP", async () => {
         assert.equal(page.meta.total, 4);
       });
 
-      it("sends filters as query params and skips undefined ones", async () => {
+      it("sends filters as variables and skips undefined ones", async () => {
         const mine = await getApi().tasks.list({ assignee: "me", status: undefined });
         assert.ok(mine.data.length > 0);
         assert.ok(mine.data.every((x) => x.assignee?.name === "Jordan Kim"));
@@ -69,7 +69,7 @@ describe("api client over HTTP", async () => {
         );
       });
 
-      it("runs mutations with and without response bodies", async () => {
+      it("runs mutations that return a record and ones that only confirm", async () => {
         const api = getApi();
         const task = await api.tasks.create({ projectId: "website-redesign", title: "Ship it", priority: "high" });
         assert.equal(task.status, "todo");
@@ -90,7 +90,7 @@ describe("api client over HTTP", async () => {
         await assert.rejects(authed.auth.me(), (error: unknown) => isApiError(error) && error.status === 401);
       });
 
-      it("covers the admin endpoints", async () => {
+      it("covers the admin operations", async () => {
         const api = getApi();
         const users = await api.admin.users.list({ q: "northwind", sort: "name", direction: "desc" });
         assert.deepEqual(users.data.map((u) => u.name), ["Elena Cho", "Alex Kim"]);
@@ -103,7 +103,7 @@ describe("api client over HTTP", async () => {
         assert.equal(log.data[0]?.actor, EMAIL.jordan);
       });
 
-      it("sends a contact message, which the server answers with an empty 201", async () => {
+      it("sends a contact message, and reports field errors from a bad one", async () => {
         await getApi().contact.send({ name: "Dana", email: "dana@example.com", message: "Hello" });
         const stored = (await t.db.execute(sql`select count(*)::int as n from contact_messages`)) as unknown as { rows?: { n: number }[] } | { n: number }[];
         assert.equal((Array.isArray(stored) ? stored : stored.rows)![0]!.n, 1);

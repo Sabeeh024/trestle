@@ -1,7 +1,5 @@
 import type { Context } from "hono";
-import { fieldErrors } from "@trestle/api-client/schemas";
 import { sql, type SQL } from "drizzle-orm";
-import type { z } from "zod";
 
 export type ErrorStatus = 400 | 401 | 403 | 404 | 409 | 422 | 429 | 501;
 
@@ -10,31 +8,6 @@ export function fail(c: Context, status: ErrorStatus, code: string, message: str
 }
 
 export const notFound = (c: Context, what: string) => fail(c, 404, "not_found", `${what} not found`);
-export const forbidden = (c: Context, message = "You do not have permission to do that") => fail(c, 403, "forbidden", message);
-export const badRequest = (c: Context, message: string) => fail(c, 400, "bad_request", message);
-export const emailTaken = (c: Context) => fail(c, 422, "validation_failed", "Some fields are invalid", { email: "emailTaken" });
-
-export async function readBody(c: Context): Promise<unknown> {
-  try {
-    return await c.req.json();
-  } catch {
-    return {};
-  }
-}
-
-type Parsed<S extends z.ZodType> = { ok: true; data: z.infer<S> } | { ok: false; response: Response };
-
-/** Validates a request body with a shared schema; on failure the response is a 422 with per-field message keys. */
-export async function parseJson<S extends z.ZodType>(c: Context, schema: S): Promise<Parsed<S>> {
-  const body = await readBody(c);
-  const result = schema.safeParse(typeof body === "object" && body !== null ? body : {});
-  if (result.success) return { ok: true, data: result.data };
-  return { ok: false, response: fail(c, 422, "validation_failed", "Some fields are invalid", fieldErrors(result.error)) };
-}
-
-export function oneOf<T extends string>(value: unknown, allowed: readonly T[]): T | undefined {
-  return typeof value === "string" && (allowed as readonly string[]).includes(value) ? (value as T) : undefined;
-}
 
 export interface Page {
   page: number;
@@ -43,9 +16,10 @@ export interface Page {
   offset: number;
 }
 
-export function pageParams(c: Context): Page {
-  const page = Math.max(1, Number.parseInt(c.req.query("page") ?? "1", 10) || 1);
-  const pageSize = Math.min(100, Math.max(1, Number.parseInt(c.req.query("pageSize") ?? "20", 10) || 20));
+/** A page request clamped to sane bounds: page from 1, pageSize 1 to 100 (default 20). */
+export function pageFrom({ page: wantedPage, pageSize: wantedSize }: { page?: number | null | undefined; pageSize?: number | null | undefined } = {}): Page {
+  const page = Math.max(1, Math.trunc(wantedPage ?? 1) || 1);
+  const pageSize = Math.min(100, Math.max(1, Math.trunc(wantedSize ?? 20) || 20));
   return { page, pageSize, limit: pageSize, offset: (page - 1) * pageSize };
 }
 
@@ -87,3 +61,6 @@ export const parseTaskId = (id: string): number | undefined => {
   return match ? Number.parseInt(match[1]!, 10) : undefined;
 };
 export const taskKey = (id: number) => `TASK-${id}`;
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const isUuid = (value: string) => UUID.test(value);

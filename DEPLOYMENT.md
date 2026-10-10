@@ -101,7 +101,7 @@ which environment it is in; configuration arrives as environment variables.
 
 - **Run and passing:** the API bundle (`pnpm --filter api build`) running as plain `node` against real PostgreSQL with
   `NODE_ENV=production`, migrating, seeding and serving the admin panel on one origin; both Next apps as standalone
-  servers; and `scripts/smoke.sh` (26 checks) against those behind a local HTTPS proxy that routes by host name like
+  servers; and `scripts/smoke.sh` (30 checks) against those behind a local HTTPS proxy that routes by host name like
   Caddy does. The smoke test was also confirmed to fail, with a non-zero exit code, when something is wrong.
 - **Phase 2 (cloud), checked without the providers:** every workflow and `render.yaml` parse as valid YAML; the deploy
   planning logic was run for five scenarios (CI success on a push, CI failure, a pull request, a manual run with and
@@ -212,7 +212,7 @@ Do these in order. The names matter, because the workflows read them.
 **7. Calibrate `TRUST_PROXY`** (the API needs to know how many proxies sit in front of it)
 - Render's proxies add to `X-Forwarded-For`, and I could not confirm from its documentation how many entries come
   before the client address, so measure it. Send a failed sign-in with a forged header:
-  `curl -s -X POST https://<api>/api/auth/login -H 'content-type: application/json' -H 'X-Forwarded-For: 203.0.113.9' -d '{"email":"x@y.zz","password":"nope"}'`
+  `curl -s -X POST https://<api>/api/graphql -H 'content-type: application/json' -H 'X-Forwarded-For: 203.0.113.9' -d '{"query":"mutation { login(input: { email: \"x@y.zz\", password: \"nope\" }) { token } }"}'`
   then, in Neon's SQL editor, run `select key from rate_limits where key like 'login:ip:%';`.
   If a key contains `203.0.113.9`, the setting is too low (the API is trusting what you wrote), so raise `TRUST_PROXY`
   by one. If it contains your real address, it is right. The web apps are unaffected, because they report the visitor

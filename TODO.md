@@ -40,7 +40,7 @@ why it is open. Tick them off (or delete them) as they land.
   been run against the existing history.
 - [ ] **Real mailer.** `apps/api/src/lib/mailer.ts` only prints to the console, so reset and invitation emails are
   not actually sent. Add an SMTP or API-backed implementation.
-- [ ] **SSO.** `/api/auth/sso` answers 501 for enterprise users until an identity provider (OIDC) is wired up.
+- [ ] **SSO.** The `sso` mutation answers 501 for enterprise users until an identity provider (OIDC) is wired up.
   `DEV_SSO=1` is a local-only shortcut.
 
 ## Deployment and operations
@@ -100,8 +100,9 @@ Lab numbers only (Lighthouse, production builds, localhost): desktop scores 100;
 five routes. Do these in order, and re-run the same Lighthouse routes after each to confirm the numbers moved.
 
 - [ ] **1. Admin CORS preflight on every call.** `X-Auth-Mode` is sent on all requests and the API sets no
-  `Access-Control-Max-Age`, so each call costs an extra round trip. Send the header only on login and set `maxAge`
-  (for example 600) in `apps/api/src/app.ts`. Small.
+  `Access-Control-Max-Age`, so each call costs an extra round trip. Every operation is a JSON POST, so the browser preflights
+  it whatever headers are sent; set `maxAge` (for example 600) in `apps/api/src/app.ts` so it asks once, not per call.
+  Small.
 - [ ] **2. Load form code only where it is used (web-app).** The 102 KB gz chunk (zod + react-hook-form) loads on every
   page; 83 of 97 KB are unused on the dashboard. Load the new-project, new-task and password dialogs with
   `next/dynamic`. Afterwards measure whether `zod/mini` is worth it.
@@ -109,7 +110,7 @@ five routes. Do these in order, and re-run the same Lighthouse routes after each
   route and `manualChunks` for vendor libraries (so they keep a stable hash).
 - [ ] **4. Stop the admin's "who am I?" waterfall.** `RequireAuth` waits for `/auth/me` before the page's own
   requests start. Start them in parallel, or render the shell while `/me` loads.
-- [ ] **5. Limit the sidebar fetch.** Every web-app page calls `GET /api/projects?pageSize=100` (3 SQL queries) to
+- [ ] **5. Limit the sidebar fetch.** Every web-app page asks for `projects(pageSize: 100)` (3 SQL queries) to
   show 3 projects (`apps/web-app/components/sidebar.tsx`). Ask for the 3 most recent, or cache per user.
 - [ ] **6. RUM and error tracking.** None today, so field p75 LCP/INP/CLS are unknown. Add `web-vitals` (attribution
   build) via `sendBeacon`, an error tracker (boundaries, global handlers), per-route and connection dimensions,
@@ -127,6 +128,23 @@ five routes. Do these in order, and re-run the same Lighthouse routes after each
 - [ ] **Minor.** Render-blocking CSS (~11 KB gz, 60-300 ms estimated); 14 KiB of legacy JavaScript (check the
   browserslist target); i18n resources embedded in each page (~27 KB raw on login); delete the unused template SVGs
   in `apps/web-app/public` and `apps/marketing-app/public`; add hover prefetch for common navigations.
+
+## GraphQL (the API moved from REST to a single GraphQL endpoint)
+
+Not done, in rough order of value:
+
+- [ ] **Types are still written by hand.** `packages/api-client/src/types.ts` and `operations.ts` are maintained next
+  to `apps/api/src/graphql/schema.ts`. A test proves every operation is valid against the schema, but not that the
+  TypeScript types match the fields selected. GraphQL Code Generator would generate both from the schema.
+- [ ] **Nested fields are not lazy.** Root resolvers load whole objects (members and progress for every project, a
+  task's comments), so asking for fewer fields saves bytes, not queries. Fine at this size; DataLoader-style field
+  resolvers are the next step if a screen needs only part of a type.
+- [ ] **No persisted queries.** The API accepts any valid document up to 20,000 characters and 12 root fields. In
+  production, an allow-list of the documents in `operations.ts` (by hash) would refuse everything else.
+- [ ] **Queries are POSTs, so nothing is HTTP-cached.** The product app dedupes identical queries within one render
+  (`apps/web-app/lib/api.ts`) but the old per-fetch `next` caching options no longer apply to them.
+- [ ] **Run the admin and BFF paths in a browser test.** The GraphQL flows were checked by hand in a browser and by
+  `scripts/smoke.sh`, not by an automated browser suite (see End-to-end tests below).
 
 ## Product gaps
 
@@ -148,7 +166,7 @@ five routes. Do these in order, and re-run the same Lighthouse routes after each
 
 ## Done (for reference)
 
-Phase 2 deployment configuration (Render blueprint, Vercel projects, staging-then-approved-production workflow with rollback, health reporting the running version); Phase 1 deployment (admin served by the API, API bundled for production, Dockerfile, Compose stack, smoke test, CI rehearsal and publish jobs; also fixed the missing theme generation that broke fresh builds); real Postgres backend with tenancy and admin rules; mock API removed; richer seed; reset-password page; sessions
+REST replaced by one GraphQL endpoint (`POST /api/graphql`; `graphql-js` with a hand-written schema, zod validation kept, tenancy, roles and rate limits unchanged; all 142 API tests ported and passing, mutation-checked; client, BFF and smoke test moved over); Phase 2 deployment configuration (Render blueprint, Vercel projects, staging-then-approved-production workflow with rollback, health reporting the running version); Phase 1 deployment (admin served by the API, API bundled for production, Dockerfile, Compose stack, smoke test, CI rehearsal and publish jobs; also fixed the missing theme generation that broke fresh builds); real Postgres backend with tenancy and admin rules; mock API removed; richer seed; reset-password page; sessions
 revoked on sign-out; Next 16.3.6; per-endpoint rate limiting in Postgres; CSP (report-only), browser headers and
 BFF origin check; CI workflow; cookie sessions for the admin panel; change password and the device list;
 `@trestle/auth` shared package; shared `INTERNAL_API_KEY` for per-visitor limits.

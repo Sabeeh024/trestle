@@ -1,11 +1,12 @@
 import { cookies } from "next/headers";
 
+import { GRAPHQL_PATH } from "@trestle/api-client";
 import { clientHeadersForApi, isTrustedWrite } from "@trestle/auth/request";
 
 import { SESSION_COOKIE } from "@/lib/session";
 
-// A thin proxy between the browser and the API. The session token lives in an httpOnly cookie that
-// browser code cannot read, so browser-side requests (React Query in Client Components) go through
+// A thin proxy between the browser and the API's GraphQL endpoint. The session token lives in an httpOnly cookie
+// that browser code cannot read, so browser-side requests (React Query in Client Components) go through
 // here and the token is attached on the server. Server Components call the API directly instead.
 
 const API_URL = process.env.API_URL ?? "http://localhost:4000";
@@ -27,14 +28,12 @@ async function forward(request: Request, { params }: { params: Promise<{ path: s
     return Response.json({ error: { code: "forbidden", message: "Cross-site request refused" } }, { status: 403 });
   }
   const { path } = await params;
-  // The client's endpoint paths already start with /api, so they are forwarded as given. Keep the
-  // target inside that namespace.
-  if (path[0] !== "api" || path.some((segment) => segment === "." || segment === ".." || segment === "")) {
+  // The only thing the browser may ask of the API is a GraphQL operation: nothing else is forwarded.
+  if (`/${path.join("/")}` !== GRAPHQL_PATH) {
     return Response.json({ error: { code: "bad_request", message: "Invalid path" } }, { status: 400 });
   }
 
-  const target = new URL(`${API_URL}/${path.map(encodeURIComponent).join("/")}`);
-  target.search = new URL(request.url).search;
+  const target = new URL(`${API_URL}${GRAPHQL_PATH}`);
 
   const headers = new Headers({ Accept: "application/json", ...clientHeadersForApi(request.headers, process.env.INTERNAL_API_KEY) });
   const contentType = request.headers.get("content-type");
@@ -42,23 +41,22 @@ async function forward(request: Request, { params }: { params: Promise<{ path: s
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (token) headers.set("Authorization", `Bearer ${token}`);
 
-  const hasBody = request.method !== "GET" && request.method !== "HEAD";
   let response: Response;
   try {
     response = await fetch(target, {
-      method: request.method,
+      method: "POST",
       headers,
       cache: "no-store",
-      ...(hasBody ? { body: await request.text() } : {}),
+      body: await request.text(),
     });
   } catch {
     return Response.json({ error: { code: "network_error", message: "Could not reach the server" } }, { status: 502 });
   }
 
-  return new Response(response.status === 204 ? null : response.body, {
+  return new Response(response.body, {
     status: response.status,
     headers: { "Content-Type": response.headers.get("content-type") ?? "application/json", "Cache-Control": "private, no-store" },
   });
 }
 
-export { forward as GET, forward as POST, forward as PATCH, forward as DELETE };
+export { forward as POST };

@@ -3,7 +3,6 @@ import { extname, join, normalize, resolve, sep } from "node:path";
 
 import type { Hono } from "hono";
 
-import type { Env } from "./context";
 
 // The admin panel is a static single-page app. Serving it from the API's own origin keeps the session cookie
 // same-site without needing a domain, removes CORS from the admin entirely, and means one build runs anywhere
@@ -36,7 +35,7 @@ export function readHeadersFile(dir: string): Record<string, string> {
 /** Paths the API owns; everything else is the panel. */
 export const isApiPath = (path: string) => path === "/health" || path === "/api" || path.startsWith("/api/");
 
-export function serveAdmin(app: Hono<Env>, dir: string) {
+export function serveAdmin(app: Hono, dir: string) {
   const root = resolve(dir);
   const indexFile = join(root, "index.html");
   if (!existsSync(indexFile)) throw new Error(`ADMIN_DIST has no index.html: ${root}`);

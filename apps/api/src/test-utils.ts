@@ -1,3 +1,5 @@
+import { operations, type OperationName } from "@trestle/api-client/operations";
+
 import { createApp, type AppOptions } from "./app";
 import { createTestDb } from "./db/test-db";
 import { seed, truncateAll } from "./db/seed";
@@ -31,20 +33,41 @@ export async function setup(options: Partial<AppOptions> = {}) {
     ...options,
   });
 
-  async function request(method: string, path: string, { token, body, headers }: { token?: string; body?: unknown; headers?: Record<string, string> } = {}) {
-    const res = await app.request(path, {
-      method,
-      headers: { ...(body !== undefined ? { "content-type": "application/json" } : {}), ...(token ? { authorization: `Bearer ${token}` } : {}), ...headers },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+  type RequestOptions = { token?: string; headers?: Record<string, string> };
+
+  /** Posts raw text to the GraphQL endpoint, for tests of the endpoint itself. */
+  async function post(body: string, { token, headers }: RequestOptions = {}) {
+    const res = await app.request("/api/graphql", {
+      method: "POST",
+      headers: { "content-type": "application/json", ...(token ? { authorization: `Bearer ${token}` } : {}), ...headers },
+      body,
     });
     const text = await res.text();
-    return { status: res.status, body: (text ? JSON.parse(text) : undefined) as Json };
+    return { http: res.status, body: (text ? JSON.parse(text) : undefined) as Json, headers: res.headers };
+  }
+
+  /**
+   * Runs one of the client's own operations, so the tests exercise exactly what the apps send. `status` is the status
+   * an operation reports (404, 422... as `extensions.status`, or 200); `http` is the transport's.
+   */
+  async function call(name: OperationName, variables: Record<string, unknown> = {}, options: RequestOptions = {}) {
+    const op = operations[name];
+    const res = await post(JSON.stringify({ query: op.query, operationName: op.name, variables }), options);
+    const error = res.body?.errors?.[0] as { message: string; extensions: { code: string; status: number; fields?: Record<string, string> } } | undefined;
+    return {
+      http: res.http,
+      status: error ? error.extensions.status : 200,
+      data: res.body?.data?.[op.field] as Json,
+      error: error ? { ...error.extensions, message: error.message } : undefined,
+      body: res.body as Json,
+      headers: res.headers,
+    };
   }
 
   const login = async (email: string, password = PASSWORD) => {
-    const res = await request("POST", "/api/auth/login", { body: { email, password } });
-    if (res.status !== 200) throw new Error(`login as ${email} failed: ${res.status} ${JSON.stringify(res.body)}`);
-    return res.body.data.token as string;
+    const res = await call("login", { input: { email, password } });
+    if (res.error) throw new Error(`login as ${email} failed: ${res.status} ${JSON.stringify(res.error)}`);
+    return res.data.token as string;
   };
 
   const reset = async () => {
@@ -54,7 +77,7 @@ export async function setup(options: Partial<AppOptions> = {}) {
   };
   await reset();
 
-  return { db, app, mails, queries, request, login, reset, close };
+  return { db, app, mails, queries, call, post, login, reset, close };
 }
 
 /** The token inside the most recent emailed link. */
