@@ -4,8 +4,15 @@
   "private": "true",
   "scripts": {
     "build": "turbo run build",
+    "check-types": "turbo run check-types",
+    "db:embedded": "pnpm --filter api db:embedded",
+    "db:migrate": "pnpm --filter api db:migrate",
+    "db:reset": "pnpm --filter api db:reset",
+    "db:seed": "pnpm --filter api db:seed",
+    "db:setup": "pnpm --filter api db:migrate && pnpm --filter api db:seed",
     "dev": "turbo run dev",
-    "lint": "turbo run lint"
+    "lint": "turbo run lint",
+    "test": "turbo run test"
   },
   "devEngines": {
     "packageManager": {

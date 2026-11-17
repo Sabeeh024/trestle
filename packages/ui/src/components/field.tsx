@@ -7,6 +7,8 @@ interface FieldControlProps {
   id: string
   "aria-invalid": boolean | undefined
   "aria-describedby": string | undefined
+  /** Set when the field is required, so assistive technology announces it (the visible * is hidden from it). */
+  "aria-required": true | undefined
 }
 
 type FieldProps = Omit<React.ComponentProps<"div">, "children"> & {
@@ -44,6 +46,7 @@ function Field({
     id,
     "aria-invalid": error ? true : undefined,
     "aria-describedby": describedBy,
+    "aria-required": required ? true : undefined,
   }
 
   return (

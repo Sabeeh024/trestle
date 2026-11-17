@@ -28,6 +28,7 @@ import { PageHeader } from "@/components/page-header";
 import { PaginationBar } from "@/components/pagination-bar";
 import { TableStatusRow } from "@/components/table-status-row";
 import { formatDate, formatRelative } from "@/lib/format";
+import { announce, focusPageTitle } from "@/lib/announce";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 
 const PAGE_SIZE = 8;
@@ -61,10 +62,16 @@ export function UsersPage() {
   const total = users.data?.meta.total ?? 0;
   const allSelected = rows.length > 0 && rows.every((u) => selected.includes(u.id));
 
-  async function run(action: () => Promise<unknown>) {
+  // `outcome` is what to tell screen-reader users once it worked; `focusTitle` is for actions that remove what the
+  // person was focused on (a deleted row), so focus lands somewhere sensible instead of on the page body.
+  async function run(action: () => Promise<unknown>, outcome?: { announce: string; focusTitle?: boolean }) {
     setActionError(null);
     try {
       await action();
+      if (outcome) {
+        announce(outcome.announce);
+        if (outcome.focusTitle) focusPageTitle();
+      }
     } catch (error) {
       setActionError(error instanceof Error ? error.message : "Something went wrong");
     }
@@ -84,7 +91,8 @@ export function UsersPage() {
     setPasswordResetSent(false);
   };
 
-  const confirmBulk = (action: "suspend" | "delete") =>
+  const confirmBulk = (action: "suspend" | "delete") => {
+    const count = selected.length;
     setConfirmation({
       title: `${action === "suspend" ? "Suspend" : "Delete"} ${selected.length} ${selected.length === 1 ? "user" : "users"}?`,
       description:
@@ -93,11 +101,15 @@ export function UsersPage() {
           : "This permanently removes the selected users and cannot be undone.",
       confirmLabel: action === "suspend" ? "Suspend" : "Delete",
       onConfirm: () =>
-        void run(async () => {
-          await bulk.mutateAsync({ action, ids: selected });
-          setSelected([]);
-        }),
+        void run(
+          async () => {
+            await bulk.mutateAsync({ action, ids: selected });
+            setSelected([]);
+          },
+          { announce: `${count} ${count === 1 ? "user" : "users"} ${action === "suspend" ? "suspended" : "deleted"}`, focusTitle: action === "delete" },
+        ),
     });
+  };
 
   const user = detail.data;
 
@@ -116,6 +128,7 @@ export function UsersPage() {
 
         <div className="px-4 pb-3">
           <Input
+            aria-label="Search users"
             placeholder="Search by name or email"
             value={search}
             onChange={(e) => {
@@ -143,7 +156,7 @@ export function UsersPage() {
 
         <div className="min-h-0 flex-1 overflow-auto px-4 pb-4">
           <div className="overflow-hidden rounded-lg border border-border">
-            <Table>
+            <Table aria-label="Users">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-8">
@@ -185,7 +198,18 @@ export function UsersPage() {
                         <Avatar size="sm">
                           <AvatarFallback>{u.initials}</AvatarFallback>
                         </Avatar>
-                        <span className="font-semibold text-text-primary">{u.name}</span>
+                        <button
+                          type="button"
+                          aria-expanded={detailId === u.id}
+                          aria-controls="user-detail-panel"
+                          className="rounded-sm font-semibold text-text-primary outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/30"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openDetail(u.id);
+                          }}
+                        >
+                          {u.name}
+                        </button>
                       </div>
                     </TableCell>
                     <TableCell className="text-text-secondary">{u.email}</TableCell>
@@ -196,7 +220,7 @@ export function UsersPage() {
                         {u.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-text-disabled">{formatDate(u.joinedAt)}</TableCell>
+                    <TableCell className="text-text-tertiary">{formatDate(u.joinedAt)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -207,7 +231,7 @@ export function UsersPage() {
       </div>
 
       {detailId ? (
-        <SidePanel>
+        <SidePanel key={detailId} id="user-detail-panel" aria-label="User detail" onClose={() => setDetailId(null)}>
           <SidePanelHeader onClose={() => setDetailId(null)}>User detail</SidePanelHeader>
           <SidePanelBody className="gap-4">
             {detail.isPending ? <p className="text-text-secondary">Loading…</p> : null}
@@ -241,7 +265,7 @@ export function UsersPage() {
                   <PropertyItem label="Joined">{formatDate(user.joinedAt)}</PropertyItem>
                   <PropertyItem label="Last active">{formatRelative(user.lastActiveAt)}</PropertyItem>
                   <PropertyItem label="User ID">
-                    <span className="font-mono text-xs text-text-disabled">{user.id}</span>
+                    <span className="font-mono text-xs text-text-tertiary">{user.id}</span>
                   </PropertyItem>
                 </PropertyList>
 
@@ -256,10 +280,13 @@ export function UsersPage() {
                     className="justify-start"
                     disabled={resetPassword.isPending || passwordResetSent}
                     onClick={() =>
-                      void run(async () => {
-                        await resetPassword.mutateAsync(user.id);
-                        setPasswordResetSent(true);
-                      })
+                      void run(
+                        async () => {
+                          await resetPassword.mutateAsync(user.id);
+                          setPasswordResetSent(true);
+                        },
+                        { announce: `Password reset email sent to ${user.email}` },
+                      )
                     }
                   >
                     {passwordResetSent ? "Reset email sent" : "Reset password"}
@@ -274,7 +301,7 @@ export function UsersPage() {
                       variant="outline"
                       className="justify-start"
                       disabled={reinstate.isPending}
-                      onClick={() => void run(() => reinstate.mutateAsync(user.id))}
+                      onClick={() => void run(() => reinstate.mutateAsync(user.id), { announce: `${user.name} reinstated` })}
                     >
                       Reinstate user
                     </Button>
@@ -288,7 +315,7 @@ export function UsersPage() {
                           description:
                             "This will immediately revoke their access to all workspaces. They can be reinstated later.",
                           confirmLabel: "Suspend",
-                          onConfirm: () => void run(() => suspend.mutateAsync(user.id)),
+                          onConfirm: () => void run(() => suspend.mutateAsync(user.id), { announce: `${user.name} suspended` }),
                         })
                       }
                     >
@@ -304,10 +331,13 @@ export function UsersPage() {
                         description: "This permanently removes the user and cannot be undone.",
                         confirmLabel: "Delete",
                         onConfirm: () =>
-                          void run(async () => {
-                            await remove.mutateAsync(user.id);
-                            setDetailId(null);
-                          }),
+                          void run(
+                            async () => {
+                              await remove.mutateAsync(user.id);
+                              setDetailId(null);
+                            },
+                            { announce: `${user.name} deleted`, focusTitle: true },
+                          ),
                       })
                     }
                   >

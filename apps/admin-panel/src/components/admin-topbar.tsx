@@ -30,7 +30,8 @@ export function AdminTopBar() {
         <Button
           variant="outline"
           size="icon-sm"
-          aria-label="Toggle theme"
+          aria-label="Dark mode"
+          aria-pressed={dark}
           onClick={() => setDark((v) => !v)}
         >
           {dark ? <MoonIcon /> : <SunIcon />}

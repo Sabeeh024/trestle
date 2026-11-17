@@ -37,7 +37,7 @@ export default async function HomePage() {
 
       <section aria-label={t("socialProof.label")} className="border-y border-border bg-background-subtle py-12">
         <div className="mx-auto flex max-w-5xl flex-col items-center gap-6 px-6">
-          <p className="text-xs font-semibold tracking-wide text-text-disabled uppercase">{t("socialProof.label")}</p>
+          <p className="text-xs font-semibold tracking-wide text-text-tertiary uppercase">{t("socialProof.label")}</p>
           <ul className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
             {socialProofNames.map((name) => (
               <li key={name} className="text-lg font-semibold text-text-secondary">

@@ -16,8 +16,9 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const UserDetail: Story = {
-  render: () => (
-    <SidePanel className="h-screen max-h-125">
+  args: { "aria-label": "User detail" },
+  render: (args) => (
+    <SidePanel {...args} className="h-screen max-h-125">
       <SidePanelHeader onClose={() => {}}>User detail</SidePanelHeader>
       <SidePanelBody>
         <div className="flex items-center gap-3">

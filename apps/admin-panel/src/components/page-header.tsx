@@ -35,7 +35,9 @@ export function PageHeader({
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-        <h1 className="text-xl leading-heading font-bold">{title}</h1>
+        <h1 id="page-title" tabIndex={-1} className="text-xl leading-heading font-bold outline-none">
+          {title}
+        </h1>
         {action}
       </div>
     </>

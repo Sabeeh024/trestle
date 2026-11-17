@@ -42,8 +42,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     <>
       <Sidebar active="home" />
 
-      <main className="flex min-w-0 flex-1 flex-col">
-        <TopBar crumbs={[t("app:nav.workspace"), t("app:dashboard.title")]} />
+      <main id="main-content" tabIndex={-1} className="flex min-w-0 flex-1 flex-col outline-none">
+        <TopBar crumbs={[t("app:dashboard.title")]} />
 
         <div className="flex flex-1 flex-col gap-8 p-8">
           <div className="flex flex-wrap items-end justify-between gap-4">
@@ -103,7 +103,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                         </Avatar>
                       ))}
                     </AvatarGroup>
-                    <p className="text-xs text-text-disabled">
+                    <p className="text-xs text-text-tertiary">
                       {t("app:dashboard.updated", { time: formatRelative(project.updatedAt, locale) })}
                     </p>
                   </div>

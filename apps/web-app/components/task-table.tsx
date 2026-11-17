@@ -41,7 +41,9 @@ export async function TaskTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-10" />
+            <TableHead className="w-10">
+              <span className="sr-only">{t("app:a11y.done")}</span>
+            </TableHead>
             <TableHead>{t("app:dashboard.table.task")}</TableHead>
             <TableHead>{t("app:dashboard.table.project")}</TableHead>
             <TableHead>{t("app:dashboard.table.priority")}</TableHead>
@@ -65,7 +67,7 @@ export async function TaskTable({
                 <TableCell>
                   <TaskCheckbox taskId={task.id} title={task.title} done={done} />
                 </TableCell>
-                <TableCell className={done ? "text-text-disabled line-through" : "text-text-primary"}>{task.title}</TableCell>
+                <TableCell className={done ? "text-text-tertiary line-through" : "text-text-primary"}>{task.title}</TableCell>
                 <TableCell>
                   <Badge variant="secondary" shape="tag">
                     {projectNames.get(task.projectId)}

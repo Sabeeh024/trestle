@@ -76,7 +76,7 @@ const primitives = extractValues(primitivesJson as TokenNode) as {
 
 type SemanticColors = {
   background: { DEFAULT: string; subtle: string; muted: string };
-  text: { primary: string; secondary: string; disabled: string; inverse: string };
+  text: { primary: string; secondary: string; tertiary: string; disabled: string; inverse: string };
   border: { DEFAULT: string; strong: string };
   action: { primary: string; primaryHover: string; primaryText: string };
   feedback: {
@@ -115,4 +115,3 @@ export const tokens = {
 };
 
 export type Tokens = typeof tokens;
-export type ThemeMode = "light" | "dark";

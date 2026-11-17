@@ -15,15 +15,32 @@ export class ApiError extends Error {
 
 export const isApiError = (error: unknown): error is ApiError => error instanceof ApiError;
 
-/** Builds an ApiError from a failed response, reading the server's `{ error: { code, message } }` body when present. */
+interface ErrorDetail {
+  code?: unknown;
+  message?: unknown;
+  fields?: unknown;
+  status?: unknown;
+}
+
+/** The first error in a body, whether the API sent a GraphQL `{ errors: [{ extensions }] }` or a plain `{ error }` (proxies, size limits). */
+function errorDetail(body: unknown): ErrorDetail | undefined {
+  if (typeof body !== "object" || body === null) return undefined;
+  const { errors, error } = body as { errors?: unknown; error?: ErrorDetail };
+  const first = Array.isArray(errors) ? (errors[0] as { message?: unknown; extensions?: ErrorDetail } | undefined) : undefined;
+  if (first) return { ...first.extensions, message: first.message };
+  return error;
+}
+
+/**
+ * Builds an ApiError from a failed response. A GraphQL error carries its own status in `extensions` (404, 422...), because
+ * the HTTP status is 200 for those; when it is absent the HTTP status is used.
+ */
 export function apiErrorFromResponse(status: number, body: unknown): ApiError {
-  const detail =
-    typeof body === "object" && body !== null && "error" in body
-      ? (body as { error?: { code?: unknown; message?: unknown; fields?: unknown } }).error
-      : undefined;
+  const detail = errorDetail(body);
   const code = typeof detail?.code === "string" ? detail.code : "http_error";
   const message = typeof detail?.message === "string" ? detail.message : `Request failed with status ${status}`;
-  return new ApiError(message, code, status, readFields(detail?.fields));
+  const effective = typeof detail?.status === "number" ? detail.status : status;
+  return new ApiError(message, code, effective, readFields(detail?.fields));
 }
 
 function readFields(value: unknown): Record<string, string> | undefined {

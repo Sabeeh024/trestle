@@ -102,6 +102,7 @@ export function ProjectViewClient({ projectId, initialTaskId }: { projectId: str
       <div className="flex shrink-0 gap-1 px-6 pt-4">
         <button
           type="button"
+          aria-pressed={view === "board"}
           onClick={() => setView("board")}
           className={`rounded-md px-3.5 py-1.5 text-sm font-semibold ${
             view === "board" ? "bg-background shadow-sm" : "text-text-secondary"
@@ -111,6 +112,7 @@ export function ProjectViewClient({ projectId, initialTaskId }: { projectId: str
         </button>
         <button
           type="button"
+          aria-pressed={view === "list"}
           onClick={() => setView("list")}
           className={`rounded-md px-3.5 py-1.5 text-sm font-semibold ${
             view === "list" ? "bg-background shadow-sm" : "text-text-secondary"
@@ -136,7 +138,7 @@ export function ProjectViewClient({ projectId, initialTaskId }: { projectId: str
                   <div className="flex items-center gap-2 px-1 text-sm font-semibold text-text-secondary">
                     <Badge variant={statusVariant[status]} dot shape="pill" className="border-none bg-transparent px-0" />
                     {tDomain(`taskStatus.${status}`)}
-                    <span className="font-normal text-text-disabled">{columnTasks.length}</span>
+                    <span className="font-normal text-text-tertiary">{columnTasks.length}</span>
                   </div>
                   {columnTasks.map((item) => (
                     <TaskCard key={item.id} task={item} active={item.id === activeId} onOpen={() => setSelectedId(item.id)} />
@@ -150,7 +152,9 @@ export function ProjectViewClient({ projectId, initialTaskId }: { projectId: str
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-10" />
+                  <TableHead className="w-10">
+                    <span className="sr-only">{t("a11y.done")}</span>
+                  </TableHead>
                   <TableHead>{t("projectView.table.task")}</TableHead>
                   <TableHead>{t("projectView.table.priority")}</TableHead>
                   <TableHead>{t("projectView.table.assignee")}</TableHead>
@@ -163,8 +167,19 @@ export function ProjectViewClient({ projectId, initialTaskId }: { projectId: str
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <TaskCheckbox taskId={item.id} title={item.title} done={item.status === "done"} />
                     </TableCell>
-                    <TableCell className={item.status === "done" ? "text-text-disabled line-through" : "text-text-primary"}>
-                      {item.title}
+                    <TableCell className={item.status === "done" ? "text-text-tertiary line-through" : "text-text-primary"}>
+                      <button
+                        type="button"
+                        aria-expanded={item.id === activeId}
+                        aria-controls="task-detail-panel"
+                        className="rounded-sm text-start outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/30"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedId(item.id);
+                        }}
+                      >
+                        {item.title}
+                      </button>
                     </TableCell>
                     <TableCell>
                       <Badge variant={priorityVariant[item.priority]} dot>
@@ -185,7 +200,7 @@ export function ProjectViewClient({ projectId, initialTaskId }: { projectId: str
         )}
 
         {activeId ? (
-          <SidePanel>
+          <SidePanel key={activeId} id="task-detail-panel" aria-label={t("projectView.taskPanel")} onClose={() => setSelectedId(null)}>
             <SidePanelHeader onClose={() => setSelectedId(null)}>{activeId}</SidePanelHeader>
             <SidePanelBody className="overflow-y-auto">
               {task.isPending ? <p className="text-sm text-text-secondary">{tCommon("loading")}</p> : null}
@@ -239,7 +254,7 @@ export function ProjectViewClient({ projectId, initialTaskId }: { projectId: str
                         <div className="flex flex-col gap-0.5">
                           <div className="flex items-baseline gap-2">
                             <span className="text-sm font-semibold">{item.author.name}</span>
-                            <span className="text-xs text-text-disabled">{formatRelative(item.createdAt, lng)}</span>
+                            <span className="text-xs text-text-tertiary">{formatRelative(item.createdAt, lng)}</span>
                           </div>
                           <p className="text-sm leading-relaxed">{item.body}</p>
                         </div>

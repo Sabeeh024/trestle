@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "pnpm install --frozen-lockfile --filter marketing-app...",
+  "buildCommand": "pnpm --filter @trestle/design-tokens build && pnpm --filter marketing-app build"
+}

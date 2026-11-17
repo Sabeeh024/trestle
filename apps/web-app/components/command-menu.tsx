@@ -98,6 +98,9 @@ export function CommandMenu({ placeholder }: { placeholder: string }) {
     }
   }
 
+  // Spoken (not shown): sighted users see the list change; this tells everyone else what the search found.
+  const statusText = !searching || loading ? "" : projects.error || tasks.error ? t("search.failed") : results.length === 0 ? t("search.empty", { query: q }) : t("search.resultsCount", { count: results.length });
+
   const groups = (["pages", "projects", "tasks"] as const)
     .map((group) => ({ group, items: results.filter((result) => result.group === group) }))
     .filter(({ items }) => items.length > 0);
@@ -109,8 +112,8 @@ export function CommandMenu({ placeholder }: { placeholder: string }) {
         onClick={() => setOpen(true)}
         className="flex max-w-90 flex-1 items-center justify-between gap-2 rounded-md bg-muted px-2.5 py-1.5 text-start"
       >
-        <span className="text-sm text-text-disabled">{placeholder}</span>
-        <kbd className="rounded-sm border border-border-strong px-1 text-xs font-semibold text-text-disabled">⌘K</kbd>
+        <span className="text-sm text-text-tertiary">{placeholder}</span>
+        <kbd className="rounded-sm border border-border-strong px-1 text-xs font-semibold text-text-tertiary">⌘K</kbd>
       </button>
 
       <Dialog open={open} onOpenChange={(next) => (next ? setOpen(true) : close())}>
@@ -132,13 +135,13 @@ export function CommandMenu({ placeholder }: { placeholder: string }) {
               setActive(0);
             }}
             onKeyDown={onKeyDown}
-            className="w-full border-b border-border bg-transparent px-4 py-3 text-base outline-none placeholder:text-text-disabled"
+            className="w-full border-b border-border bg-transparent px-4 py-3 text-base outline-none placeholder:text-text-tertiary"
           />
 
           <div id={listId} role="listbox" className="max-h-80 overflow-y-auto p-2">
             {groups.map(({ group, items }) => (
               <div key={group} role="group" aria-label={t(`search.${group}`)} className="mb-1">
-                <p className="px-2 py-1.5 text-xs font-semibold text-text-disabled">{t(`search.${group}`)}</p>
+                <p className="px-2 py-1.5 text-xs font-semibold text-text-tertiary">{t(`search.${group}`)}</p>
                 {items.map((result) => {
                   const index = results.indexOf(result);
                   return (
@@ -154,13 +157,16 @@ export function CommandMenu({ placeholder }: { placeholder: string }) {
                       }`}
                     >
                       <span className="truncate">{result.label}</span>
-                      {result.hint ? <span className="shrink-0 text-xs text-text-disabled">{result.hint}</span> : null}
+                      {result.hint ? <span className="shrink-0 text-xs text-text-tertiary">{result.hint}</span> : null}
                     </div>
                   );
                 })}
               </div>
             ))}
 
+            <div role="status" aria-live="polite" className="sr-only">
+              {statusText}
+            </div>
             {searching && loading && results.length === 0 ? (
               <p className="px-2 py-6 text-center text-sm text-text-secondary">{t("search.searching")}</p>
             ) : null}

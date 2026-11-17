@@ -6,6 +6,7 @@ import { LoginPage } from "@/pages/login";
 import { UsersPage } from "@/pages/users";
 import { OrganizationsPage } from "@/pages/organizations";
 import { AuditLogPage } from "@/pages/audit-log";
+import { AccountPage } from "@/pages/account";
 
 export function App() {
   return (
@@ -17,6 +18,7 @@ export function App() {
           <Route path="users" element={<UsersPage />} />
           <Route path="organizations" element={<OrganizationsPage />} />
           <Route path="audit-log" element={<AuditLogPage />} />
+          <Route path="account" element={<AccountPage />} />
         </Route>
       </Route>
     </Routes>

@@ -11,7 +11,7 @@ const navItems = [
 
 export function AdminSidebar() {
   return (
-    <aside className="flex w-50 shrink-0 flex-col gap-0.5 border-r border-border bg-background-subtle p-2">
+    <nav aria-label="Main" className="flex w-50 shrink-0 flex-col gap-0.5 border-r border-border bg-background-subtle p-2">
       <div className="mb-2 flex items-center gap-2 p-2">
         <Logo size="sm" wordmark={false} />
         <span className="text-[13px] font-bold">Trestle Admin</span>
@@ -31,6 +31,6 @@ export function AdminSidebar() {
           {item.label}
         </NavLink>
       ))}
-    </aside>
+    </nav>
   );
 }

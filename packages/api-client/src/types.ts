@@ -1,4 +1,4 @@
-// API contract shared by the mock server and its consumers. Dates are ISO 8601 strings.
+// API contract shared by the API server and its consumers. Dates are ISO 8601 strings.
 
 export type CategoricalColor = "purple" | "cyan" | "green" | "orange" | "blue" | "pink";
 export type ProjectStatus = "active" | "planning" | "onHold" | "archived";
@@ -32,15 +32,15 @@ export interface User {
   initials: string;
   email: string;
   orgId: string;
+  /** The name of the organization the user belongs to. */
+  orgName: string;
   role: UserRole;
   status: UserStatus;
   joinedAt: string;
   lastActiveAt: string | null;
 }
 
-export interface AdminUser extends User {
-  orgName: string;
-}
+export type AdminUser = User;
 
 export interface UserSummary {
   id: string;
@@ -180,6 +180,26 @@ export interface ForgotPasswordInput {
   email: string;
 }
 
+export interface ChangePasswordInput {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface SessionInfo {
+  id: string;
+  createdAt: string;
+  lastUsedAt: string;
+  /** The browser or client that signed in, as it identified itself. */
+  userAgent: string | null;
+  /** The session making this request. */
+  current: boolean;
+}
+
+export interface ResetPasswordInput {
+  token: string;
+  password: string;
+}
+
 export interface SsoInput {
   email: string;
 }
@@ -208,7 +228,8 @@ export interface ContactInput {
 }
 
 export interface LoginResult {
-  token: string;
+  /** Null when the client asked for a cookie session: the token is then never exposed to the page. */
+  token: string | null;
   user: User;
 }
 
@@ -225,7 +246,6 @@ export interface UpdateProjectInput {
   description?: string;
   color?: CategoricalColor;
   status?: ProjectStatus;
-  progress?: number;
   dueDate?: string | null;
 }
 

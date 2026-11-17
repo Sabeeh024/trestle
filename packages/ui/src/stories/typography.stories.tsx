@@ -31,7 +31,7 @@ export const Scale: Story = {
     <div className="flex flex-col gap-4">
       {sizes.map((size) => (
         <div key={size.className} className="flex items-baseline gap-4">
-          <span className="w-32 shrink-0 font-mono text-xs text-text-disabled">{size.label}</span>
+          <span className="w-32 shrink-0 font-mono text-xs text-text-tertiary">{size.label}</span>
           <span className={`${size.className} font-semibold text-text-primary`}>
             The quick brown fox
           </span>
@@ -46,7 +46,7 @@ export const Weights: Story = {
     <div className="flex flex-col gap-3">
       {weights.map((weight) => (
         <div key={weight.className} className="flex items-baseline gap-4">
-          <span className="w-40 shrink-0 font-mono text-xs text-text-disabled">{weight.label}</span>
+          <span className="w-40 shrink-0 font-mono text-xs text-text-tertiary">{weight.label}</span>
           <span className={`${weight.className} text-lg text-text-primary`}>
             The quick brown fox jumps
           </span>

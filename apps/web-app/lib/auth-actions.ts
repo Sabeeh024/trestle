@@ -1,20 +1,20 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { isApiError } from "@trestle/api-client";
 import {
   fieldErrors,
   forgotPasswordSchema,
   loginSchema,
+  resetPasswordSchema,
   signupSchema,
   ssoSchema,
   type z,
 } from "@trestle/api-client/schemas";
 import { defaultLocale, isLocale } from "@trestle/i18n";
 
-import { api } from "@/lib/api";
-import { SESSION_COOKIE } from "@/lib/session";
+import { authApi as api } from "@/lib/api";
+import { clearSessionCookie, setSessionCookie } from "@/lib/session-cookie";
 
 // These return a plain result instead of throwing: errors thrown from a Server Action are redacted in
 // production builds, and the forms need the code and per-field messages to show the right thing.
@@ -32,13 +32,10 @@ function failure(error: unknown): ActionResult {
   return { ok: false, code: error.code, message: error.message, status: error.status, ...(error.fields ? { fields: error.fields } : {}) };
 }
 
-async function startSession(token: string) {
-  (await cookies()).set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    secure: process.env.NODE_ENV === "production",
-  });
+// This app has a server, so the API hands it the token and it keeps the token in its own HttpOnly cookie.
+async function startSession(token: string | null) {
+  if (!token) throw new Error("The API did not return a session token");
+  await setSessionCookie(token);
 }
 
 export async function loginAction(input: unknown): Promise<ActionResult> {
@@ -85,7 +82,23 @@ export async function forgotPasswordAction(input: unknown): Promise<ActionResult
   }
 }
 
+export async function resetPasswordAction(input: unknown): Promise<ActionResult> {
+  const parsed = resetPasswordSchema.safeParse(input);
+  if (!parsed.success) return invalid(parsed.error);
+  try {
+    await api.auth.resetPassword(parsed.data);
+    return { ok: true };
+  } catch (error) {
+    return failure(error);
+  }
+}
+
 export async function signOutAction(locale: string) {
-  (await cookies()).delete(SESSION_COOKIE);
+  // Revoke the session on the server first: deleting the cookie alone would leave the token valid until it
+  // expires. If the API is unreachable the cookie is still removed, so the person is signed out here.
+  try {
+    await api.auth.logout();
+  } catch {}
+  await clearSessionCookie();
   redirect(`/${isLocale(locale) ? locale : defaultLocale}/login`);
 }

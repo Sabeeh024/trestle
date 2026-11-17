@@ -9,14 +9,15 @@ import { Input } from "@trestle/ui/components/ui/input";
 import { Field, FormError } from "@trestle/ui/components/field";
 import { Logo } from "@trestle/ui/components/logo";
 
-import { getToken, setToken, useToken } from "@/lib/session";
+import { api } from "@/lib/api";
+import { startSession, useSession } from "@/lib/session";
 import { translate } from "@/lib/validation";
 
 // Only these roles may use the panel, so anyone else is turned away here rather than shown empty tables.
 const ADMIN_ROLES = ["owner", "admin"];
 
 export function LoginPage() {
-  const token = useToken();
+  const session = useSession();
   const navigate = useNavigate();
   const location = useLocation();
   const login = useLogin();
@@ -25,21 +26,22 @@ export function LoginPage() {
   const from = (location.state as { from?: string } | null)?.from;
 
   const onSubmit = submitForm(form, async (values) => {
-    const { token: issued, user } = await login.mutateAsync(values);
+    const { user } = await login.mutateAsync(values);
     if (!ADMIN_ROLES.includes(user.role)) {
+      // The API has already opened a session for them; end it rather than leave a cookie behind.
+      await api.auth.logout().catch(() => undefined);
       throw new ApiError("You don't have access to the admin panel.", "forbidden", 403);
     }
-    setToken(issued);
+    startSession(user);
     navigate(from ?? "/", { replace: true });
   });
 
-  // Already signed in (checked on the stored token, so it also covers a second tab).
-  if (token && getToken()) return <Navigate to="/" replace />;
+  if (session.status === "signed-in") return <Navigate to="/" replace />;
 
   const formError = rootError(form, translate);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background-subtle px-4">
+    <main className="flex min-h-screen items-center justify-center bg-background-subtle px-4">
       <div className="flex w-full max-w-sm flex-col gap-5 rounded-lg border border-border bg-background p-8 shadow-sm">
         <div className="flex flex-col items-center gap-3">
           <Logo wordmark={false} size="lg" />
@@ -69,6 +71,6 @@ export function LoginPage() {
           </Button>
         </form>
       </div>
-    </div>
+    </main>
   );
 }

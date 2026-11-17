@@ -73,7 +73,7 @@ export function OrganizationsPage() {
 
       <div className="min-h-0 flex-1 overflow-auto px-4 pb-4">
         <div className="overflow-hidden rounded-lg border border-border">
-          <Table>
+          <Table aria-label="Organizations">
             <TableHeader>
               <TableRow>
                 <TableHead>Organization</TableHead>
@@ -105,7 +105,7 @@ export function OrganizationsPage() {
                       {statusLabel[o.status]}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-text-disabled">{formatDate(o.createdAt)}</TableCell>
+                  <TableCell className="text-text-tertiary">{formatDate(o.createdAt)}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger

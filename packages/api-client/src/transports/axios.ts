@@ -5,6 +5,11 @@ import type { Transport, TransportOptions } from "../transport";
 
 export interface AxiosTransportOptions extends TransportOptions {
   axiosConfig?: CreateAxiosDefaults;
+  /**
+   * Keep the session in an HttpOnly cookie the browser manages instead of a token the page holds: requests carry
+   * credentials, and sign-in asks the API for a cookie. The API must allow this origin with credentials.
+   */
+  cookieSession?: boolean;
 }
 
 function toApiError(error: unknown): unknown {
@@ -21,8 +26,15 @@ export function createAxiosTransport({
   onUnauthorized,
   timeoutMs = 15_000,
   axiosConfig,
+  cookieSession = false,
 }: AxiosTransportOptions): Transport & { client: AxiosInstance } {
-  const client = axios.create({ baseURL, timeout: timeoutMs, headers: { Accept: "application/json" }, ...axiosConfig });
+  const client = axios.create({
+    baseURL,
+    timeout: timeoutMs,
+    headers: { Accept: "application/json", ...(cookieSession ? { "X-Auth-Mode": "cookie" } : {}) },
+    withCredentials: cookieSession,
+    ...axiosConfig,
+  });
 
   client.interceptors.request.use(async (config) => {
     const token = await getToken?.();

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
 import { initServerI18next, getT, getResources, generateI18nStaticParams } from "next-i18next/server";
 import { I18nProvider } from "next-i18next/client";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getDirection, isLocale } from "@trestle/i18n";
 import i18nConfig from "../../i18n.config";
@@ -35,6 +36,8 @@ export default async function RootLayout({
 }) {
   const { lng } = await params;
   if (!isLocale(lng)) notFound();
+  // Set by proxy.ts for the Content-Security-Policy; the inline theme script needs it to run.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   const { i18n } = await getT();
   const resources = getResources(i18n);
@@ -43,7 +46,8 @@ export default async function RootLayout({
     // suppressHydrationWarning: the theme script adds the "dark" class before React hydrates.
     <html lang={lng} dir={getDirection(lng)} className={manrope.variable} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        {/* The bundler hands this nonce to the <style> tags that libraries inject at runtime (the dialog's scroll lock). */}
+        <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: `${nonce ? `window.__webpack_nonce__=${JSON.stringify(nonce)};` : ""}${themeInitScript}` }} />
       </head>
       <body>
         <ThemeSync />

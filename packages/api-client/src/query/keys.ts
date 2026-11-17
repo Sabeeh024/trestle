@@ -10,6 +10,7 @@ import type {
 export const queryKeys = {
   me: ["me"] as const,
   dashboard: ["dashboard"] as const,
+  sessions: ["sessions"] as const,
   projects: {
     all: ["projects"] as const,
     list: (params?: ProjectListParams) => ["projects", "list", params ?? {}] as const,

@@ -15,6 +15,7 @@ import { queryKeys } from "./keys";
 export function createQueries(api: Api) {
   return {
     me: () => queryOptions({ queryKey: queryKeys.me, queryFn: ({ signal }) => api.auth.me({ signal }) }),
+    sessions: () => queryOptions({ queryKey: queryKeys.sessions, queryFn: ({ signal }) => api.auth.sessions.list({ signal }) }),
     dashboard: () => queryOptions({ queryKey: queryKeys.dashboard, queryFn: ({ signal }) => api.dashboard.get({ signal }) }),
     projects: {
       list: (params?: ProjectListParams) =>

@@ -20,6 +20,7 @@ export const tailwindPreset: Partial<Config> = {
         text: {
           primary: "var(--text-primary)",
           secondary: "var(--text-secondary)",
+          tertiary: "var(--text-tertiary)",
           disabled: "var(--text-disabled)",
           inverse: "var(--text-inverse)",
         },
