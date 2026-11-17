@@ -44,7 +44,7 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "shadcn": "^4.21.0",
-    "storybook": "^9.1.13",
+    "storybook": "^10.6.7",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vite": "^6.3.6"
