@@ -36,6 +36,6 @@
     "embedded-postgres": "18.4.0-beta.17",
     "esbuild": "^0.28.2",
     "tsx": "^4.19.2",
-    "typescript": "^5"
+    "typescript": "^7"
   }
 }

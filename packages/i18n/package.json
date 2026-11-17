@@ -15,6 +15,6 @@
   "devDependencies": {
     "@trestle/typescript-config": "workspace:*",
     "i18next": "^26.4.2",
-    "typescript": "^5"
+    "typescript": "^7"
   }
 }
