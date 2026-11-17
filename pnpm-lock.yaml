@@ -283,7 +283,7 @@ importers:
         version: link:../../packages/auth
       drizzle-orm:
         specifier: ^0.45.3
-        version: 0.45.3(@electric-sql/pglite@0.5.8)(pg@8.23.1)(postgres@3.4.9)
+        version: 0.45.3(@electric-sql/pglite@0.5.8)(pg@8.23.1)(postgres@4.1.1)
       graphql:
         specifier: ^16.14.2
         version: 16.14.2
@@ -291,8 +291,8 @@ importers:
         specifier: ^4.13.12
         version: 4.13.12
       postgres:
-        specifier: ^3.4.9
-        version: 3.4.9
+        specifier: ^4.1.1
+        version: 4.1.1
       zod:
         specifier: ^4.6.5
         version: 4.6.5
@@ -5207,9 +5207,9 @@ packages:
     resolution: {integrity: sha512-9ZhXKM/rw350N1ovuWHbGxnGh/SNJ4cnxHiM0rxE4VN41wsg8P8zWn9hv/buK00RP4WvlOyr/RBDiptyxVbkZQ==}
     engines: {node: '>=0.10.0'}
 
-  postgres@3.4.9:
-    resolution: {integrity: sha512-GD3qdB0x1z9xgFI6cdRD6xu2Sp2WCOEoe3mtnyB5Ee0XrrL5Pe+e4CCnJrRMnL1zYtRDZmQQVbvOttLnKDLnaw==}
-    engines: {node: '>=12'}
+  postgres@4.1.1:
+    resolution: {integrity: sha512-1kJDojqNZC+iTHHXh6eif0J98LUtyLAePe/qkW1GK35eh2JixlsAiIKq3FGI+xqI+SUGTNodzf7TScVeIIyUug==}
+    engines: {node: '>=18'}
 
   powershell-utils@0.1.0:
     resolution: {integrity: sha512-dM0jVuXJPsDN6DvRpea484tCUaMiXWjuCn++HGTqUWzGDjv5tZkEZldAJ/UMlqRYGFrD/etByo4/xOuC/snX2A==}
@@ -8765,11 +8765,11 @@ snapshots:
       esbuild: 0.25.12
       tsx: 4.23.15
 
-  drizzle-orm@0.45.3(@electric-sql/pglite@0.5.8)(pg@8.23.1)(postgres@3.4.9):
+  drizzle-orm@0.45.3(@electric-sql/pglite@0.5.8)(pg@8.23.1)(postgres@4.1.1):
     optionalDependencies:
       '@electric-sql/pglite': 0.5.8
       pg: 8.23.1
-      postgres: 3.4.9
+      postgres: 4.1.1
 
   dunder-proto@1.0.1:
     dependencies:
@@ -10353,7 +10353,7 @@ snapshots:
     dependencies:
       xtend: 4.0.2
 
-  postgres@3.4.9: {}
+  postgres@4.1.1: {}
 
   powershell-utils@0.1.0: {}
 
