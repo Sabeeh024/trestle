@@ -21,7 +21,7 @@
     "@trestle/api-client": "workspace:*",
     "@trestle/auth": "workspace:*",
     "drizzle-orm": "^0.45.3",
-    "graphql": "^16.14.2",
+    "graphql": "^17.1.0",
     "hono": "^4.13.12",
     "postgres": "^3.4.9",
     "zod": "^4.6.5"
