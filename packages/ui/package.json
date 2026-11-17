@@ -46,7 +46,7 @@
     "shadcn": "^4.21.0",
     "storybook": "^9.1.13",
     "tailwindcss": "^4",
-    "typescript": "^5",
+    "typescript": "^7",
     "vite": "^6.3.6"
   }
 }
